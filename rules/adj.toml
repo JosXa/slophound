@@ -1,0 +1,91 @@
+# slophound adjective rules. Detection layer: spaCy part-of-speech + dependency parse.
+#
+# These rules catch adjectives that language models attach to their own work
+# or to abstractions as unearned praise: "a surgical update", "an elegant
+# solution", "the fix is clean". A person reviewing a diff says what it
+# changes, not how tasteful it is. The parse lets us flag "surgical update"
+# while leaving "the surgical team" alone: same adjective, different head noun.
+#
+# Fields per [[rule]] are the same as in verb.toml:
+#   id            "adj.<slug>", unique. Must start with "adj.".
+#   severity      "warning" by default for this layer (parser-inferred).
+#   dependency    spaCy DependencyMatcher pattern, list of nodes. Anchor node
+#                 is {RIGHT_ID, RIGHT_ATTRS}; the rest add LEFT_ID and REL_OP.
+#                 DEP="amod" is an adjective modifying a noun (head = the noun,
+#                 so use REL_OP="<" from the adjective to reach it, or anchor on
+#                 the noun and go ">" to the adjective). DEP="acomp" is a
+#                 predicate adjective ("the fix is clean").
+#   unless        Optional regex tested against the containing sentence; a
+#                 match drops the finding.
+#   message       Shown verbatim under the offending line.
+#   example       Sentences that MUST trigger the rule.
+#   acceptable    Sentences that MUST NOT trigger it. Both required.
+#   most_common_in  Informational.
+#
+# False positive? Fix the rule, not the document: narrow the noun list or add
+# the sentence to `acceptable`, run `./slophound test`, then offer to upstream.
+
+[[rule]]
+id = "adj.self-appraisal-attributive"
+severity = "warning"
+message = "Praising your own change (surgical, elegant, clean, minimal, robust ...) is a claim the reader cannot check. Say what the change does and what it leaves alone."
+most_common_in = ["claude", "gpt"]
+dependency = [
+  { RIGHT_ID = "noun", RIGHT_ATTRS = { LEMMA = { IN = ["update", "fix", "change", "diff", "patch", "refactor", "solution", "approach", "implementation", "rewrite", "abstraction", "design", "cut", "edit", "tweak", "workaround", "migration", "cleanup", "adjustment"] }, POS = "NOUN" } },
+  { LEFT_ID = "noun", REL_OP = ">", RIGHT_ID = "adj", RIGHT_ATTRS = { DEP = "amod", LEMMA = { IN = ["surgical", "elegant", "clean", "minimal", "robust", "seamless", "graceful", "principled", "thoughtful", "careful", "tasteful", "pragmatic", "sensible", "lightweight", "focused", "targeted", "tidy", "neat", "solid", "sane"] } } },
+]
+example = [
+  "It's a surgical update to the parser.",
+  "We shipped an elegant solution for retries.",
+  "This is a clean, minimal change.",
+  "A robust implementation of the queue.",
+]
+acceptable = [
+  "The surgical team arrived at six.",
+  "The minimal supported version is 3.11.",
+  "The update changes two constants in config.py.",
+  "The clean build takes four minutes.",
+]
+unless = "\\bminimal (supported|required|viable|version|reproducible|reproduction|example)\\b|\\bclean (build|room|install|checkout|slate)\\b"
+
+[[rule]]
+id = "adj.self-appraisal-predicative"
+severity = "warning"
+message = "\"The fix is clean/elegant/surgical\" is self-praise. Replace with what the reviewer can verify: files touched, behaviour changed, tests added."
+most_common_in = ["claude", "gpt"]
+dependency = [
+  { RIGHT_ID = "cop", RIGHT_ATTRS = { LEMMA = "be", POS = { IN = ["AUX", "VERB"] } } },
+  { LEFT_ID = "cop", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { IN = ["fix", "change", "diff", "patch", "refactor", "solution", "approach", "implementation", "design", "update", "rewrite", "abstraction", "result", "code"] } } },
+  { LEFT_ID = "cop", REL_OP = ">", RIGHT_ID = "adj", RIGHT_ATTRS = { DEP = "acomp", LEMMA = { IN = ["surgical", "elegant", "clean", "minimal", "robust", "seamless", "graceful", "principled", "thoughtful", "tasteful", "pragmatic", "sensible", "lightweight", "tidy", "neat", "solid", "sane", "straightforward", "trivial"] } } },
+]
+example = [
+  "The fix was surgical and small.",
+  "The design is elegant.",
+  "The change is minimal.",
+]
+acceptable = [
+  "The fix is in commit 4f2a9c.",
+  "The design is documented in ADR 12.",
+  "The room was clean when we arrived.",
+]
+
+[[rule]]
+id = "adj.abstraction-praise"
+severity = "warning"
+message = "Adjectives like powerful, seamless, intuitive, or robust on a component describe a feeling. Give the measurement or the guarantee instead."
+most_common_in = ["gpt", "gemini", "claude"]
+dependency = [
+  { RIGHT_ID = "noun", RIGHT_ATTRS = { LEMMA = { IN = ["abstraction", "primitive", "api", "interface", "framework", "platform", "tool", "toolkit", "library", "system", "architecture", "pipeline", "integration", "experience", "workflow", "foundation", "layer", "ecosystem", "model", "mechanism"] }, POS = { IN = ["NOUN", "PROPN"] } } },
+  { LEFT_ID = "noun", REL_OP = ">", RIGHT_ID = "adj", RIGHT_ATTRS = { DEP = "amod", LEMMA = { IN = ["powerful", "seamless", "intuitive", "robust", "elegant", "flexible", "scalable", "versatile", "comprehensive", "holistic", "unified", "cohesive", "frictionless", "effortless", "delightful", "innovative", "cutting-edge", "state-of-the-art", "sophisticated", "streamlined"] } } },
+]
+example = [
+  "We built a powerful abstraction over the storage layer.",
+  "A seamless integration with the billing system.",
+  "The new primitive is a flexible foundation for retries.",
+]
+acceptable = [
+  "The storage abstraction exposes get, put, and delete.",
+  "The integration retries three times with backoff.",
+  "A scalable vector graphic keeps its edges at any zoom level.",
+]
+unless = "\\bscalable vector\\b"

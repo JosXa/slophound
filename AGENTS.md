@@ -13,15 +13,15 @@ Python scripts run through `uv`; rules in TOML.
 
 ### Why
 
-Agents cannot see the slop they wrote. The same model that produced "this buys us a week of headroom" will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist burns reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
+Agents cannot see the slop they wrote. The same model that produced `this buys us a week of headroom` will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist burns reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
 
-A deterministic linter removes the judgement call. Red means fix it, green means done, and the same text produces the same findings on every run. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. We don't preclude eventually adding an LLM to the mix, but for now it remains a deterministic set of NLP tools that surface typical AI-isms.
+A deterministic linter removes the judgement call. Red means fix it, green means done, and the same text produces the same findings on every run. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. We don't preclude eventually adding an LLM to the mix, but for now it remains a deterministic set of NLP tools that report typical AI-isms.
 
 The goal is text that people do not mind reading. Whether a machine wrote it is nobody's business.
 
 ### Scope
 
-Software and SaaS writing: ADRs, PRDs, plans, specs, README files, design documents, pull request descriptions, internal wiki pages. Generic AI-writing patterns apply everywhere, so most rules are register-agnostic, but the catalog leans toward the engineering vocabulary that current models overuse ("load-bearing", "footgun", "the shape of the problem", "that holds", "earns its keep", "surgical change").
+Software and SaaS writing: ADRs, PRDs, plans, specs, README files, design documents, pull request descriptions, internal wiki pages. Generic AI-writing patterns apply everywhere, so most rules are register-agnostic, but the catalog leans toward the engineering vocabulary that current models overuse (`load-bearing`, `footgun`, `the shape of the problem`, `that holds`, `earns its keep`, `surgical change`).
 
 Inputs are single documents of at most a few tens of thousands of tokens.
 

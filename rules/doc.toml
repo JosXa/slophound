@@ -1,0 +1,230 @@
+# slophound document rules. Detection layer: document statistics.
+#
+# These rules look at the whole text rather than a phrase: rhythm, repetition,
+# and layout habits that only show up in aggregate. One triad is fine; a triad
+# every third sentence is a machine. Findings from this layer are
+# "suggestion" severity: they never fail a run, they tell the writer where the
+# text feels generated even when no single sentence is wrong.
+#
+# Fields per [[rule]]:
+#   id              "doc.<slug>", unique. Must start with "doc.".
+#   severity        Normally "suggestion".
+#   metric          Name of a metric implemented in hound/layer_doc.py. Each
+#                   metric computes one number over the document. Available:
+#                     sentence_length_cv        coefficient of variation of
+#                                               sentence lengths (fires when
+#                                               value <= threshold: uniform
+#                                               sentences read as generated)
+#                     paragraph_opener_repeats  how many extra paragraphs start
+#                                               with the same two words
+#                     sentence_opener_run       longest run of consecutive
+#                                               sentences in one paragraph that
+#                                               start with the same word
+#                     triad_density             "X, Y, and Z" lists per 100 words
+#                     bold_label_bullets        bullets shaped "- **Label:** text"
+#                     connective_openers        paragraphs opening with However,
+#                                               Moreover, Ultimately, ...
+#                     short_paragraph_share     share of one-sentence paragraphs
+#                     participial_closer_share  share of sentences ending in
+#                                               ", ensuring/enabling/... X"
+#                     em_dash_density           em dashes per 100 words
+#   threshold       Number. The rule fires when value >= threshold, except for
+#                   metrics documented as "fires when value <= threshold".
+#   min_sentences   Optional. Skip documents shorter than this many sentences.
+#   min_paragraphs  Optional. Skip documents with fewer paragraphs.
+#   message         Shown verbatim; the measured value is appended in brackets.
+#   example         A document (multi-line string) that MUST trigger the rule.
+#   acceptable      A document that MUST NOT trigger it. Both required.
+#
+# False positive? Raise the threshold or the minimum size, add the document to
+# `acceptable`, run `./slophound test`, then offer to upstream the change.
+
+[[rule]]
+id = "doc.uniform-sentence-length"
+severity = "suggestion"
+metric = "sentence_length_cv"
+threshold = 0.30
+min_sentences = 8
+message = "Sentences are all about the same length. People vary: a long one, then a short one. Merge two, split one, cut one."
+example = [
+'''
+The service reads the queue every ten seconds by default. It then writes the results to the shared table. The worker retries failed items up to three times. Each retry waits twice as long as the one before it. The dashboard shows the current backlog for every tenant. Alerts fire when the backlog grows past five hundred. Operators can pause a tenant from the admin page. The pause takes effect within one polling interval.
+''',
+]
+acceptable = [
+'''
+The service polls the queue every ten seconds. Failed items retry three times, each wait doubling, so a poisoned message costs about seventy seconds before it lands in the dead-letter table where somebody has to look at it. Alerts fire at five hundred. Operators can pause a tenant from the admin page; the pause takes effect on the next poll. That is the whole loop. Nothing else touches the table, which is why the migration in March went unnoticed for a week. We added a row count to the dashboard afterwards.
+''',
+]
+
+[[rule]]
+id = "doc.repeated-paragraph-opener"
+severity = "suggestion"
+metric = "paragraph_opener_repeats"
+threshold = 2
+min_paragraphs = 4
+message = "Several paragraphs open with the same words. Vary the openings or merge the paragraphs."
+example = [
+'''
+The system handles retries by re-queueing the message.
+
+The system handles timeouts by cancelling the request.
+
+The system handles duplicates by checking the idempotency key.
+
+The system handles overload by shedding low-priority work.
+''',
+]
+acceptable = [
+'''
+Retries re-queue the message with a delay.
+
+Timeouts cancel the outbound request and log the elapsed time.
+
+Duplicates are dropped when the idempotency key has been seen in the last hour.
+
+Under overload the scheduler sheds low-priority work first.
+''',
+]
+
+[[rule]]
+id = "doc.sentence-opener-run"
+severity = "suggestion"
+metric = "sentence_opener_run"
+threshold = 3
+message = "Three or more consecutive sentences start with the same word. That drumbeat reads as generated; rewrite one of them."
+example = [
+'''
+We moved the cache. We dropped the lock. We rewrote the scheduler. We shipped on Friday.
+''',
+]
+acceptable = [
+'''
+We moved the cache first. The lock went next, once the cache no longer needed it. Rewriting the scheduler took the rest of the week and shipped on Friday.
+''',
+]
+
+[[rule]]
+id = "doc.triad-density"
+severity = "suggestion"
+metric = "triad_density"
+threshold = 1.5
+min_sentences = 4
+message = "Too many three-item lists (X, Y, and Z). Models default to three; give the real count, even if it is two or five."
+example = [
+'''
+The service is fast, reliable, and cheap. It handles retries, timeouts, and duplicates. Operators get dashboards, alerts, and runbooks. The team gained speed, confidence, and sleep.
+''',
+]
+acceptable = [
+'''
+The service is fast and, since March, cheap. It handles retries and timeouts; duplicates are the caller's problem for now. Operators get a dashboard and a pager. The team sleeps better, which was the point.
+''',
+]
+
+[[rule]]
+id = "doc.bold-label-bullets"
+severity = "suggestion"
+metric = "bold_label_bullets"
+threshold = 3
+message = "A list of **Label:** bullets is a slide, not prose. Write sentences, or drop the labels and let the items speak."
+example = [
+'''
+A few things worth noting:
+
+- **Blast radius:** contained to the cache layer.
+- **Footgun removed:** no more manual invalidation.
+- **Substrate:** the new primitive is a plain dict.
+''',
+]
+acceptable = [
+'''
+Three things changed. The blast radius is now contained to the cache layer, manual invalidation is gone, and the new primitive is a plain dict.
+
+- retries
+- timeouts
+- **duplicates** are dropped
+''',
+]
+
+[[rule]]
+id = "doc.connective-openers"
+severity = "suggestion"
+metric = "connective_openers"
+threshold = 3
+min_paragraphs = 4
+message = "Several paragraphs open with a connective (However, Moreover, Ultimately ...). Cut them; the order of paragraphs already carries the logic."
+example = [
+'''
+The cache made reads faster.
+
+However, writes got slower.
+
+Moreover, the invalidation logic grew.
+
+Ultimately, we removed it.
+''',
+]
+acceptable = [
+'''
+The cache made reads faster.
+
+Writes got slower, though, because every write now invalidated three keys.
+
+The invalidation logic grew to two hundred lines.
+
+We removed the cache in June.
+''',
+]
+
+[[rule]]
+id = "doc.staccato-paragraphs"
+severity = "suggestion"
+metric = "short_paragraph_share"
+threshold = 0.7
+min_paragraphs = 6
+message = "Most paragraphs are a single sentence. That is LinkedIn rhythm. Group related sentences into paragraphs."
+example = [
+'''
+We moved the cache.
+
+It was slow.
+
+Nobody noticed.
+
+Then the pager went off.
+
+We rolled back.
+
+Lesson learned.
+
+Ship smaller.
+''',
+]
+acceptable = [
+'''
+We moved the cache on a Tuesday. It was slower than the old one, and nobody noticed for two days because the dashboard sampled every fifth request.
+
+Then the pager went off at three in the morning. We rolled back within ten minutes, but the queue had already backed up past the alert threshold.
+
+The lesson is to ship smaller and watch the unsampled numbers for the first hour.
+''',
+]
+
+[[rule]]
+id = "doc.participial-closers"
+severity = "suggestion"
+metric = "participial_closer_share"
+threshold = 0.25
+min_sentences = 4
+message = "Many sentences end with \", ensuring/enabling/highlighting X\". That tail asserts a benefit without evidence. End the sentence at the fact."
+example = [
+'''
+We moved the cache to the edge, ensuring lower latency. The lock was removed, enabling parallel writes. Alerts now fire earlier, allowing faster response. Dashboards were rebuilt, highlighting the backlog.
+''',
+]
+acceptable = [
+'''
+We moved the cache to the edge. Latency dropped from 80 ms to 12 ms at p50. The lock was removed, and writes now run in parallel. Alerts fire at five hundred instead of a thousand, which is early enough for the on-call to act.
+''',
+]

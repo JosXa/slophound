@@ -1,0 +1,129 @@
+# slophound rules: sentence templates (regex layer).
+#
+# A template rule matches a sentence shape rather than fixed words: negation
+# followed by a reveal, clipped fragments in parallel, colon-reveal labels.
+# The regex therefore spans variable content; keep every wildcard bounded
+# (`[^.!?\n]{1,80}`) so a match never swallows a whole paragraph.
+#
+# Same fields as rules/phrase.toml. Templates never run inside headings.
+# Rules run on the prose view: typographic quotes are already straight, so
+# only `'` needs handling in patterns.
+
+[[rule]]
+id = "template.not-x-but-y"
+severity = "error"
+pattern = "\\b(it|this|that|the \\w+|\\w+) (is|was|'s)(n't| not) (just |only |simply |merely |about )?[^.!?\\n;]{1,80}[.;,]\\s*(it|this|that)('s| is| was)( about)? \\b|\\bnot (just|only|merely|simply) (a |an |the |about )?[^.!?\\n,;]{1,60}[,;]?\\s*(but|it's|it is)( also| rather| about)? \\b|\\bit's not about [^.!?\\n]{1,60}[.,;]\\s*it's about\\b|\\bless [^.!?\\n,]{1,40}, more \\b|\\bforget [^.!?\\n.]{1,40}\\. this is\\b|\\bwhat matters (isn't|is not) [^.!?\\n,]{1,60}, it's\\b"
+message = "Negation-then-reveal (\"It's not X, it's Y\"). Delete the negated half and state the positive claim."
+example = [
+  "This isn't just a performance fix, it's a correctness fix.",
+  "It's not about speed. It's about trust.",
+  "The problem was not the cache. It was the lock.",
+  "This is not only faster but also safer.",
+  "Less ceremony, more shipping.",
+]
+acceptable = [
+  "This fixes a correctness bug and, as a side effect, a performance one.",
+  "The lock caused the problem.",
+  "It is not finished. We still need the migration script and a rollback plan.",
+]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "template.not-x-period-y"
+severity = "error"
+pattern = "(^|(?<=[.!?] ))(not|no) [^.!?\\n]{1,40}\\. (the |it's |that's |just |only )?[a-z][^.!?\\n]{1,60}[.!?]|(?<=[.!?] )not (anymore|any longer|now|today|here)\\.[ \\t]*$"
+message = "Clipped negation followed by the correction (\"Not X. Y.\"). Write the claim as one plain sentence."
+example = ["Not anymore. The queue is durable now.", "No more retries. Just one durable write.", "Nothing exercised the failure mode. Not anymore."]
+acceptable = ["No retries were needed during the test window, which surprised the team."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "template.stacked-anaphora"
+severity = "error"
+pattern = "(^|(?<=[.!?] ))(no|not|every|it's|it is|they|we|you) [^.!?\\n]{1,40}\\. \\2 [^.!?\\n]{1,40}\\. \\2 \\b"
+message = "Three or more clauses opening with the same word as a drumbeat. Merge them into one sentence with real connectives."
+example = ["No retries. No queues. No surprises.", "It's fast. It's small. It's done."]
+acceptable = ["The service has no retries, no queues, and therefore fewer surprises during incidents."]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "template.mic-drop"
+severity = "error"
+pattern = "(^|(?<=[.!?] ))(full stop|period|let that sink in|read that again|that's it|that's the (whole )?(point|thing|job|story)|it matters|this works)\\.|\\. that's it\\. that's the \\w+\\."
+message = "Mic-drop fragment for effect. Delete it; the previous sentence already made the point."
+example = ["It's about trust. Full stop.", "Ship it. That's it. That's the job."]
+acceptable = ["The sentence ends with a full stop, then a newline."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "template.self-answered-question"
+severity = "error"
+pattern = "(^|(?<=[.!?] ))(the (result|catch|reason|kicker|problem|best part|bottom line|upshot|cost|answer|fix))\\? [A-Z]"
+message = "Question asked only to answer it in the next breath. Fold the answer into a statement."
+example = ["The result? Two outages in a week.", "The catch? Every retry doubles the load."]
+acceptable = ["Two outages followed in a week.", "What is the result of the query when the table is empty?"]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "template.hollow-acknowledgment"
+severity = "error"
+pattern = "\\b(names?|acknowledges?|raises?|surfaces?|notes?|flags?|highlights?) the (problem|question|issue|risk|tension|tradeoff) without (solving|answering|addressing|resolving|fixing)\\b"
+message = "Naming a problem to sound rigorous while declining to act on it. Either act, or state that it is out of scope and why."
+example = ["The design names the problem without solving it."]
+acceptable = ["The design leaves retries out of scope because the queue already deduplicates."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "template.historical-analogy-stack"
+severity = "error"
+pattern = "\\b(apple|google|facebook|amazon|microsoft|netflix|uber|airbnb|stripe|tesla|kodak|nokia|blockbuster) didn'?t (build|invent|need|start with) [^.!?\\n]{1,40}\\. (apple|google|facebook|amazon|microsoft|netflix|uber|airbnb|stripe|tesla|kodak|nokia|blockbuster) didn'?t\\b"
+message = "Company analogies stacked to borrow authority. Argue the point on its own facts."
+example = ["Apple didn't build Uber. Facebook didn't build Spotify."]
+acceptable = ["Stripe's API design shows that idempotency keys are practical at scale."]
+
+[[rule]]
+id = "template.fake-casual-quote"
+severity = "error"
+pattern = "\\b(go|goes|went|say|says|said|think|thinks|thought|call|calls|called) \"(nope|yep|meh|huh|whatever|good enough|fine|cool|ugh|oops|wait, what)\\W?\""
+message = "Casual word in scare quotes to perform relatability when nobody is quoted. Say it plainly or drop it."
+example = ["Most engineers go \"nope\" at the first sight of the config."]
+acceptable = ["Most engineers refuse to touch the config."]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "template.invented-concept-label"
+severity = "warning"
+pattern = "\\bthe [a-z]+ (paradox|trap|creep|divide|vacuum|inversion|gap|debt|tax|ceiling|cliff)\\b"
+unless = "\\b(technical debt|tech debt|debt ceiling|the gender gap|the pay gap|the digital divide|the fiscal cliff)\\b"
+message = "Coined label presented as established vocabulary. Explain the phenomenon in plain words instead of naming it."
+example = ["We call this the supervision paradox.", "This is the acceleration trap."]
+acceptable = ["The team pays down technical debt every Friday.", "Reviewers approve faster than they read, so review stops catching bugs."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "template.compressed-compound"
+severity = "warning"
+pattern = "\\b[a-z]+-(shaped|aware|local|path|native|first|centric|adjacent|bound|scoped) (output|validation|path|boundary|ownership|approach|design|change|model|story|thinking|work|problem|solution|surface|layer)\\b"
+unless = "\\b(cloud-native|mobile-first|api-first|offline-first|local-first|test-first)\\b"
+message = "Improvised noun compound that needs the working session to decode. Spell out the relationship in a clause."
+example = ["The reviewer wants review-shaped output.", "This is a workspace-local validation path."]
+acceptable = ["The reviewer wants a summary they can read in a minute.", "We build cloud-native services."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "template.false-range"
+severity = "warning"
+pattern = "\\b(ranging|spanning) (everything )?from [^.!?\\n,]{1,40} to \\b|\\beverything from [^.!?\\n,]{1,40} to \\b"
+message = "\"From X to Y\" where X and Y share no scale. List the items or name the actual dimension."
+example = ["The tool handles everything from onboarding to observability."]
+acceptable = ["Response times ranged from 20 ms to 900 ms.", "The tool handles onboarding and observability."]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "template.agent-status-report"
+severity = "warning"
+pattern = "^[ \\t]*(what changed|tests|notes|next steps|summary|changes made|verification)[ \\t]*:[ \\t]*$"
+message = "Status-report section headers over a small change. If one or two sentences say it all, use them."
+example = ["**What changed:**\n\nRenamed a variable.\n\n**Tests:**\n\nNone."]
+acceptable = ["Renamed `foo` to `bar`; no tests touched."]
+most_common_in = ["claude", "gpt"]

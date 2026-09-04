@@ -1,5 +1,24 @@
-#!/bin/sh
-# Placeholder until the linter exists. Accepts any arguments and reports clean,
-# so the pre-commit hook is wired up before there is anything to fail on.
-echo "slophound: not implemented yet, $# file(s) passed unchecked" >&2
-exit 0
+#!/usr/bin/env -S uv run --script --quiet
+# /// script
+# requires-python = ">=3.11,<3.14"
+# dependencies = [
+#   "spacy>=3.8,<3.9",
+#   "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
+# ]
+# ///
+"""slophound: a deterministic linter for prose written by language models.
+
+This file is only the entrypoint. uv reads the dependency block above, builds a
+cached environment on first run, and reuses it afterwards. The implementation
+lives in the sibling `hound/` package.
+"""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from hound.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

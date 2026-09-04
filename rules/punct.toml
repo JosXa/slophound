@@ -1,0 +1,63 @@
+# slophound rules: punctuation and typography (regex layer).
+#
+# These rules run on the masked view, which still has the original characters
+# (code, URLs, tables, front matter and HTML are blanked; nothing is
+# normalised). They care about the literal glyph, so \u escapes name the
+# character being caught.
+#
+# Same fields as rules/phrase.toml.
+
+[[rule]]
+id = "punct.em-dash"
+severity = "error"
+pattern = '\s?\u2014\s?|\s\u2013\s|\s--\s'
+headings = true
+message = "Em dash. Use a period, comma, colon, semicolon, parentheses, or \"because\", \"but\", \"so\". Split the thought if it needs splitting."
+example = ["The cache\u2014once warm\u2014serves most reads.", "It failed \u2013 twice.", "It failed -- twice."]
+acceptable = ["The cache, once warm, serves most reads.", "Pages 12\u201314 cover the setup.", "Use --verbose for more output."]
+most_common_in = ["gpt", "claude", "gemini"]
+
+[[rule]]
+id = "punct.curly-quotes"
+severity = "error"
+pattern = '[\u201c\u201d\u2018\u2019]'
+headings = true
+message = "Typographic quote. Use straight quotes (\" and ') in documents that live in a repository."
+example = ["He called it \u201cdone\u201d.", "It\u2019s fine."]
+acceptable = ["He called it \"done\".", "It's fine."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "punct.emoji"
+severity = "error"
+pattern = '[\U0001F300-\U0001FAFF\u2600-\u27BF\u2B50\u2705\u274C]\uFE0F?'
+headings = true
+message = "Emoji decorating prose. Delete it."
+example = ["## Getting started \U0001F680", "Done \u2705"]
+acceptable = ["## Getting started", "Done."]
+
+[[rule]]
+id = "punct.decorative-separator"
+severity = "error"
+pattern = '\s[\u00b7\u2022\u2192\u21d2]\s'
+headings = true
+message = "Middle dot, bullet, or arrow used as inline decoration. Use a comma, a list, or a plain word."
+example = ["Fast \u00b7 Simple \u00b7 Correct", "Request \u2192 Queue \u2192 Worker"]
+acceptable = ["Fast, simple, and correct.", "The request goes to the queue, then to a worker."]
+
+[[rule]]
+id = "punct.bold-label-restates"
+severity = "warning"
+pattern = '^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\*\*([A-Za-z][^*:\n]{1,40}):?\*\*:?[ \t]*\1\b'
+message = "Bold label that restates the sentence following it. Drop the label."
+example = ["- **Performance:** Performance improved by 40%."]
+acceptable = ["- **Performance:** p95 latency fell by 40%.", "- p95 latency fell by 40%."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "punct.mid-sentence-colon"
+severity = "suggestion"
+pattern = "\\b(if you'?re coming from|for those (familiar|unfamiliar) with|in practice|put differently|the short version|the (tl;dr|tldr)) [^.!?\\n:]{0,60}:\\s+[a-z]"
+message = "Colon as a mid-sentence connector. Let the clause stand as its own sentence."
+example = ["If you're coming from traditional automation: instead of handlers, you describe conditions."]
+acceptable = ["Three formats are supported: JSON, YAML, and TOML."]

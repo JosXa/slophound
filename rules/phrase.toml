@@ -1,0 +1,566 @@
+# slophound rules: fixed phrases (regex layer).
+#
+# A phrase rule fires wherever its regex matches the prose of a document.
+# Code, URLs, tables, front matter, HTML and text inside "double quotes" are
+# masked out before matching, so quoting a bad phrase to talk about it is fine.
+# Phrase rules also run inside headings unless `headings = false`.
+#
+# Fields:
+#   id             "phrase.<slug>", lowercase, unique across all rule files.
+#   severity       "error" | "warning" | "suggestion". Fixed phrases are errors:
+#                  the match is exact, so there is nothing to argue about.
+#   pattern        Python regex, compiled case-insensitive and multiline.
+#                  Use \b for word boundaries. Alternation groups related phrases
+#                  so the report names the family, not 40 separate rules.
+#   unless         Optional regex. If it matches anywhere in the sentence that
+#                  contains the hit, the hit is dropped. Use it to carve out the
+#                  literal sense of a figurative phrase.
+#   message        Full explanation plus the fix. The reader never needs to look
+#                  anything else up.
+#   example        One or more sentences the rule MUST fire on.
+#   acceptable     One or more sentences the rule MUST NOT fire on. Required: a
+#                  rule that cannot name a legitimate near miss is a blacklist.
+#   most_common_in Informational. Model families where the pattern is frequent.
+#
+# Repairing a false positive: tighten `pattern`, add an `unless`, or move the
+# sentence into `acceptable`, then run `./slophound test`. Never edit the
+# document to dodge the rule.
+
+# ---------------------------------------------------------------------------
+# Engineering register
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "phrase.engineering-slang"
+severity = "error"
+pattern = '\b(footguns?|blast radius|belt[- ]and[- ]suspenders|battle[- ]tested|the unlock|the shape of the (problem|solution|work|change|system|data|api)|cent(er|re) of gravity|table stakes)\b'
+message = "Engineering slang used as flavour. Say what the risk, scope, or benefit actually is."
+example = [
+  "This removes a footgun for anyone calling the API without a timeout.",
+  "The blast radius of the change is the whole billing service.",
+  "The unlock here is that we no longer block on the cache.",
+  "The shape of the problem is simple: two writers, one row.",
+]
+acceptable = [
+  "The change affects every caller of the billing service.",
+  "Anyone calling the API without a timeout can hang the worker.",
+]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.load-bearing"
+severity = "error"
+pattern = '\bload[- ]bearing\b'
+unless = '\b(wall|beam|column|structure|structural|building|floor|joist|bridge|concrete|steel|architect)\w*'
+message = "\"Load-bearing\" as a metaphor for \"important\". Say what breaks if it is removed."
+example = ["The retry loop is load-bearing; the whole pipeline depends on it."]
+acceptable = ["The contractor confirmed the wall is load-bearing."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.anthropomorphic-praise"
+severity = "error"
+pattern = '\b(earns? its keep|pays? for itself|pays? dividends|pulls? its weight|punch(es)? above (its|their) weight|does (all )?the (heavy lifting|real work)|stands? on its own|speaks? for (itself|themselves)|deserves? (a )?(mention|closer look|attention))\b'
+message = "Code praised like an employee. Describe the measured effect instead of the character reference."
+example = [
+  "The new index earns its keep on the first query.",
+  "The cache layer does the heavy lifting here.",
+  "The numbers speak for themselves.",
+]
+acceptable = [
+  "The new index cuts the p95 latency from 800 ms to 40 ms.",
+  "The cache layer serves 90% of reads.",
+]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.figurative-verbs"
+severity = "error"
+pattern = '\b(holds? true|holds? promise|lends? credence|runs? (deep|counter to)|sits? (at the intersection of|squarely)|strikes? a chord|carr(y|ies) weight|casts? doubt|falls? by the wayside|rides? on the assumption)\b'
+message = "Figurative verb doing the work of a plain one. Say what happens."
+example = [
+  "This holds true for every consumer of the queue.",
+  "The design sits at the intersection of caching and consistency.",
+  "That assumption carries weight in the migration plan.",
+]
+acceptable = [
+  "This applies to every consumer of the queue.",
+  "The design combines caching with a consistency check.",
+]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.colloquial-verdict"
+severity = "error"
+pattern = "\\b(that'?s|this is|is|was|seems like|becomes|remains) the (right |obvious |smart |safe |correct )?(move|play)( here)?\\b|\\b(the play here is)\\b|\\bwhat (really|actually) matters( here)? is\\b|\\breally lands\\b|\\blands flat\\b"
+message = "Chat-native verdict pasted into a document. Give the reason instead of the vibe."
+example = [
+  "Dropping the retry is the move.",
+  "That's the right move here.",
+  "What really matters is the write path.",
+]
+acceptable = [
+  "Dropping the retry removes the duplicate writes.",
+  "The next move in the game is forced.",
+]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.self-appraisal"
+severity = "error"
+pattern = '\b(a )?(clean|surgical|minimal|small,? focused|straightforward) (fix|update|diff|change|patch|refactor)\b|\bthe straightforward approach\b'
+message = "The change grades its own work. Say what changed and what test proves it."
+example = [
+  "It's a surgical update, a minimal diff, and a clean fix.",
+  "This is a small focused change to the parser.",
+]
+acceptable = [
+  "The change touches two files and adds one test for the empty-input case.",
+  "The surgical team updated the schedule.",
+]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "phrase.completion-claims"
+severity = "error"
+pattern = '\b(implemented and verified|all checks pass|production[- ]ready|fully tested|ready to ship|everything works( as expected)?|works as intended|no action is needed|nothing to worry about)\b'
+message = "Completion claimed without the evidence. State the command that ran and what it printed."
+example = ["The feature is implemented and verified.", "All checks pass and it is production-ready."]
+acceptable = ["`pytest tests/` ran 214 tests and passed on this branch."]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "phrase.generic-benefit"
+severity = "error"
+pattern = '\bthis (keeps the (change|diff|scope) (focused|small|minimal)|avoids unnecessary complexity|ensures predictable behaviou?r|makes the code more maintainable|improves readability)\b'
+message = "Generic benefit tail. Name the concrete gain or delete the sentence."
+example = ["This keeps the change focused.", "This ensures predictable behavior."]
+acceptable = ["This drops the second database round-trip on every page load."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.abstract-metaphor-nouns"
+severity = "error"
+pattern = '\b(cultural |shared |common |the )substrate\b|^[ \t]*substrate:|\b(as|is) (a|our) wedge\b|\bwedge into\b|\bgold[- ]plating\b|\bthe endgame\b|\bbedrock of\b|\bthe nexus of\b|\b(the |a )?(new|core|right|missing|underlying) primitives?\b'
+message = "Abstract metaphor noun standing in for a concrete term. Name the actual component or goal."
+example = ["The event bus is the substrate for everything downstream.", "Search is our wedge into the enterprise.", "The new primitive is a per-tenant queue.", "- **Substrate:** the queue."]
+acceptable = ["The bacteria grow on a nutrient substrate.", "Every downstream service reads from the event bus.", "Integers and strings are primitive types."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.organic-consequence"
+severity = "error"
+pattern = '\b(falls? out|emerges?|arises?|flows?|follows?) (naturally|organically)( from)?\b|\ba natural consequence\b'
+message = "Design decision narrated as physics. Explain the mechanism that produces the result."
+example = ["Idempotency falls out naturally from the key design.", "Retries emerge organically once the queue is durable."]
+acceptable = ["The key includes the request id, so a repeated request maps to the same row."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.strategy-buzzwords"
+severity = "error"
+pattern = '\b(flywheel( effect)?|(build|competitive|defensible) (a )?moat|north[- ]star( metric)?|first[- ]mover advantage|land grab|paradigm shift|move the needle|moves the needle)\b'
+message = "Strategy buzzword instead of a named advantage. Say what the advantage is and who has it."
+example = ["The integrations build a moat.", "Our north star metric is weekly active teams."]
+acceptable = ["Competitors would need two years to replicate the integration catalogue."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.growth-metaphors"
+severity = "error"
+pattern = '\b(nascent|fledgling|embryonic|burgeoning|in its infancy|organic growth)\b'
+message = "Startup-as-organism vocabulary. Give the stage a number: users, revenue, age."
+example = ["The nascent platform is in its infancy."]
+acceptable = ["The platform launched eight months ago and has 40 paying teams."]
+
+# ---------------------------------------------------------------------------
+# Inflation and hollow emphasis
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "phrase.significance-inflation"
+severity = "error"
+pattern = '\b((a|the) testament to|(a|the) (stark |powerful |timely )?reminder (of|that)|(vital|significant|crucial|pivotal|key|critical|important) (role|moment|step|part)|underscores? the (importance|need|value)|watershed moment|cornerstone of|the hallmark of|widely regarded as|(has|have) (established itself|emerged) as|takes? cent(er|re) stage|indelible mark|(enduring|lasting) legacy|marks? a (significant|pivotal|new|major)|(setting|sets) the stage for|paving the way|deeply rooted)\b'
+message = "Significance asserted, not shown. Delete the significance word; if the sentence still stands, it was decoration."
+example = [
+  "This release is a testament to the team's focus.",
+  "Caching plays a crucial role in the new design.",
+  "The migration marks a significant step for the platform.",
+]
+acceptable = [
+  "This release removes the last synchronous call to the billing service.",
+  "The cache serves 90% of read traffic.",
+]
+most_common_in = ["gpt", "claude", "gemini"]
+
+[[rule]]
+id = "phrase.absolute-overreach"
+severity = "error"
+pattern = "\\b(the only (way|real solution|way forward)|the single most important|above all else|more than anything else|there is no (better|other way)|there can be no doubt|make no mistake|there'?s no denying|simply cannot|cannot afford to|can'?t go wrong|will never be the same|second to none)\\b"
+message = "Certainty nobody checked. State the fact plainly with the evidence you have."
+example = ["Make no mistake, the only way forward is a rewrite.", "You simply cannot ship without this."]
+acceptable = ["A rewrite is the option the team preferred after the spike."]
+
+[[rule]]
+id = "phrase.urgency-inflation"
+severity = "error"
+pattern = "\\b(cannot be (overstated|understated)|can'?t be emphasi[sz]ed enough|more (important|critical|urgent|relevant|essential) than ever|(has|have) never been (more important|easier|higher)|the stakes (have never been|are) higher|at (a crossroads|an inflection point|a critical juncture|a pivotal moment|a defining moment)|in an increasingly (complex|connected|digital|competitive) world|reshape how we think about|define the next era|in today'?s (fast[- ]paced|digital|rapidly evolving|ever[- ]changing|competitive|modern)|ever[- ]evolving)\\b"
+message = "Moment-of-history framing that fits any topic in any year. Cut it and start with the fact."
+example = ["The importance of observability cannot be overstated.", "In today's fast-paced world, latency matters more than ever."]
+acceptable = ["The p99 latency target is 200 ms."]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.magic-adverbs"
+severity = "error"
+pattern = '\b(quietly|profoundly|remarkably|arguably|fundamentally|deeply) (important|significant|powerful|changed|changes|shifts?|reshapes?|transform\w*|human|simple|elegant|different|flawed|broken)\b'
+message = "Adverb performing depth the content did not earn. Delete it and keep the claim."
+example = ["This quietly changes how the scheduler works.", "The design is profoundly simple."]
+acceptable = ["The scheduler now checks the queue every 50 ms instead of every second."]
+most_common_in = ["claude"]
+
+[[rule]]
+id = "phrase.promotional"
+severity = "error"
+pattern = '\b(boasts?|vibrant|nestled|in the heart of|at the heart of|breathtaking|must[- ]visit|stunning|bustling|picturesque|hidden gem|world[- ]class|a hub for|a beacon of|(a )?treasure trove( of)?|a shining example|a masterclass in|gateway to|thoughtfully designed|cutting[- ]edge|state[- ]of[- ]the[- ]art|best[- ]in[- ]class|game[- ]chang(er|ing)|groundbreaking|revolutioni[sz]e|unparalleled|unprecedented|seamless(ly)?|elevate your|supercharge|unleash|empower(s|ing)?)\b'
+message = "Press-release tone in a technical document. Replace the adjective with a fact or a number."
+example = ["A seamless experience built on a cutting-edge platform.", "The library boasts a vibrant ecosystem."]
+acceptable = ["The platform handles 12,000 requests per second on two nodes.", "The library has 300 contributors."]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.vague-attribution"
+severity = "error"
+pattern = '\b(industry reports|observers have (cited|noted)|experts (argue|say|agree|believe|suggest)|(some|many|most) experts|some critics argue|(studies|research) (show|suggest|indicate)s?|(several|numerous|many) studies|a growing body of|the (evidence|data) suggests|analysts predict|it is widely (regarded|believed|accepted)|many believe|has been described as)\b'
+message = "Authority without a source. Name the study, person, or document, or drop the claim."
+example = ["Studies show that most outages start with a config change.", "Experts agree the approach scales."]
+acceptable = ["The 2019 Google SRE report attributes 70% of outages to config changes."]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.false-agency"
+severity = "error"
+pattern = '\b(the (data|numbers?|results?|story) (tells? a (clear |compelling )?story|paints? a (clear )?picture|speaks? volumes)|sends? a clear message|paints a clear picture)\b'
+message = "Data given a voice so the writer can skip the claim. Quote the numbers and say what they show."
+example = ["The data tells a clear story about retention.", "The numbers paint a clear picture."]
+acceptable = ["Retention fell from 41% to 33% after the pricing change."]
+
+[[rule]]
+id = "phrase.challenges-outlook"
+severity = "error"
+pattern = '\b(despite (these|its|the) (challenges|limitations|hurdles)|while challenges remain|challenges notwithstanding|is not without its challenges|continues to (thrive|evolve|shape|grow)|poised (for|to)|the future (looks|is) bright|exciting times (lie )?ahead|one thing is (certain|clear)|what remains clear is|remains to be seen|positions (it|us|them) (as|for|to))\b'
+message = "Essay closer: vague challenges, vaguely bright future. Both halves are unfalsifiable; cut them."
+example = ["Despite these challenges, the platform continues to evolve.", "The future looks bright for the project."]
+acceptable = ["Two open issues block the 2.0 release: the migration script and the auth rewrite."]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.false-balance"
+severity = "error"
+pattern = '\b(both sides of the (argument|debate)|each perspective has merit|a balanced approach|(a |the )?nuanced (understanding|view|picture)|the answer is not straightforward|there is no (simple|easy) answer|this is a complex (issue|topic|question)|depends on (various|many|a number of) factors|on a case[- ]by[- ]case basis)\b'
+message = "Both-sides hedge that dodges a position. Take the position, or name the specific factor that decides it."
+example = ["The answer is not straightforward and depends on various factors."]
+acceptable = ["Use the queue when the consumer can lag by more than a minute; otherwise call synchronously."]
+
+[[rule]]
+id = "phrase.cliche-metaphors"
+severity = "error"
+pattern = '\b((rich|intricate) tapestry|intricate interplay|delicate balance|double[- ]edged sword|tip of the iceberg|perfect storm|tipping point|at the forefront|only time will tell|unlock(s|ing)? the (full )?(potential|power|secrets)|at the end of the day|between a rock and a hard place|sheds? (new )?light on|strikes? a balance|smoking gun|a (new )?chapter in|dive deep into|deep dive into)\b'
+message = "Stock metaphor that no longer carries an image. Say the literal thing."
+example = ["Observability is a double-edged sword.", "This is only the tip of the iceberg.", "At the end of the day, latency wins."]
+acceptable = ["More logging costs about 4% CPU and pays off during incidents."]
+most_common_in = ["gpt", "gemini", "claude"]
+
+[[rule]]
+id = "phrase.ai-vocabulary"
+severity = "error"
+pattern = '\b(delv(e|es|ed|ing)( into)?|(a |the )?(myriad|plethora|wealth) of|multifaceted|holistic(ally)?|synerg(y|ies|istic)|leverag(e|es|ed|ing) (the|our|its|their|existing|this)|harness(es|ed|ing)? the (power|potential)|foster(s|ing)? (a |an )?(culture|sense|environment|collaboration|innovation)|navigat(e|es|ing) the (complex|landscape|challenges|nuances)|(ever[- ]changing|evolving|competitive|digital|complex) landscape|in the realm of|meticulous(ly)?|streamlin(e|es|ed|ing) (the|our|your)|bolster(s|ed|ing)?|garner(s|ed|ing)?|underpin(s|ned|ning)?|(a |the )?catalyst for|democrati[sz](e|es|ing))\b'
+message = "Word from the model vocabulary. One is coincidence, a cluster is a signature. Use the plain word."
+example = ["We delve into the intricacies of a multifaceted landscape.", "Leverage the existing platform to foster a culture of ownership."]
+acceptable = ["We look at three parts of the system.", "Use the existing platform."]
+most_common_in = ["gpt", "gemini", "llama"]
+
+[[rule]]
+id = "phrase.formal-substitutes"
+severity = "error"
+pattern = '\b(utili[sz](e|es|ed|ing)|facilitat(e|es|ed|ing)|commenc(e|es|ed|ing)|ascertain(s|ed|ing)?|endeavou?r(s|ed|ing)? to|elucidat(e|es|ed|ing)|delineat(e|es|ed|ing)|operationali[sz](e|es|ed|ing)|conceptuali[sz](e|es|ed|ing)|aforementioned|henceforth|whereby|therein|heretofore)\b'
+message = "Latinate formality where a plain word exists. Use it: use, help, start, find out, try."
+example = ["We utilize the aforementioned queue to facilitate delivery."]
+acceptable = ["We use the queue to deliver messages.", "The commencement ceremony is on Friday."]
+most_common_in = ["gpt", "llama"]
+
+[[rule]]
+id = "phrase.academic-excess"
+severity = "error"
+pattern = '\b(warrants? further (investigation|research|study)|sheds? new light|new avenues (for|of)|garnered (significant|considerable|much) attention|a more nuanced understanding of|with the advent of|in recent years,|noteworthy)\b'
+message = "Paper filler performing scholarship. State the finding or the open question."
+example = ["In recent years, this area has garnered significant attention."]
+acceptable = ["Since 2022 three teams have shipped a queue with this shape."]
+
+[[rule]]
+id = "phrase.copula-avoidance"
+severity = "error"
+pattern = '\b(serves? as (a|an|the)|stands? as (a|an|the)|functions? as (a|an|the)|acts? as (a|an|the) (testament|beacon|cornerstone|reminder|bridge|foundation)|constitutes? (a|an|the)|represents? a (shift|departure|milestone|turning point|step))\b'
+message = "Dodging \"is\" with a verb that sounds more considered. Check that \"is\" keeps the meaning, then use it."
+example = ["The gateway serves as a single entry point.", "This represents a shift in how we deploy."]
+acceptable = ["The gateway is the single entry point.", "The proxy acts as a client on behalf of the browser."]
+most_common_in = ["gpt", "gemini"]
+
+# ---------------------------------------------------------------------------
+# Suspense, reveals, and rhetorical scaffolding
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "phrase.false-suspense"
+severity = "error"
+pattern = "\\b(here('?s| is) the (thing|kicker|catch|deal|rub|part)|here'?s where it gets interesting|that'?s the beauty of it|the real (secret|story|question|problem|issue|bottleneck|work|win|cost|risk) (is|was|here|lies)|what this really means is|the (truth|reality) is,?|let me be (honest|clear)|to be honest,|spoiler alert|plot twist|pro tip|hot take|unpopular opinion|the key insight is|the reality is simpler)\\b"
+message = "Transition that promises a revelation. Delete it; the sentence after it is the content."
+example = ["Here's the thing: the cache was never the bottleneck.", "Here is the thing: we never measured it.", "The real bottleneck was the lock."]
+acceptable = ["The cache was never the bottleneck; the lock was."]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "phrase.false-exclusivity"
+severity = "error"
+pattern = "\\b(nobody('?s| is)? (talking|tells you|talks) about|what (nobody|most people) (tells? you|miss|don'?t (know|realize|realise))|the (dirty|open) secret|the uncomfortable truth|the elephant in the room|the hidden cost|the silent killer|doesn'?t get enough attention|most people don'?t reali[sz]e)\\b"
+message = "Forbidden-knowledge framing for something plainly documented. State the point without the intrigue."
+example = ["Here's what nobody tells you about retries.", "The uncomfortable truth is that the tests were skipped."]
+acceptable = ["The tests were skipped in CI for two weeks."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.metacommentary"
+severity = "error"
+pattern = "\\b(at its (core|heart)|the key here is|let me explain|let'?s (unpack|break this down|dive in(to)?|explore|take a closer look)|this is where \\w+ comes in|this matters because|(the )?key takeaway|the takeaway is|quick (recap|overview)|to recap|in other words|simply put|put simply|to put it another way|said differently|in plain english|in simpler terms|what i mean is)\\b"
+message = "The text talks about itself. Cut the narration and make the point once."
+example = ["At its core, the scheduler is a priority queue.", "Simply put, we were double-writing."]
+acceptable = ["The scheduler is a priority queue.", "We were double-writing."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.rhetorical-prompts"
+severity = "error"
+pattern = '\b(ask yourself|the (litmus|acid) test|the question to ask is|why does this matter\? because|why should you care|what if i told you)\b|\bthink about it[.:]'
+message = "Coaching-register prompt quizzing the reader. State the answer."
+example = ["Ask yourself: who owns the retry?", "Think about it. Every write is a risk."]
+acceptable = ["The service that enqueues the job owns the retry."]
+
+[[rule]]
+id = "phrase.dramatic-labels"
+severity = "error"
+pattern = '(^|(?<=[.!?] ))(the (catch|kicker|upshot|tradeoff|trick|downside|bottom line|takeaway|result|fix|payoff|problem|reason|best part|good news|bad news))(\?|:)'
+headings = false
+message = "Punchy label, colon, then the sentence. The label adds drama and no information; start with the sentence."
+example = ["The catch: every retry doubles the load.", "The kicker: nobody was paged."]
+acceptable = ["Every retry doubles the load.", "The bottom line of the invoice shows the tax."]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "phrase.patronizing-analogy"
+severity = "error"
+pattern = "\\b(think of (it|this|them) (as|like)|it'?s (a bit |kind of |sort of )?like a)\\b"
+message = "An analogy the reader did not need. Describe the thing itself."
+example = ["Think of it as a waiting room for requests.", "It's like a valet for your database connections."]
+acceptable = ["The pool holds up to 20 idle connections and hands them out on request."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.narrative-pivots"
+severity = "error"
+pattern = "\\b(something (shifted|clicked)|everything changed|that changed everything|this changes everything|and then it hit me|that'?s when i reali[sz]ed|a light ?bulb went off|the penny dropped|changed the game|flipped the script|shifted the paradigm)\\b"
+message = "Cinematic turning point pasted onto an ordinary event. Say what you learned and when."
+example = ["Then something clicked: the lock was held across the network call."]
+acceptable = ["The profiler showed the lock held across the network call."]
+
+[[rule]]
+id = "phrase.false-vulnerability"
+severity = "error"
+pattern = "\\b(this (is|isn'?t) (not )?a rant|i'?ll (admit|be the first to admit)|full disclosure|i'?m not going to (lie|pretend)|confession time|i'?ll say it)\\b"
+message = "Risk-free self-disclosure performing honesty. Drop the framing; keep the claim."
+example = ["I'll be the first to admit the first design was wrong."]
+acceptable = ["The first design was wrong: it assumed one writer."]
+
+# ---------------------------------------------------------------------------
+# Structure narration
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "phrase.opening-cliche"
+severity = "error"
+pattern = "\\b(in the world of|in an era (where|of)|in a world where|picture this|imagine a world where|have you ever wondered|embark(ing)? on a journey|gone are the days|whether you'?re a|chances are,?|you'?re not alone|look no further|without further ado|we live in a world|before we dive in)\\b"
+message = "Stock opener that could preface anything. Cut it and start with the second sentence."
+example = ["In the world of distributed systems, retries are everywhere.", "Whether you're a beginner or an expert, this guide has you covered."]
+acceptable = ["Retries appear in every service that calls another one."]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.signposted-conclusion"
+severity = "error"
+pattern = '\b(in conclusion|in summary|to summari[sz]e|to sum up|to conclude|in closing|all in all|when all is said and done|in the final analysis|final (thoughts|word)|closing thoughts|wrapping up|putting it all together|the big picture)\b'
+message = "Announcing the ending instead of ending. Delete the phrase; if the recap repeats the body, delete that too."
+example = ["In conclusion, the migration was worth it.", "Final thoughts"]
+acceptable = ["The migration removed 40% of the write latency."]
+most_common_in = ["gpt", "gemini", "llama"]
+
+[[rule]]
+id = "phrase.sequencing-scaffold"
+severity = "error"
+pattern = '\b(firstly|secondly|thirdly|lastly|the (first|second|third) (takeaway|lesson|reason|thing to note)|the first step is)\b'
+message = "Numbered-essay skeleton. Use a list if the items are a list, otherwise connect the sentences."
+example = ["Firstly, the cache is cold. Secondly, the index is missing."]
+acceptable = ["The cache is cold and the index is missing.", "The first step of the wizard asks for a name."]
+most_common_in = ["gpt", "llama"]
+
+[[rule]]
+id = "phrase.content-announcement"
+severity = "error"
+pattern = "\\b(below you'?ll find|here'?s (a breakdown|an overview|everything you need to know)|the following sections will|this (guide|post|document|article) will (walk|take) you through|what (you'?ll|we'?ll) (learn|cover)|what to expect|a few things worth noting)\\b"
+message = "Narrating what the text will do instead of doing it. Delete and present the content."
+example = ["Here's a breakdown of the changes.", "A few things worth noting:"]
+acceptable = ["The changes are: a new index, a shorter timeout, and one removed retry."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.formula-heading"
+severity = "error"
+pattern = '^[ \t]*(#{1,6}[ \t]+)?(deep dive|under the hood|demystifying|why (it|this) matters|a closer look|the ultimate guide|everything you need to know|mastering|unlocking|the (power|magic|future|art) of|revolutioni[sz]ing|challenges and (legacy|controversies)|future outlook|looking ahead)\b'
+headings = true
+message = "Content-marketing heading template. Name what the section contains."
+example = ["## Under the hood", "## Why it matters"]
+acceptable = ["## How the scheduler picks the next job", "The mechanic looked under the hood."]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.cataphoric-count"
+severity = "error"
+pattern = '\b(three|four|five|six|3|4|5|6) (core |key |main |guiding )?(pillars|principles|tenets|cornerstones|levers|buckets)\b|\b(here are the|there are) (three|four|five|six|3|4|5|6) (reasons|ways|things|pillars|principles)\b|\bfalls? into (three|four|five|six) (categories|buckets)\b'
+message = "A count forecasting a list, with framework nouns. Present the items; the reader can count."
+example = ["The design rests on three pillars.", "There are four reasons this failed."]
+acceptable = ["The design has an ingest step, a store, and a query API.", "The bridge has three pillars."]
+unless = "\\b(bridge|building|temple|roof|porch|hall|stone|concrete|marble)\\b"
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.restatement"
+severity = "error"
+pattern = '\b(that being said|with that said|that said,|it( is|\x27s) (important|worth) (to note|noting)( that)?|it should be noted that|it goes without saying|needless to say|generally speaking|begs the question|raises important questions)\b'
+message = "Throat-clearing before the point. Delete it."
+example = ["It's worth noting that the cache is cold on deploy.", "Needless to say, the tests failed."]
+acceptable = ["The cache is cold on deploy.", "The tests failed."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.filler-quantity"
+severity = "error"
+pattern = '\b(a wide (range|variety|array) of|a variety of|(a )?(myriad|plethora|wealth|host) of|countless|for the purpose of|has the potential to|is capable of|when it comes to|in terms of|in the context of)\b'
+message = "Vague quantity or filler connective. Give the count or the name, or cut the phrase."
+example = ["The tool supports a wide range of formats.", "When it comes to caching, we use Redis."]
+acceptable = ["The tool reads JSON, YAML, and TOML.", "We cache in Redis."]
+most_common_in = ["gpt", "llama"]
+
+[[rule]]
+id = "phrase.defensive-hedge"
+severity = "error"
+pattern = '\b(this may seem|it might sound obvious,? but|admittedly,|to be fair,|on the surface,|at first glance,)'
+message = "Pre-defending against an objection nobody raised. Make the point without the wind-up."
+example = ["At first glance, this may seem like overkill."]
+acceptable = ["The retry budget is five attempts."]
+
+[[rule]]
+id = "phrase.dead-transition"
+severity = "error"
+pattern = '(^|(?<=[.!?] ))(furthermore|moreover|moving forward|to put this in perspective|what makes this particularly interesting is|the implications here are|additionally|consequently|subsequently|nevertheless|conversely|notably|importantly|significantly|crucially|essentially|fundamentally|what\x27s more|that is to say),?\s'
+headings = false
+message = "Essay connective at sentence start. \"And\", \"but\", \"so\", or nothing carries the same load."
+example = ["Furthermore, the index was missing.", "Additionally, the timeout was too short."]
+acceptable = ["The index was also missing.", "This is fundamentally a locking bug."]
+most_common_in = ["gpt", "gemini", "llama"]
+
+# ---------------------------------------------------------------------------
+# Conversation and model residue
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "phrase.assistant-pleasantry"
+severity = "error"
+pattern = "\\b(i'?d be happy to|i hope this helps|hope (this|that) (was )?help(s|ful)|you'?re absolutely right|you make an excellent point|i couldn'?t agree more|would you like me to|let me know if|feel free to (ask|reach out)|don'?t hesitate to|happy to help|happy coding|best of luck|(great|excellent|good) question[!.,]|i'?m glad you asked|i assure you)\\b|^(of course|certainly|absolutely)!"
+message = "Assistant pleasantry inside a delivered artifact. Conversation bled into the product; delete it."
+example = ["Let me know if you'd like me to expand on any of this. I hope this helps!", "Certainly! Here is the summary."]
+acceptable = ["The summary follows.", "The great question of the century remains open."]
+most_common_in = ["gpt", "claude", "gemini"]
+
+[[rule]]
+id = "phrase.model-self-reference"
+severity = "error"
+pattern = "\\b(as an ai( language model)?|as a large language model|as of my (last|knowledge) (training|update|cutoff)|based on my training data|i don'?t have access to real[- ]time|up to my last training update)\\b"
+message = "The model naming itself or its limits inside an artifact. Delete it."
+example = ["As of my last training update, the API had no rate limit."]
+acceptable = ["The API had no rate limit as of March 2024."]
+
+[[rule]]
+id = "phrase.knowledge-gap-speculation"
+severity = "error"
+pattern = '\b(while specific details are limited|not widely documented|based on (the )?available information|maintains a low profile|the subject likely)\b'
+message = "Confident invention where information is missing. State what is unknown and stop."
+example = ["While specific details are limited, the service likely uses a queue."]
+acceptable = ["The service's queueing model is not described in the docs."]
+
+[[rule]]
+id = "phrase.conversation-residue"
+severity = "error"
+pattern = '\b(as discussed|per (the plan|review feedback|our conversation|your request)|as requested,? i|following your instructions|i avoided \w+ as instructed|now also handles)\b'
+message = "Trace of the working session left in the artifact. Would a reader who never saw the session understand it?"
+example = ["As discussed, the parser now also handles empty input.", "Per review feedback, the retry is gone."]
+acceptable = ["The parser accepts empty input and returns an empty list."]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "phrase.reasoning-artifact"
+severity = "error"
+pattern = "\\b(let me think step by step|to approach this systematically|here'?s my thought process|working through this logically|let'?s think about this)\\b"
+message = "Scratch reasoning left in the output. Keep the conclusion, delete the thinking-aloud."
+example = ["Let me think step by step about the failure."]
+acceptable = ["The failure has two causes."]
+
+[[rule]]
+id = "phrase.vague-back-reference"
+severity = "error"
+pattern = "\\b(as (mentioned|noted|discussed|stated) (above|earlier|previously|before)|as we (saw|will see|'?ll see)|as previously mentioned|as i (mentioned|said)( before| earlier)?)\\b"
+message = "Backward pointer without a target. Link the section or repeat the one fact you need."
+example = ["As mentioned above, the cache is cold after deploy."]
+acceptable = ["The cache is cold after deploy (see Deployment)."]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.unfilled-placeholder"
+severity = "error"
+pattern = '\[(your name|link to \w+|describe the|insert \w+( here)?|todo|tbd|placeholder)[^\]\n]*\]|\b\d{4}-XX-XX\b|\binsert \w+ here\b'
+message = "Template slot survived into the finished text. Fill it or delete it."
+example = ["Contact [Your Name] for access.", "Ship date: 2025-XX-XX."]
+acceptable = ["Contact the platform team for access."]
+
+[[rule]]
+id = "phrase.inflated-numbers"
+severity = "error"
+pattern = '\b(10x your|the (ai|digital) revolution|the age of ai|future[- ]proof(ing|s)?)\b'
+message = "Titlebait multiplier or era label. Give the measured number or drop the claim."
+example = ["Future-proof your stack and 10x your productivity."]
+acceptable = ["The change cut build time from 12 minutes to 4."]
+
+[[rule]]
+id = "phrase.fallback-diagnosis"
+severity = "warning"
+pattern = "\\b(it'?s|this is|that'?s|likely|probably|looks like|seems like|must be|classic) (a |the )?(race condition|memory leak|deadlock)\\b"
+message = "Diagnosis label asserted without a mechanism. Name the two operations that race, the object that leaks, or the locks that wait."
+example = ["This is probably a race condition."]
+acceptable = ["Two workers read the counter before either writes it back, so one increment is lost."]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "phrase.compliment-sandwich"
+severity = "error"
+pattern = '\b(step in the right direction|solid (recommendation|suggestion|point)|great (suggestion|work|start|point)|good (start|point|call)),? (but|however|that said)\b'
+message = "Formula praise softening the actual point. State the point."
+example = ["Great work, but the tests are still red."]
+acceptable = ["The tests are still red."]
+most_common_in = ["claude", "gpt"]

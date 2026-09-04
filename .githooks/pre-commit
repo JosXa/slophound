@@ -4,7 +4,8 @@
 # Enable once per clone: git config core.hooksPath .githooks
 set -eu
 
-files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.md')
+# The test corpus is deliberately full of findings; the test runner owns it.
+files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.md' ':!tests/corpus/**')
 [ -n "$files" ] || exit 0
 
 root=$(git rev-parse --show-toplevel)

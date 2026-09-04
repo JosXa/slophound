@@ -1,0 +1,219 @@
+# slophound verb rules. Detection layer: spaCy part-of-speech + dependency parse.
+#
+# These rules catch verbs that language models use figuratively where a person
+# would name the concrete effect: "that buys us a week", "that holds", "the fix
+# lands", "this unlocks". A regex cannot tell "the map holds three keys" (fine)
+# from "that holds even under load" (slop); the parse can, because the slop
+# version has a pronoun subject and no object.
+#
+# Fields per [[rule]]:
+#   id            "verb.<slug>", unique. Must start with "verb.".
+#   severity      "warning" by default for this layer: the parser is small and
+#                 sometimes wrong, so grammar-inferred findings never fail a
+#                 run unless --strict is given.
+#   dependency    A spaCy DependencyMatcher pattern: a list of nodes, or a list
+#                 of such lists when several alternative shapes should fire
+#                 the same rule (see verb.buys-us). Within a pattern the first
+#                 node is the anchor {RIGHT_ID, RIGHT_ATTRS}. Every other node
+#                 has LEFT_ID (an earlier node), REL_OP (">" = direct child of
+#                 LEFT_ID, "<" = parent, ">>" = descendant) and its own
+#                 RIGHT_ID / RIGHT_ATTRS. Attribute keys: LEMMA, POS, TAG, DEP,
+#                 LOWER, ORTH. Values may be strings or {IN = [...]} /
+#                 {NOT_IN = [...]}. Docs: https://spacy.io/usage/rule-based-matching#dependencymatcher
+#   unless        Optional regex, tested case-insensitively against the whole
+#                 sentence that contains the match. If it matches, the finding
+#                 is dropped. Use it to express "no object" or other things the
+#                 matcher cannot say directly.
+#   message       Shown verbatim under the offending line. Say what to write
+#                 instead.
+#   example       One or more sentences that MUST trigger this rule.
+#   acceptable    One or more sentences that MUST NOT trigger it. Both lists
+#                 are required and checked by `./slophound test`.
+#   most_common_in  Informational: model families where the pattern shows up.
+#
+# Parser caveat: en_core_web_sm is small and sometimes tags a verb as a noun
+# ("This lands next sprint" -> lands/NOUN). Examples here are chosen so the
+# parse is right; if a real sentence slips through, add a phrase rule for it
+# rather than fighting the parser.
+#
+# Tag reference for subjects: TAG="DT" matches demonstrative pronouns used as
+# subjects ("this", "that", "which" is WDT), TAG="PRP" matches personal pronouns
+# ("it", "she", "we"). Most figurative uses have a demonstrative subject:
+# "That buys us", "This holds", "This unlocks".
+#
+# False positive? Do not rewrite the document around it. Fix the rule: narrow
+# the dependency pattern or add the sentence to `acceptable`, run
+# `./slophound test`, then offer to upstream the change.
+
+[[rule]]
+id = "verb.buys-us"
+severity = "warning"
+message = "\"buys (us) X\" is a Claude reflex for trading one thing for another. Name the trade: what was spent, what was gained, and for how long."
+most_common_in = ["claude"]
+# Two alternative patterns: a demonstrative or gerund subject ("That buys",
+# "Caching buys"), or any subject with "us" as the beneficiary ("The refactor
+# buys us time").
+dependency = [
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "buy", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "csubj"] }, TAG = { IN = ["DT", "WDT", "VBG"] } } },
+  ],
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "buy", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">>", RIGHT_ID = "us", RIGHT_ATTRS = { LOWER = "us" } },
+  ],
+]
+unless = "\\bbuys? us (lunch|coffee|dinner|drinks|beer|pizza|food|breakfast|tickets|a round)\\b"
+example = [
+  "That buys us a week of headroom.",
+  "This buys a clean seam between the two services.",
+  "Caching the token buys us time until the refactor.",
+  "The refactor buys us time.",
+  "Moving the check earlier buys us a cheaper failure mode.",
+]
+acceptable = [
+  "She buys milk on the way home.",
+  "The company buys back shares every quarter.",
+  "Finance buys the licenses in bulk.",
+  "The office manager buys us lunch on Fridays.",
+  "He buys the team coffee.",
+]
+
+[[rule]]
+id = "verb.holds"
+severity = "warning"
+message = "\"that holds\" asserts an argument survives without saying what was tested. State the condition it survives and what would break it."
+most_common_in = ["claude"]
+dependency = [
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "hold", POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", TAG = { IN = ["DT", "WDT"] } } },
+]
+unless = "\\bh(o|e)ld(s|ing)? (the|a|an|its|our|their|your|my|his|her|up|off|on|back|out|\\d|two|three|several|many|no)\\b"
+example = [
+  "That holds even under load.",
+  "That still holds.",
+  "This holds for every tenant we have looked at.",
+]
+acceptable = [
+  "That holds the lock for too long.",
+  "The map holds three keys.",
+  "This holds up under review.",
+]
+
+[[rule]]
+id = "verb.lands"
+severity = "warning"
+message = "Code does not \"land\". Say merged, deployed, or released, and when."
+most_common_in = ["claude", "gpt"]
+dependency = [
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "land", POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass"] }, LEMMA = { IN = ["fix", "feature", "change", "pr", "patch", "commit", "release", "work", "refactor", "migration", "branch", "update", "version", "this", "that", "it", "rewrite", "improvement", "code"] } } },
+]
+example = [
+  "The fix lands in main tomorrow.",
+  "Once the feature lands, we can delete the flag.",
+  "The change lands next sprint.",
+]
+acceptable = [
+  "The plane lands at noon.",
+  "The ball landed in the neighbour's garden.",
+  "She landed the job after two interviews.",
+]
+
+[[rule]]
+id = "verb.unlocks"
+severity = "warning"
+message = "\"unlocks\" promises value without naming it. Say what becomes possible and why it was blocked before."
+most_common_in = ["claude", "gpt"]
+dependency = [
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "unlock", POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "csubj"] }, TAG = { IN = ["DT", "WDT", "VBG"] } } },
+]
+example = [
+  "This unlocks faster deploys.",
+  "That unlocks a whole class of optimisations.",
+  "Splitting the table unlocks parallel writes.",
+]
+acceptable = [
+  "The key unlocks the door.",
+  "The admin unlocks the account after verification.",
+  "Users unlock the phone with a fingerprint.",
+]
+
+[[rule]]
+id = "verb.surfaces"
+severity = "warning"
+message = "\"surfaces\" as a verb hides who shows what to whom. Say where the information appears and who sees it."
+most_common_in = ["claude"]
+dependency = [
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "surface", POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj" } },
+]
+example = [
+  "Doing so surfaces the bug earlier.",
+  "The tool surfaces slow queries to the on-call engineer.",
+]
+acceptable = [
+  "The submarine surfaced at dawn.",
+  "The API surface grew by twelve endpoints.",
+  "The road surface needs repair.",
+]
+
+[[rule]]
+id = "verb.leans-on"
+severity = "warning"
+message = "\"leans on\" is vague about dependency. Say depends on, calls, or reads, and what happens when that thing is missing."
+most_common_in = ["claude"]
+dependency = [
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "lean", POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "prep", RIGHT_ATTRS = { DEP = "prep", LOWER = "on" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", TAG = { IN = ["DT", "WDT", "NN", "NNS", "NNP"] } } },
+]
+example = [
+  "This leans on the cache heavily.",
+  "The scheduler leans on Redis for locking.",
+]
+acceptable = [
+  "He leaned on the railing and watched the river.",
+  "She leans on her sister for advice.",
+]
+
+[[rule]]
+id = "verb.settles"
+severity = "warning"
+message = "\"that settles it\" declares a debate closed without showing the evidence. State the fact that decides it."
+most_common_in = ["claude"]
+dependency = [
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "settle", POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", TAG = { IN = ["DT", "WDT"] } } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["question", "debate", "it", "matter", "argument", "discussion", "issue"] } } },
+]
+example = [
+  "That settles the question.",
+  "This settles the debate about sharding.",
+]
+acceptable = [
+  "The dust settles after a few minutes.",
+  "The family settled in Hamburg in 1998.",
+  "The court settled the case out of court.",
+]
+
+[[rule]]
+id = "verb.demonstrative-enables"
+severity = "warning"
+message = "\"this enables/allows/ensures X\" states a benefit with no actor. Name who does what as a result."
+most_common_in = ["gpt", "claude", "gemini"]
+dependency = [
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = { IN = ["enable", "ensure", "empower", "streamline", "elevate"] }, POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", TAG = { IN = ["DT", "WDT"] } } },
+]
+example = [
+  "This enables teams to ship faster.",
+  "This ensures consistency across the platform.",
+  "This empowers developers to focus on features.",
+]
+acceptable = [
+  "The flag enables the new parser for 5% of traffic.",
+  "The retry loop ensures every message is delivered at least once.",
+  "Two reviewers must approve before merge.",
+]
