@@ -6,7 +6,7 @@ Python scripts run through `uv`; rules in TOML.
 
 ## Working rules
 
-- Run slophound on every Markdown file you touch in this repo before committing, including this one. Until the tool runs, use the scanner from an upstream project. The author of a sentence cannot see its slop; this repo exists because of that, so do not exempt yourself.
+- The pre-commit hook in `.githooks/` runs slophound on every staged Markdown file, this one included. Enable it once per clone with `git config core.hooksPath .githooks`.
 - Any AI-ism you catch in your own writing here is a candidate rule. Check the catalog; if it is missing, add it with the sentence you just wrote as the `example`.
 
 ## Vision

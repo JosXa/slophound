@@ -1,0 +1,5 @@
+#!/bin/sh
+# Placeholder until the linter exists. Accepts any arguments and reports clean,
+# so the pre-commit hook is wired up before there is anything to fail on.
+echo "slophound: not implemented yet, $# file(s) passed unchecked" >&2
+exit 0

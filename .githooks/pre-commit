@@ -1,0 +1,12 @@
+#!/bin/sh
+# Lint every staged Markdown file with slophound before it lands.
+# The repo dogfoods its own linter: if slophound flags this repo's prose, the commit stops.
+# Enable once per clone: git config core.hooksPath .githooks
+set -eu
+
+files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.md')
+[ -n "$files" ] || exit 0
+
+root=$(git rev-parse --show-toplevel)
+# shellcheck disable=SC2086
+exec "$root/slophound" $files
