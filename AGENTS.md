@@ -4,15 +4,20 @@ A deterministic linter for prose written by language models. It reads a Markdown
 
 Python scripts run through `uv`; rules in TOML.
 
+## Working rules
+
+- Run slophound on every Markdown file you touch in this repo before committing, including this one. Until the tool runs, use the scanner from an upstream project. The author of a sentence cannot see its slop; this repo exists because of that, so do not exempt yourself.
+- Any AI-ism you catch in your own writing here is a candidate rule. Check the catalog; if it is missing, add it with the sentence you just wrote as the `example`.
+
 ## Vision
 
 ### Why
 
 Agents cannot see the slop they wrote. The same model that produced "this buys us a week of headroom" will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist burns reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
 
-A deterministic linter removes the judgement call. Red means fix it, green means done, and the same text produces the same findings on every run. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. Whether a separate model should review what the linter cannot catch is a question for the skill that wraps slophound, not for slophound itself.
+A deterministic linter removes the judgement call. Red means fix it, green means done, and the same text produces the same findings on every run. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. We don't preclude eventually adding an LLM to the mix, but for now it remains a deterministic set of NLP tools that surface typical AI-isms.
 
-The goal is not to disguise machine authorship. The goal is text that people do not mind reading.
+The goal is text that people do not mind reading. Whether a machine wrote it is nobody's business.
 
 ### Scope
 
@@ -29,12 +34,12 @@ Deterministic only. Same input, same output, every run, on every machine.
 Three layers, cheapest first:
 
 1. Regex for fixed phrases and sentence templates ("It's not X. It's Y.").
-2. Part-of-speech and dependency parsing for constructions that regex cannot separate from legitimate use. "The map holds three keys" is fine; "that holds even under load" is not. The difference is grammatical, so the rule is expressed grammatically.
+2. Part-of-speech and dependency parsing for constructions that regex cannot separate from legitimate use. "The map holds three keys" passes while "that holds even under load" fires. The difference is grammatical, so the rule is expressed grammatically.
 3. Document-level statistics for rhythm and repetition: sentence-length uniformity, repeated paragraph openers, triad density, em-dash density.
 
-Established NLP libraries carry layer two. They must load quickly on demand and release cleanly when the run ends; the linter is invoked ad hoc by an agent, not kept resident.
+Established NLP libraries carry layer two. They must load quickly on demand and release cleanly when the run ends, because an agent invokes the linter ad hoc and nothing stays resident between runs.
 
-No language-model scoring, no perplexity detectors, no calls to external services. Those are neither deterministic nor explainable, and both properties are the point.
+No language-model scoring, perplexity detectors, or external services in the core. Those are neither deterministic nor explainable, and both properties are the point. If an LLM ever joins the mix, it runs as a separate layer and has no say in the exit code.
 
 ### Rules
 
@@ -57,7 +62,7 @@ Exit code 0 when there are no errors, 1 when there is at least one error, 2 when
 
 There is no ignore file and there is no inline suppression comment. Documents are one-off deliverables; scattering linter directives through them is its own kind of slop.
 
-A false positive is a bug in a rule. The report tells the agent so, points at the rule file, and asks it to tighten the pattern or add the sentence to `acceptable`, rerun the tests, and offer the fix upstream. The tool improves; the document stays clean.
+A false positive is a bug in a rule. The report tells the agent so, points at the rule file, and asks it to tighten the pattern or add the sentence to `acceptable`, rerun the tests, and offer the fix upstream. Each false positive makes the tool better and leaves the document alone.
 
 Temporary opt-outs are handled through command-line arguments for the current run only.
 
