@@ -74,4 +74,4 @@ slophound is greenfield. It takes ideas from earlier MIT-licensed projects in th
 
 ### Relationship to the humanize skill
 
-slophound consolidates the pattern catalog that previously lived in prose form across a skill, a subagent, and a slash command. Whatever is deterministically checkable moves into rules. The skill keeps only the guidance that needs a model: voice, structure, what to add rather than remove. The skill invokes slophound; it does not duplicate it.
+slophound consolidates the pattern catalog that previously lived in prose form across a skill, a subagent, and a slash command. Whatever is deterministically checkable lives here as rules. The skill keeps only the guidance that needs a model: voice, structure, what to add rather than remove, plus the long-form catalog as a reference for its judgment pass. The skill invokes `slophound` (a symlink on `PATH` to `./slophound` in this repo); it does not duplicate it.

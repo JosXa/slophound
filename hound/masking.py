@@ -103,6 +103,7 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
     line_starts = [0] + [m.end() for m in re.finditer(r"\n", text)]
     blocks: list[Block] = []
     prose_lines: list[str] = []
+    masked_lines: list[str] = []
 
     pos = 0
     current: Block | None = None
@@ -117,6 +118,9 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
             kind = None
         elif _QUOTE_MARK_RE.match(line):
             kind = "quote"
+            if skip_quotes:
+                # --skip-quotes hides quoted text from every layer, punctuation included.
+                line = " " * len(raw_line)
         elif _HEADING_RE.match(line):
             kind = "heading"
         elif _BULLET_RE.match(line):
@@ -140,6 +144,7 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
             prose_line = _blank_prefix(prose_line, _BULLET_RE)
         prose_line = _blank_matches(prose_line, _EMPHASIS_RE)
         prose_lines.append(prose_line)
+        masked_lines.append(line)
 
         line_end = line_start + len(raw_line)
         if kind is None:
@@ -154,7 +159,8 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
             blocks.append(current)
 
     prose = "\n".join(prose_lines)
-    assert len(prose) == len(text), "prose view must keep offsets"
+    masked = "\n".join(masked_lines)
+    assert len(prose) == len(text) == len(masked), "views must keep offsets"
     return Document(path, text, masked, prose, blocks, line_starts)
 
 

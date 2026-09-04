@@ -111,8 +111,9 @@ def check_masking() -> list[str]:
             problems.append(f"masking left {needle!r} visible")
     if "quote here" not in doc.prose:
         problems.append("blockquote text should stay visible by default")
-    if "quote here" in build_document("<sample>", sample, skip_quotes=True).prose:
-        problems.append("--skip-quotes should hide blockquote text")
+    skipped = build_document("<sample>", sample, skip_quotes=True)
+    if "quote here" in skipped.prose or "quote here" in skipped.masked:
+        problems.append("--skip-quotes should hide blockquote text from every layer")
     kinds = [b.kind for b in doc.blocks]
     if kinds[:3] != ["heading", "paragraph", "quote"]:
         problems.append(f"unexpected block kinds {kinds}")
