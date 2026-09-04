@@ -22,7 +22,7 @@ Deterministic. Same input, same output, no model in the loop. Rules are plain TO
 
 Requires only [`uv`](https://docs.astral.sh/uv/). Dependencies resolve on first run and are cached after.
 
-See [VISION.md](./VISION.md) for what this project is and is not.
+See the Vision section in [AGENTS.md](./AGENTS.md) for what this project is and is not.
 
 ## Status
 

@@ -1,10 +1,14 @@
-# Vision
+# slophound
 
-slophound is a deterministic linter for prose written by language models. It reads a Markdown or plain-text file and reports the constructions that make generated text tiresome to read, in a form the agent that wrote the text can act on without further thinking.
+A deterministic linter for prose written by language models. It reads a Markdown or plain-text file and reports the constructions that make generated text tiresome to read, in a form the agent that wrote the text can act on without further thinking.
 
-This document records the decisions that shape the project. Anything not written here is open. Anything written here changes only by editing this file.
+Python scripts run through `uv`; rules in TOML. See the Vision below for the decisions that bound the project.
 
-## Why
+## Vision
+
+The following records the decisions that shape the project. Anything not written here is open. Anything written here changes only by editing this file.
+
+### Why
 
 Agents cannot see the slop they wrote. The same model that produced "this buys us a week of headroom" will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist burns reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
 
@@ -12,7 +16,7 @@ A linter removes the judgement call. Red means fix it, green means done. The aut
 
 The goal is not to disguise machine authorship. The goal is text that people do not mind reading.
 
-## Scope
+### Scope
 
 Software and SaaS writing: ADRs, PRDs, plans, specs, README files, design documents, pull request descriptions, internal wiki pages. Generic AI-writing patterns apply everywhere, so most rules are register-agnostic, but the catalog leans toward the engineering vocabulary that current models overuse ("load-bearing", "footgun", "the shape of the problem", "that holds", "earns its keep", "surgical change").
 
@@ -20,7 +24,7 @@ Inputs are single documents of at most a few tens of thousands of tokens.
 
 Out of scope: medical, legal, or journalistic register handling. Code slop. Rewriting; slophound reports, the author rewrites.
 
-## Detection
+### Detection
 
 Deterministic only. Same input, same output, every run, on every machine.
 
@@ -34,7 +38,7 @@ Established NLP libraries carry layer two. They must load quickly on demand and 
 
 No language-model scoring, no perplexity detectors, no calls to external services. Those are neither deterministic nor explainable, and both properties are the point.
 
-## Rules
+### Rules
 
 Rules live in TOML, split across files by the detection layer that executes them. Each file carries enough comments at the top that an agent can add or repair a rule without reading any other documentation.
 
@@ -45,13 +49,13 @@ Every rule has:
 - at least one `example` sentence the rule must fire on and at least one `acceptable` sentence it must not fire on. The test runner checks both. A rule without an `acceptable` case is rejected, because that is how word blacklists happen.
 - provenance metadata such as which model families the pattern is most common in. This is informational. All rules are always active; there are no per-model profiles or adapters.
 
-## Output
+### Output
 
 Human-readable, modelled on eslint, rustc, and Bun: file, line, column, severity, rule id, the offending line with the match marked, the full rule message. A summary line closes the report with counts per severity and a density figure (findings per hundred words). Density is informational.
 
 Exit code 0 when there are no errors, 1 when there is at least one error, 2 when the tool itself failed. Warnings and suggestions never change the exit code.
 
-## False positives
+### False positives
 
 There is no ignore file and there is no inline suppression comment. Documents are one-off deliverables; scattering linter directives through them is its own kind of slop.
 
@@ -59,12 +63,12 @@ A false positive is a bug in a rule. The report tells the agent so, points at th
 
 Temporary opt-outs are handled through command-line arguments for the current run only.
 
-## Packaging
+### Packaging
 
 Python scripts with dependencies declared inline (PEP 723) and executed through `uv`. Nothing is required on the host beyond `uv` itself. First run downloads and caches; later runs start in under a second.
 
 slophound is greenfield. It takes ideas from earlier MIT-licensed projects in the space and vendors none of their code or catalogs.
 
-## Relationship to the humanize skill
+### Relationship to the humanize skill
 
 slophound consolidates the pattern catalog that previously lived in prose form across a skill, a subagent, and a slash command. Whatever is deterministically checkable moves into rules. The skill keeps only the guidance that needs a model: voice, structure, what to add rather than remove. The skill invokes slophound; it does not duplicate it.
