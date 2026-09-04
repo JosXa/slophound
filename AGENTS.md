@@ -2,11 +2,9 @@
 
 A deterministic linter for prose written by language models. It reads a Markdown or plain-text file and reports the constructions that make generated text tiresome to read, in a form the agent that wrote the text can act on without further thinking.
 
-Python scripts run through `uv`; rules in TOML. See the Vision below for the decisions that bound the project.
+Python scripts run through `uv`; rules in TOML.
 
 ## Vision
-
-The following records the decisions that shape the project. Anything not written here is open. Anything written here changes only by editing this file.
 
 ### Why
 
