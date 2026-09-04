@@ -10,7 +10,7 @@ Python scripts run through `uv`; rules in TOML.
 
 Agents cannot see the slop they wrote. The same model that produced "this buys us a week of headroom" will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist burns reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
 
-A linter removes the judgement call. Red means fix it, green means done. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. No second model, no rubric, no vibes.
+A deterministic linter removes the judgement call. Red means fix it, green means done, and the same text produces the same findings on every run. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. No second model, no rubric, no vibes.
 
 The goal is not to disguise machine authorship. The goal is text that people do not mind reading.
 
