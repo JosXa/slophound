@@ -102,16 +102,23 @@ def check_masking() -> list[str]:
     sample = (
         "---\ntitle: x\n---\n# Heading\n\nText with `code` and a [link](https://x.y/z) and\n\n```\nnot prose\n```\n"
         "> quote here\n\n| a | b |\n|---|---|\n\n<!-- comment --> tail\n\n"
-        "---\nlayout: slide\n---\n\nSee [Artifact Centric Approach](https://x.y/a) and [the guide](https://x.y/g).\n"
+        "---\nlayout: slide\n---\n\nSee [Artifact Centric Approach](https://x.y/a) and [the guide](https://x.y/g).\n\n"
+        "<RepoTree\n  eyebrow=\"Repo layout\"\n  :depth=\"2\"\n/>\n\n"
+        "::: tip\nInside the container.\n:::\n\n"
+        "Costs are 3 < 5 here and stay visible.\n"
     )
     doc = build_document("<sample>", sample)
     if len(doc.masked) != len(sample) or len(doc.prose) != len(sample):
         problems.append("masking changed text length")
-    for needle in ("title: x", "code", "https://x.y/z", "not prose", "| a | b |", "comment", "layout: slide", "Artifact Centric"):
+    for needle in (
+        "title: x", "code", "https://x.y/z", "not prose", "| a | b |", "comment",
+        "layout: slide", "Artifact Centric", "eyebrow", "Repo layout", "::: tip",
+    ):
         if needle in doc.masked:
             problems.append(f"masking left {needle!r} visible")
-    if "the guide" not in doc.prose:
-        problems.append("lowercase link labels are prose and must stay visible")
+    for needle in ("the guide", "Inside the container", "3 < 5 here and stay visible"):
+        if needle not in doc.prose:
+            problems.append(f"{needle!r} is prose and must stay visible")
     if "quote here" not in doc.prose:
         problems.append("blockquote text should stay visible by default")
     skipped = build_document("<sample>", sample, skip_quotes=True)

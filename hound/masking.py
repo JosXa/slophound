@@ -51,9 +51,22 @@ _FRONT_MATTER_RE = re.compile(r"(?:\A|(?<=\n\n))---[ \t]*\n(?:[A-Za-z_][^\n]*\n|
 _LINK_LABEL_RE = re.compile(r"\[([^\]\n]+)\]\(")
 # HTML comments hold speaker notes and reviewer remarks, not delivered prose.
 _HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
-# Inline HTML and Vue/MDX components, single line only so a stray `<` in prose
-# cannot eat a paragraph.
-_HTML_TAG_RE = re.compile(r"</?[A-Za-z][^<>\n]*>")
+# Inline HTML and Vue/MDX components. Attributes may wrap onto following lines
+# (CommonMark HTML blocks allow it and component-heavy Markdown does it a lot), so
+# a tag may span lines as long as everything up to `>` is an attribute list, and
+# quoted attribute values may themselves span lines (`:items="[\n ... \n]"`).
+# A lone `<` in prose has no such continuation and stays visible. Each token is
+# delimited unambiguously (one `\s*`, then a name or quoted string) so a
+# non-matching `<` fails fast instead of backtracking across the document.
+_HTML_TAG_RE = re.compile(
+    r"</?[A-Za-z][A-Za-z0-9.:-]*"  # tag or component name
+    r"(?:\s+[A-Za-z_:@#][\w.:@#-]*(?:=(?:\"[^\"]*\"|'[^']*'|[^\s\"'<>`]+))?)*"
+    r"\s*/?>"
+)
+# Fenced containers (`::: tip` ... `:::`) from markdown-it and its derivatives
+# (VitePress, Docusaurus, Obsidian). Only the marker lines go; the content between
+# them is normal prose and stays linted.
+_CONTAINER_MARK_RE = re.compile(r"^[ \t]*:{3,}[^\n]*$", re.M)
 # Bare URLs. Their path segments look like slug-compounds and hyphenated words.
 _URL_RE = re.compile(r"(?:https?|ftp)://[^\s)>\]]+|www\.[^\s)>\]]+")
 # The `](target)` part of a link, including titles. Runs after the label pass.
@@ -129,6 +142,7 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
     masked = _blank_matches(masked, _INLINE_CODE_RE)
     masked = _blank_matches(masked, _HTML_COMMENT_RE)
     masked = _blank_matches(masked, _HTML_TAG_RE)
+    masked = _blank_matches(masked, _CONTAINER_MARK_RE)
     masked = _blank_title_labels(masked)  # before targets: it keys off `](`
     masked = _blank_matches(masked, _LINK_TARGET_RE)
     masked = _blank_matches(masked, _URL_RE)
