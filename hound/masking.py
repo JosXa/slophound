@@ -14,6 +14,15 @@ Three views, all exactly as long as the source text:
 Blocks describe the structure: each heading, list item, paragraph or blockquote
 paragraph becomes one block with its kind and span, so layers can skip headings
 or quotes and the document layer can reason about paragraphs.
+
+Maintenance rules for this file:
+
+- Every regex carries a comment saying what it matches and why it exists or was
+  changed. Most of them were tightened after a false positive on a real
+  document, and the next reader needs that story to avoid undoing the fix.
+- When a document from the wild exposes a gap, add a reduced copy of the
+  offending construct to `check_masking` in `selftest.py` before changing the
+  regex, so the case stays covered.
 """
 
 from __future__ import annotations
@@ -24,18 +33,42 @@ from dataclasses import dataclass
 # Characters normalised in the prose view. Same length, so offsets survive.
 _QUOTE_MAP = str.maketrans({"\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"'})
 
+# Fenced code, ``` or ~~~, closed by the same fence. Code is never prose.
 _FENCE_RE = re.compile(r"^(```|~~~)[^\n]*\n.*?^\1[^\n]*$", re.M | re.S)
+# Inline code. Documentation quotes phrases in backticks to talk about them, and
+# those must not count as the author using them.
 _INLINE_CODE_RE = re.compile(r"`[^`\n]+`")
-_FRONT_MATTER_RE = re.compile(r"\A---\n.*?\n---[ \t]*\n", re.S)
+# Front matter at the top of the file, plus the per-slide `---` blocks Slidev
+# and Marp put between slides. Both are YAML, never prose. The body lines must
+# look like YAML (key at column 0 or an indented continuation) so a `---`
+# thematic break followed by prose is not swallowed. Added after slide decks
+# reported `layout: default` as a repeated paragraph opener.
+_FRONT_MATTER_RE = re.compile(r"(?:\A|(?<=\n\n))---[ \t]*\n(?:[A-Za-z_][^\n]*\n|[ \t]+[^\n]*\n)*?---[ \t]*\n")
+# Link label of an inline link. Only Title Case labels get blanked (see
+# `_blank_title_labels`): they are names of pages, not the author's words. Added
+# after a link to a Confluence page called "Artifact-Centric Approach" fired
+# `template.compressed-compound`.
+_LINK_LABEL_RE = re.compile(r"\[([^\]\n]+)\]\(")
+# HTML comments hold speaker notes and reviewer remarks, not delivered prose.
 _HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
+# Inline HTML and Vue/MDX components, single line only so a stray `<` in prose
+# cannot eat a paragraph.
 _HTML_TAG_RE = re.compile(r"</?[A-Za-z][^<>\n]*>")
+# Bare URLs. Their path segments look like slug-compounds and hyphenated words.
 _URL_RE = re.compile(r"(?:https?|ftp)://[^\s)>\]]+|www\.[^\s)>\]]+")
+# The `](target)` part of a link, including titles. Runs after the label pass.
 _LINK_TARGET_RE = re.compile(r"\]\([^)\n]*\)")
+# Pipe tables. Cells are fragments and would skew every sentence metric.
 _TABLE_LINE_RE = re.compile(r"^[ \t]*\|.*$", re.M)
+# The markers below are blanked in the prose view so a rule anchored at `^` sees
+# the first word of the heading, item or quote rather than the markup.
 _HEADING_RE = re.compile(r"^(#{1,6})[ \t]+")
 _BULLET_RE = re.compile(r"^([ \t]*)([-*+]|\d+[.)])[ \t]+")
 _QUOTE_MARK_RE = re.compile(r"^([ \t]*>)+[ \t]?")
+# Emphasis delimiters attached to a word on the inner side. A lone `*` or `_`
+# with spaces on both sides is left alone (it might be arithmetic or a name).
 _EMPHASIS_RE = re.compile(r"(\*\*|__|\*|_)(?=\S)|(?<=\S)(\*\*|__|\*|_)")
+# Closing hashes of an ATX heading (`## Title ##`).
 _ATX_TRAILING_RE = re.compile(r"[ \t]+#+[ \t]*$")
 
 
@@ -96,6 +129,7 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
     masked = _blank_matches(masked, _INLINE_CODE_RE)
     masked = _blank_matches(masked, _HTML_COMMENT_RE)
     masked = _blank_matches(masked, _HTML_TAG_RE)
+    masked = _blank_title_labels(masked)  # before targets: it keys off `](`
     masked = _blank_matches(masked, _LINK_TARGET_RE)
     masked = _blank_matches(masked, _URL_RE)
     masked = _blank_matches(masked, _TABLE_LINE_RE)
@@ -162,6 +196,20 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
     masked = "\n".join(masked_lines)
     assert len(prose) == len(text) == len(masked), "views must keep offsets"
     return Document(path, text, masked, prose, blocks, line_starts)
+
+
+def _blank_title_labels(text: str) -> str:
+    """Hide link labels that are names of things, such as page titles in Title Case.
+
+    A lowercase label like [the migration guide](...) is prose and stays visible.
+    """
+    out = text
+    for m in _LINK_LABEL_RE.finditer(text):
+        label = m.group(1)
+        tokens = [t for t in re.split(r"[\s-]+", label) if t]
+        if len(tokens) >= 2 and all(t[0].isupper() or t[0].isdigit() for t in tokens):
+            out = _blank(out, m.start(1), m.end(1))
+    return out
 
 
 def _blank_prefix(line: str, regex: re.Pattern) -> str:

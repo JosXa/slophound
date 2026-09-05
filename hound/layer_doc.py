@@ -16,7 +16,7 @@ from typing import Callable
 
 from .masking import Document
 from .model import Finding, Rule
-from .sentences import sentence_spans, split_block, words
+from .sentences import split_block, words
 
 # metric name -> (function, fires_when_at_least)
 MetricFn = Callable[[Document], tuple[float, tuple[int, int] | None, str]]
@@ -31,12 +31,30 @@ def metric(name: str, at_least: bool = True):
     return deco
 
 
+_SENTENCE_END_RE = re.compile(r"""[.!?:;,]["')\]]*\s*$""")
+
+
 def _paragraphs(doc: Document):
-    return doc.blocks_of("paragraph")
+    """Paragraph blocks that are running prose.
+
+    A single line without closing punctuation is a title, a caption, or a slide
+    heading rather than a paragraph, so the rhythm metrics leave it out. The
+    phrase layers still see it.
+    """
+    out = []
+    for b in doc.blocks_of("paragraph"):
+        text = doc.prose[b.start : b.end]
+        if "\n" not in text and not _SENTENCE_END_RE.search(text):
+            continue
+        out.append(b)
+    return out
 
 
 def _sentences(doc: Document):
-    return sentence_spans(doc, ("paragraph", "list"))
+    spans = []
+    for b in _paragraphs(doc) + doc.blocks_of("list"):
+        spans.extend(split_block(doc.prose, b.start, b.end))
+    return sorted(spans)
 
 
 def _first_words(text: str, n: int) -> str:

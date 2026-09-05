@@ -101,14 +101,17 @@ def check_masking() -> list[str]:
     problems: list[str] = []
     sample = (
         "---\ntitle: x\n---\n# Heading\n\nText with `code` and a [link](https://x.y/z) and\n\n```\nnot prose\n```\n"
-        "> quote here\n\n| a | b |\n|---|---|\n\n<!-- comment --> tail\n"
+        "> quote here\n\n| a | b |\n|---|---|\n\n<!-- comment --> tail\n\n"
+        "---\nlayout: slide\n---\n\nSee [Artifact Centric Approach](https://x.y/a) and [the guide](https://x.y/g).\n"
     )
     doc = build_document("<sample>", sample)
     if len(doc.masked) != len(sample) or len(doc.prose) != len(sample):
         problems.append("masking changed text length")
-    for needle in ("title: x", "code", "https://x.y/z", "not prose", "| a | b |", "comment"):
+    for needle in ("title: x", "code", "https://x.y/z", "not prose", "| a | b |", "comment", "layout: slide", "Artifact Centric"):
         if needle in doc.masked:
             problems.append(f"masking left {needle!r} visible")
+    if "the guide" not in doc.prose:
+        problems.append("lowercase link labels are prose and must stay visible")
     if "quote here" not in doc.prose:
         problems.append("blockquote text should stay visible by default")
     skipped = build_document("<sample>", sample, skip_quotes=True)
