@@ -61,3 +61,12 @@ pattern = "\\b(if you'?re coming from|for those (familiar|unfamiliar) with|in pr
 message = "Colon as a mid-sentence connector. Let the clause stand as its own sentence."
 example = ["If you're coming from traditional automation: instead of handlers, you describe conditions."]
 acceptable = ["Three formats are supported: JSON, YAML, and TOML."]
+
+[[rule]]
+id = "punct.emphasized-copula"
+severity = "error"
+pattern = '(?<![*\w])\*(is|are|was|were|not|does|do|did|will|can)\*(?![*\w])|(?<![_\w])_(is|are|was|were|not|does|do|did|will|can)_(?![_\w])'
+message = "Italicized function word for stress (\"this *is* the fix\"). Spoken emphasis does not survive on the page; restructure the sentence so the contrast is in the words."
+example = ["This *is* the fix.", "The queue _was_ the bottleneck."]
+acceptable = ["This is the fix.", "Use *emphasis* for terms, not for stress."]
+most_common_in = ["claude", "gpt"]
