@@ -57,17 +57,17 @@ Code blocks, inline code, URLs, link targets, tables, front matter, and HTML com
 
 ## How it works
 
-Three detection layers, cheapest first:
+Detection runs in three layers, ordered from cheapest to most expensive:
 
 1. **Regex** for fixed phrases, sentence templates, and punctuation (`rules/phrase.toml`, `rules/template.toml`, `rules/punct.toml`). These bite.
 2. **Dependency parsing** with spaCy for constructions that regex cannot tell apart from legitimate use: "the map holds three keys" passes, "that holds even under load" fires (`rules/verb.toml`, `rules/adj.toml`). These bark.
 3. **Document statistics** for rhythm and repetition: uniform sentence length, repeated paragraph openers, triad density, bold-label bullet lists (`rules/doc.toml`). These sniff.
 
-Every rule carries its own message, at least one `example` sentence it must fire on, and at least one `acceptable` sentence it must leave alone. `./slophound test` checks all of them, plus a small corpus of human and generated text under `tests/corpus/`, plus this repository's own Markdown.
+Every rule has its own message, at least one `example` sentence it must fire on, and at least one `acceptable` sentence it must leave alone. `./slophound test` checks all of them, plus a small corpus of human and generated text under `tests/corpus/`, plus this repository's own Markdown.
 
 ## False positives
 
-There is no ignore file and no inline suppression comment. When a finding is wrong, the rule is wrong: open the rule file the report points at, tighten the pattern or add the sentence to `acceptable`, run `./slophound test`, and send the change upstream. The footer of every report spells this out for the agent reading it.
+There is no ignore file and no inline suppression comment. When a finding is wrong, the rule is wrong: open the rule file the report points at, tighten the pattern or add the sentence to `acceptable`, run `./slophound test`, and send the change upstream. The footer of every report repeats these steps for the agent reading it.
 
 ## Contributing
 

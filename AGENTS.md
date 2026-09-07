@@ -31,7 +31,7 @@ Out of scope: medical, legal, or journalistic register handling. Code slop. Rewr
 
 Deterministic only. Same input, same output, every run, on every machine.
 
-Three layers, cheapest first:
+Detection runs in three layers, ordered from cheapest to most expensive:
 
 1. Regex for fixed phrases and sentence templates ("It's not X. It's Y.").
 2. Part-of-speech and dependency parsing for constructions that regex cannot separate from legitimate use. "The map holds three keys" passes while "that holds even under load" fires. The difference is grammatical, so the rule is expressed grammatically.

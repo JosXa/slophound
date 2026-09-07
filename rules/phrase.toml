@@ -638,16 +638,22 @@ most_common_in = ["gpt", "gemini"]
 [[rule]]
 id = "phrase.object-agency"
 severity = "bite"
-pattern = "\\b(pays? (its|their) (own )?rent|carr(y|ies) (its|their) (own )?weight|justif(y|ies) its existence|more than (earns|pays for) (itself|its)|does the (legwork|hard work|grunt work)|on its best behaviou?r|behaves itself|cares deeply|delivers? on (its|the|that) promise|stakes? (a|its) claim|claims? the (top spot|crown|title)|hangs? in the balance|runs? its course|hit the ground running|falls? (short|flat|apart|victim|prey)|falls? (neatly|cleanly|right) out of|lends? itself to|lends? an air of|strikes? gold|casts? (new |fresh )?light on|in a (whole )?new light|carr(y|ies) the (day|torch)|rides? the wave|everything (rides|hinges|hangs) on|hinges? on|puts? (the|that|this) (question|debate|matter|issue) to (rest|bed)|(holds?|stands?) up (under|to) scrutiny|wears? many hats|has (a lot|plenty) going for it|has its (place|moment)|knows? its (place|limits)|does what it says on the tin|takes? care of (itself|the rest))\\b"
+pattern = "\\b(pays? (its|their) (own )?rent|carr(y|ies) (its|their) (own )?weight|justif(y|ies) its existence|more than (earns|pays for) (itself|its)|does the (legwork|hard work|grunt work)|on its best behaviou?r|behaves itself|cares deeply|delivers? on (its|the|that) promise|stakes? (a|its) claim|claims? the (top spot|crown|title)|hangs? in the balance|runs? its course|hit the ground running|falls? (short|flat|apart|victim|prey)|falls? (neatly|cleanly|right) out of|lends? itself to|lends? an air of|strikes? gold|casts? (new |fresh )?light on|in a (whole )?new light|carr(y|ies) the (day|torch)|rides? the wave|everything (rides|hinges|hangs) on|hinges? on|puts? (the|that|this) (question|debate|matter|issue) to (rest|bed)|(holds?|stands?) up (under|to) scrutiny|wears? many hats|has (a lot|plenty) going for it|has its (place|moment)|knows? its (place|limits)|does what it says on the tin|takes? care of (itself|the rest)|spells? (this|it|that|things|everything) out|walks? (you|us|the reader) through|makes? (the|a (strong|good|compelling)) case (for|that)|does? a (good|great|nice|fine|decent) job (of|at)|carr(y|ies) (its|their) own \\w+|has (a lot|plenty|much|little) to say (about|on))\\b"
 message = "Code, documents, and plans do not want, promise, or earn anything. Say what the thing does and what it costs."
 example = [
   "The design hinges on whether the queue is durable.",
   "The new module more than earns its place in the tree.",
   "This puts the question to rest.",
+  "The footer spells this out for the agent reading it.",
+  "Every rule carries its own message.",
+  "The README walks you through the setup.",
 ]
 acceptable = [
   "The design works only if the queue is durable.",
   "The module replaces three helpers and removes 400 lines.",
+  "The footer tells the agent to edit the rule file.",
+  "Every rule has a message, an example, and an acceptable sentence.",
+  "She carried her own bag.",
 ]
 most_common_in = ["claude"]
 

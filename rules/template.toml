@@ -284,3 +284,22 @@ acceptable = [
   "Usage doubled after the feature launched.",
 ]
 most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "template.count-opener"
+severity = "bite"
+pattern = '(^|(?<=[.!?] ))(two|three|four|five|six|seven|eight|nine|ten|\d+) [a-z][^.!?\n]{0,60}:[ \t]*$|(^|(?<=[.!?] ))(two|three|four|five|six|seven|eight|nine|ten|\d+) (\w+ ){0,3}\w+, [a-z][^.!?\n]{1,40}[.!?]'
+message = "A sentence that opens with a count and has no verb (\"Three layers, cheapest first:\"). Telegram compression. Write the sentence: what are the layers, why that order."
+example = [
+  "Three detection layers, cheapest first:",
+  "Two options, both bad.",
+  "Five rules, one file each.",
+]
+acceptable = [
+  "Three layers run in order, cheapest first.",
+  "Two options remain, and both are bad.",
+  "The bridge has three pillars.",
+  "Four files changed.",
+  "Two options remain: retry or fail.",
+]
+most_common_in = ["claude"]
