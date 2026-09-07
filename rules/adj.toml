@@ -8,7 +8,8 @@
 #
 # Fields per [[rule]] are the same as in verb.toml:
 #   id            "adj.<slug>", unique. Must start with "adj.".
-#   severity      "warning" by default for this layer (parser-inferred).
+#   severity      "bark" by default for this layer (parser-inferred). "bite" | "bark" | "sniff";
+#                 the formal names error | warning | suggestion are accepted too.
 #   dependency    spaCy DependencyMatcher pattern, list of nodes. Anchor node
 #                 is {RIGHT_ID, RIGHT_ATTRS}; the rest add LEFT_ID and REL_OP.
 #                 DEP="amod" is an adjective modifying a noun (head = the noun,
@@ -27,7 +28,7 @@
 
 [[rule]]
 id = "adj.self-appraisal-attributive"
-severity = "warning"
+severity = "bark"
 message = "Praising your own change (surgical, elegant, clean, minimal, robust ...) is a claim the reader cannot check. Say what the change does and what it leaves alone."
 most_common_in = ["claude", "gpt"]
 dependency = [
@@ -50,7 +51,7 @@ unless = "\\bminimal (supported|required|viable|version|reproducible|reproductio
 
 [[rule]]
 id = "adj.self-appraisal-predicative"
-severity = "warning"
+severity = "bark"
 message = "\"The fix is clean/elegant/surgical\" is self-praise. Replace with what the reviewer can verify: files touched, behaviour changed, tests added."
 most_common_in = ["claude", "gpt"]
 dependency = [
@@ -71,7 +72,7 @@ acceptable = [
 
 [[rule]]
 id = "adj.abstraction-praise"
-severity = "warning"
+severity = "bark"
 message = "Adjectives like powerful, seamless, intuitive, or robust on a component describe a feeling. Give the measurement or the guarantee instead."
 most_common_in = ["gpt", "gemini", "claude"]
 dependency = [

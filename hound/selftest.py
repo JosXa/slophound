@@ -5,8 +5,8 @@ Per rule:
 - no `acceptable` sentence may produce a finding for that rule.
 
 Corpus (`tests/corpus/`):
-- every file in `generated/` must produce at least one error;
-- every file in `human/` must produce zero errors, and stays under a warning
+- every file in `generated/` must produce at least one bite;
+- every file in `human/` must produce zero bites, and stays under a warning
   density ceiling so grammar rules cannot drift into a word blacklist.
 
 Extra checks: masking keeps offsets, output renders, and the repository's own
@@ -24,8 +24,8 @@ from pathlib import Path
 from .engine import Engine
 from .loader import RULES_DIR, RuleError, load_rules
 from .masking import build_document
-from .model import DOC_CATEGORIES, SPACY_CATEGORIES, Finding, Rule
-from .report import render, summary_line
+from .model import BITE, DOC_CATEGORIES, SPACY_CATEGORIES, Finding, Rule
+from .report import Vocabulary, render, summary_line
 
 ROOT = Path(__file__).resolve().parent.parent
 CORPUS = ROOT / "tests" / "corpus"
@@ -67,16 +67,16 @@ def check_corpus(engine: Engine) -> list[str]:
     for path in generated:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
         findings = engine.lint(doc)
-        if not any(f.severity == "error" for f in findings):
-            problems.append(f"{path.relative_to(ROOT)}: generated text produced no error")
+        if not any(f.severity == BITE for f in findings):
+            problems.append(f"{path.relative_to(ROOT)}: generated text produced no bite")
     for path in human:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
         findings = engine.lint(doc)
-        errors = [f for f in findings if f.severity == "error"]
-        for f in errors:
+        bites = [f for f in findings if f.severity == BITE]
+        for f in bites:
             line, col = doc.line_col(f.start)
             problems.append(f"{path.relative_to(ROOT)}:{line}:{col}: human text hit {f.rule.id}: {doc.text[f.start:f.end]!r}")
-        soft = [f for f in findings if f.severity != "error"]
+        soft = [f for f in findings if f.severity != BITE]
         density = len(soft) / max(doc.word_count(), 1) * 100
         if density > HUMAN_WARNING_DENSITY_CEILING:
             ids = sorted({f.rule.id for f in soft})
@@ -90,8 +90,8 @@ def check_own_docs(engine: Engine) -> list[str]:
     problems: list[str] = []
     for path in sorted(ROOT.glob("*.md")):
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
-        errors = [f for f in engine.lint(doc) if f.severity == "error"]
-        for f in errors:
+        bites = [f for f in engine.lint(doc) if f.severity == BITE]
+        for f in bites:
             line, col = doc.line_col(f.start)
             problems.append(f"{path.relative_to(ROOT)}:{line}:{col}: own docs hit {f.rule.id}")
     return problems
@@ -141,8 +141,28 @@ def check_render(engine: Engine) -> list[str]:
         problems.append("render did not print location")
     if findings and "^" not in out:
         problems.append("render did not underline")
-    summary_line(findings, doc.word_count())
+    summary = summary_line(findings, doc.word_count())
+    if findings and "bite" not in summary:
+        problems.append(f"default summary should count bites: {summary!r}")
+    formal = Vocabulary(formal=True)
+    buf = io.StringIO()
+    render(doc, findings, stream=buf, vocab=formal)
+    formal_out = buf.getvalue()
+    formal_summary = summary_line(findings, doc.word_count(), formal)
+    for hound_word in ("bite", "bark", "sniff"):
+        if hound_word in formal_out or hound_word in formal_summary:
+            problems.append(f"--formal output still contains {hound_word!r}")
+    if findings and "error" not in formal_summary:
+        problems.append(f"--formal summary should count errors: {formal_summary!r}")
     return problems
+
+
+def check_severity_aliases() -> list[str]:
+    """Rule files may say error/warning/suggestion; the loader maps them to bite/bark/sniff."""
+    from .loader import SEVERITY_ALIASES
+
+    expected = {"error": "bite", "warning": "bark", "suggestion": "sniff", "violation": "bite"}
+    return [f"alias {k!r} maps to {SEVERITY_ALIASES.get(k)!r}, expected {v!r}" for k, v in expected.items() if SEVERITY_ALIASES.get(k) != v]
 
 
 def main(argv: list[str], rules_dir: Path | None = None) -> int:
@@ -174,6 +194,7 @@ def main(argv: list[str], rules_dir: Path | None = None) -> int:
         for rule in rules:
             report(rule.id, check_rule(engine, rule))
         report("render", check_render(engine))
+        report("severity-aliases", check_severity_aliases())
         report("corpus", check_corpus(engine))
         report("own-docs", check_own_docs(engine))
     except Exception:

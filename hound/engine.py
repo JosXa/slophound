@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from . import layer_doc, layer_regex, layer_spacy
 from .masking import Document
-from .model import DOC_CATEGORIES, REGEX_CATEGORIES, SPACY_CATEGORIES, Finding, Rule
+from .model import DOC_CATEGORIES, REGEX_CATEGORIES, SEVERITIES, SPACY_CATEGORIES, Finding, Rule
 
 
 class Engine:
@@ -36,7 +36,7 @@ class Engine:
 def _dedupe(findings: list[Finding]) -> list[Finding]:
     """When a phrase rule and a template rule cover the same span, keep the more
     severe one so the report does not say the same thing twice."""
-    order = {"error": 0, "warning": 1, "suggestion": 2}
+    order = {s: i for i, s in enumerate(SEVERITIES)}
     findings.sort(key=lambda f: (f.start, -(f.end - f.start), order[f.severity]))
     kept: list[Finding] = []
     for f in findings:

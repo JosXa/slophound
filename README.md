@@ -5,17 +5,17 @@ A linter for prose written by language models. Point it at a Markdown file, get 
 Agents cannot see the slop they wrote. slophound can.
 
 ```
-docs/adr-014.md:12:1  warning     verb.buys-us
+docs/adr-014.md:12:1  bark   verb.buys-us
   That buys us a week of headroom before the migration.
   ^^^^^^^^^^^^
   "buys (us) X" is a Claude reflex for trading one thing for another. Name the trade: what was spent, what was gained, and for how long.
 
-docs/adr-014.md:31:1  error       template.not-x-but-y
+docs/adr-014.md:31:1  bite   template.not-x-but-y
   This isn't a cache problem. It's a consistency problem.
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   Negation-then-reveal ("It's not X, it's Y"). Delete the negated half and state the positive claim.
 
-1 error, 1 warning, 0 suggestions · 1.4 findings per 100 words
+1 bite, 1 bark, 0 sniffs · 1.4 findings per 100 words
 ```
 
 Deterministic. Same input, same output, no model in the loop. Rules are plain TOML that any agent can read, test, and repair when a finding is wrong.
@@ -30,11 +30,14 @@ cat draft.txt | ./slophound -       # lint stdin
 ./slophound test                    # run the rule and corpus tests
 ```
 
-Exit code 0 when there are no errors, 1 when at least one error was found, 2 when the tool itself failed. Warnings and suggestions never change the exit code unless `--strict` is set.
+Findings come in three tiers. A **bite** is a fixed phrase or sentence template; the match is exact and must be fixed. The grammar layer produces **barks**, which are inferred and almost always right, and the document statistics produce **sniffs**, rhythm hints for the writer. Exit code 0 when there are no bites, 1 when at least one bite was found, 2 when the tool itself failed. Barks and sniffs never change the exit code unless `--strict` is set.
+
+For CI logs and tools that parse linter output, `--formal` (or `SLOPHOUND_FORMAL=1`) prints the same report with `error`, `warning`, and `suggestion` instead.
 
 | Flag | Effect |
 |---|---|
-| `--strict` | Warnings count as errors for the exit code. |
+| `--strict` | Barks count as bites for the exit code. |
+| `--formal` | Print `error` / `warning` / `suggestion` instead of `bite` / `bark` / `sniff`. Same as `SLOPHOUND_FORMAL=1`. |
 | `--disable ID[,ID]` | Skip specific rules for this run. |
 | `--disable-category CAT[,CAT]` | Skip a whole rule file (`phrase`, `template`, `punct`, `verb`, `adj`, `doc`). |
 | `--only ID[,ID]` | Run just these rules. |
@@ -48,9 +51,9 @@ Code blocks, inline code, URLs, link targets, tables, front matter, and HTML com
 
 Three detection layers, cheapest first:
 
-1. **Regex** for fixed phrases, sentence templates, and punctuation (`rules/phrase.toml`, `rules/template.toml`, `rules/punct.toml`). These produce errors.
-2. **Dependency parsing** with spaCy for constructions that regex cannot tell apart from legitimate use: "the map holds three keys" passes, "that holds even under load" fires (`rules/verb.toml`, `rules/adj.toml`). These produce warnings.
-3. **Document statistics** for rhythm and repetition: uniform sentence length, repeated paragraph openers, triad density, bold-label bullet lists (`rules/doc.toml`). These produce suggestions.
+1. **Regex** for fixed phrases, sentence templates, and punctuation (`rules/phrase.toml`, `rules/template.toml`, `rules/punct.toml`). These bite.
+2. **Dependency parsing** with spaCy for constructions that regex cannot tell apart from legitimate use: "the map holds three keys" passes, "that holds even under load" fires (`rules/verb.toml`, `rules/adj.toml`). These bark.
+3. **Document statistics** for rhythm and repetition: uniform sentence length, repeated paragraph openers, triad density, bold-label bullet lists (`rules/doc.toml`). These sniff.
 
 Every rule carries its own message, at least one `example` sentence it must fire on, and at least one `acceptable` sentence it must leave alone. `./slophound test` checks all of them, plus a small corpus of human and generated text under `tests/corpus/`, plus this repository's own Markdown.
 

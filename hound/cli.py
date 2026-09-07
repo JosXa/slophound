@@ -4,8 +4,11 @@
     slophound -                   lint stdin
     slophound test                run the rule self-tests and the corpus checks
 
-Exit codes: 0 no errors, 1 at least one error (or warning with --strict),
+Exit codes: 0 no bites, 1 at least one bite (or bark with --strict),
 2 the tool itself failed (bad rule file, missing model, unreadable input).
+
+Severities are bite / bark / sniff by default; --formal or SLOPHOUND_FORMAL=1
+prints error / warning / suggestion instead for CI logs and reporters.
 """
 
 from __future__ import annotations
@@ -17,8 +20,8 @@ from pathlib import Path
 from .engine import Engine
 from .loader import RuleError, load_rules
 from .masking import build_document
-from .model import CATEGORIES, Finding, Rule
-from .report import footer, render, summary_line
+from .model import BARK, BITE, CATEGORIES, Finding, Rule
+from .report import Vocabulary, footer, formal_requested, render, summary_line
 
 EXIT_CLEAN = 0
 EXIT_FINDINGS = 1
@@ -29,7 +32,10 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="slophound",
         description="A linter for prose written by language models.",
-        epilog="Exit codes: 0 no errors, 1 errors found, 2 tool failure.",
+        epilog=(
+            "Severities: bite (fixed phrase or template, must reach zero), bark (grammar-inferred), "
+            "sniff (document rhythm). Exit codes: 0 no bites, 1 bites found, 2 tool failure."
+        ),
     )
     p.add_argument("paths", nargs="*", help="Markdown or text files; '-' reads stdin. 'test' runs the self-tests.")
     p.add_argument("--disable", action="append", default=[], metavar="ID[,ID]", help="skip these rule ids for this run")
@@ -41,7 +47,12 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"skip a whole category for this run; one of {', '.join(CATEGORIES)}",
     )
     p.add_argument("--only", action="append", default=[], metavar="ID[,ID]", help="run only these rule ids")
-    p.add_argument("--strict", action="store_true", help="warnings count as errors for the exit code")
+    p.add_argument("--strict", action="store_true", help="barks count as bites for the exit code")
+    p.add_argument(
+        "--formal",
+        action="store_true",
+        help="print error/warning/suggestion instead of bite/bark/sniff (also SLOPHOUND_FORMAL=1); for CI",
+    )
     p.add_argument("--lang", default="en", metavar="XX", help="language code for the grammar layer (default en)")
     p.add_argument("--skip-quotes", action="store_true", help="do not lint Markdown blockquotes")
     p.add_argument("--no-footer", action="store_true", help="omit the false-positive instructions")
@@ -102,6 +113,7 @@ def main(argv: list[str]) -> int:
         print(f"slophound: {exc}", file=sys.stderr)
         return EXIT_FAILURE
 
+    vocab = Vocabulary(args.formal or formal_requested())
     engine = Engine(rules, lang=args.lang)
     all_findings: list[Finding] = []
     total_words = 0
@@ -111,7 +123,7 @@ def main(argv: list[str]) -> int:
             name, text = read_input(path)
             doc = build_document(name, text, skip_quotes=args.skip_quotes)
             findings = engine.lint(doc)
-            render(doc, findings)
+            render(doc, findings, vocab=vocab)
             all_findings.extend(findings)
             total_words += doc.word_count()
             for f in findings:
@@ -127,9 +139,9 @@ def main(argv: list[str]) -> int:
             return EXIT_FAILURE
         raise
 
-    print(summary_line(all_findings, total_words))
+    print(summary_line(all_findings, total_words, vocab))
     if all_findings and not args.no_footer:
         print(footer(sorted(rule_files)))
 
-    failing = {"error", "warning"} if args.strict else {"error"}
+    failing = {BITE, BARK} if args.strict else {BITE}
     return EXIT_FINDINGS if any(f.severity in failing for f in all_findings) else EXIT_CLEAN

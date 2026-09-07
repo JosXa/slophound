@@ -11,7 +11,7 @@ import re
 import tomllib
 from pathlib import Path
 
-from .model import CATEGORIES, DOC_CATEGORIES, REGEX_CATEGORIES, SEVERITIES, SPACY_CATEGORIES, Rule
+from .model import CATEGORIES, DOC_CATEGORIES, REGEX_CATEGORIES, SEVERITIES, SEVERITY_ALIASES, SPACY_CATEGORIES, Rule
 
 RULES_DIR = Path(__file__).resolve().parent.parent / "rules"
 
@@ -60,6 +60,7 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         raise RuleError(f"{where}: id must be lowercase kind.slug")
 
     severity = raw.get("severity")
+    severity = SEVERITY_ALIASES.get(severity, severity)
     if severity not in SEVERITIES:
         raise RuleError(f"{where}: severity must be one of {SEVERITIES}")
 

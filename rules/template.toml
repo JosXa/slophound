@@ -11,7 +11,7 @@
 
 [[rule]]
 id = "template.not-x-but-y"
-severity = "error"
+severity = "bite"
 pattern = "\\b(it|this|that|the \\w+|\\w+) (is|was|'s)(n't| not) (just |only |simply |merely |about )?[^.!?\\n;]{1,80}[.;,]\\s*(it|this|that)('s| is| was)( about)? \\b|\\bnot (just|only|merely|simply) (a |an |the |about )?[^.!?\\n,;]{1,60}[,;]?\\s*(but|it's|it is)( also| rather| about)? \\b|\\bit's not about [^.!?\\n]{1,60}[.,;]\\s*it's about\\b|\\bless [^.!?\\n,]{1,40}, more \\b|\\bforget [^.!?\\n.]{1,40}\\. this is\\b|\\bwhat matters (isn't|is not) [^.!?\\n,]{1,60}, it's\\b|\\bit's less about [^.!?\\n,]{1,50}(,| and| than) more about\\b|\\b[^.!?\\n]{1,40} (isn't|is not|was never) the point\\. \\b"
 message = "Negation-then-reveal (\"It's not X, it's Y\"). Delete the negated half and state the positive claim."
 example = [
@@ -30,7 +30,7 @@ most_common_in = ["claude", "gpt"]
 
 [[rule]]
 id = "template.not-x-period-y"
-severity = "error"
+severity = "bite"
 pattern = "(^|(?<=[.!?] ))(not|no) [^.!?\\n]{1,40}\\. (the |it's |that's |just |only )?[a-z][^.!?\\n]{1,60}[.!?]|(?<=[.!?] )not (anymore|any longer|now|today|here)\\.[ \\t]*$"
 message = "Clipped negation followed by the correction (\"Not X. Y.\"). Write the claim as one plain sentence."
 example = ["Not anymore. The queue is durable now.", "No more retries. Just one durable write.", "Nothing exercised the failure mode. Not anymore."]
@@ -39,7 +39,7 @@ most_common_in = ["claude"]
 
 [[rule]]
 id = "template.stacked-anaphora"
-severity = "error"
+severity = "bite"
 pattern = "(^|(?<=[.!?] ))(no|not|every|it's|it is|they|we|you) [^.!?\\n]{1,40}\\. \\2 [^.!?\\n]{1,40}\\. \\2 \\b"
 message = "Three or more clauses opening with the same word as a drumbeat. Merge them into one sentence with real connectives."
 example = ["No retries. No queues. No surprises.", "It's fast. It's small. It's done."]
@@ -48,7 +48,7 @@ most_common_in = ["claude", "gpt"]
 
 [[rule]]
 id = "template.mic-drop"
-severity = "error"
+severity = "bite"
 pattern = "(^|(?<=[.!?] ))(full stop|period|let that sink in|read that again|that's it|that's the (whole )?(point|thing|job|story)|it matters|this works)\\.|\\. that's it\\. that's the \\w+\\."
 message = "Mic-drop fragment for effect. Delete it; the previous sentence already made the point."
 example = ["It's about trust. Full stop.", "Ship it. That's it. That's the job."]
@@ -57,7 +57,7 @@ most_common_in = ["claude"]
 
 [[rule]]
 id = "template.self-answered-question"
-severity = "error"
+severity = "bite"
 pattern = "(^|(?<=[.!?] ))(the (result|catch|reason|kicker|problem|best part|bottom line|upshot|cost|answer|fix))\\? [A-Z]"
 message = "Question asked only to answer it in the next breath. Fold the answer into a statement."
 example = ["The result? Two outages in a week.", "The catch? Every retry doubles the load."]
@@ -66,7 +66,7 @@ most_common_in = ["gpt", "claude"]
 
 [[rule]]
 id = "template.hollow-acknowledgment"
-severity = "error"
+severity = "bite"
 pattern = "\\b(names?|acknowledges?|raises?|surfaces?|notes?|flags?|highlights?) the (problem|question|issue|risk|tension|tradeoff) without (solving|answering|addressing|resolving|fixing)\\b"
 message = "Naming a problem to sound rigorous while declining to act on it. Either act, or state that it is out of scope and why."
 example = ["The design names the problem without solving it."]
@@ -75,7 +75,7 @@ most_common_in = ["claude"]
 
 [[rule]]
 id = "template.historical-analogy-stack"
-severity = "error"
+severity = "bite"
 pattern = "\\b(apple|google|facebook|amazon|microsoft|netflix|uber|airbnb|stripe|tesla|kodak|nokia|blockbuster) didn'?t (build|invent|need|start with) [^.!?\\n]{1,40}\\. (apple|google|facebook|amazon|microsoft|netflix|uber|airbnb|stripe|tesla|kodak|nokia|blockbuster) didn'?t\\b"
 message = "Company analogies stacked to borrow authority. Argue the point on its own facts."
 example = ["Apple didn't build Uber. Facebook didn't build Spotify."]
@@ -83,7 +83,7 @@ acceptable = ["Stripe's API design shows that idempotency keys are practical at 
 
 [[rule]]
 id = "template.fake-casual-quote"
-severity = "error"
+severity = "bite"
 pattern = "\\b(go|goes|went|say|says|said|think|thinks|thought|call|calls|called) \"(nope|yep|meh|huh|whatever|good enough|fine|cool|ugh|oops|wait, what)\\W?\""
 message = "Casual word in scare quotes to perform relatability when nobody is quoted. Say it plainly or drop it."
 example = ["Most engineers go \"nope\" at the first sight of the config."]
@@ -92,7 +92,7 @@ most_common_in = ["claude", "gpt"]
 
 [[rule]]
 id = "template.invented-concept-label"
-severity = "warning"
+severity = "bark"
 pattern = "\\bthe [a-z]+ (paradox|trap|creep|divide|vacuum|inversion|gap|debt|tax|ceiling|cliff)\\b"
 unless = "\\b(technical debt|tech debt|debt ceiling|the gender gap|the pay gap|the digital divide|the fiscal cliff)\\b"
 message = "Coined label presented as established vocabulary. Explain the phenomenon in plain words instead of naming it."
@@ -102,7 +102,7 @@ most_common_in = ["claude"]
 
 [[rule]]
 id = "template.compressed-compound"
-severity = "warning"
+severity = "bark"
 pattern = "\\b[a-z]+-(shaped|aware|local|path|native|first|centric|adjacent|bound|scoped) (output|validation|path|boundary|ownership|approach|design|change|model|story|thinking|work|problem|solution|surface|layer)\\b"
 unless = "\\b(cloud-native|mobile-first|api-first|offline-first|local-first|test-first)\\b"
 message = "Improvised noun compound that needs the working session to decode. Spell out the relationship in a clause."
@@ -112,7 +112,7 @@ most_common_in = ["claude"]
 
 [[rule]]
 id = "template.false-range"
-severity = "warning"
+severity = "bark"
 pattern = "\\b(ranging|spanning) (everything )?from [^.!?\\n,]{1,40} to \\b|\\beverything from [^.!?\\n,]{1,40} to \\b"
 message = "\"From X to Y\" where X and Y share no scale. List the items or name the actual dimension."
 example = ["The tool handles everything from onboarding to observability."]
@@ -121,7 +121,7 @@ most_common_in = ["gpt", "gemini"]
 
 [[rule]]
 id = "template.agent-status-report"
-severity = "warning"
+severity = "bark"
 pattern = "^[ \\t]*(what changed|tests|notes|next steps|summary|changes made|verification)[ \\t]*:[ \\t]*$"
 message = "Status-report section headers over a small change. If one or two sentences say it all, use them."
 example = ["**What changed:**\n\nRenamed a variable.\n\n**Tests:**\n\nNone."]
@@ -130,7 +130,7 @@ most_common_in = ["claude", "gpt"]
 
 [[rule]]
 id = "template.isnt-the-problem"
-severity = "error"
+severity = "bite"
 pattern = "\\b[^.!?\\n]{1,40} (isn't|is not|wasn't|was not|aren't|are not) the (problem|issue|bottleneck|point|hard part|question|answer|risk|goal)\\. [^.!?\\n]{1,40} (is|was|are|were)\\.|\\bthe (problem|issue|bottleneck|question|risk) (isn't|is not|wasn't|was not) [^.!?\\n]{1,40}\\. (it's|it is|it was) \\b"
 message = "\"X isn't the problem. Y is.\" reveal. Name Y in one direct sentence and drop the decoy."
 example = [
@@ -145,7 +145,7 @@ most_common_in = ["claude", "gpt"]
 
 [[rule]]
 id = "template.feels-like-actually"
-severity = "error"
+severity = "bite"
 pattern = "\\b(it |this |that )?(feels|looks|seems|sounds|reads) like [^.!?\\n]{1,60}\\. (it's|it is|this is|that's|in reality it's|but it's) (actually|really|in fact) \\b|\\b(feels|looks|seems|sounds) like [^.!?\\n,]{1,50}, but (it's|it is|in reality) (actually|really) \\b|\\bon the surface,? [^.!?\\n]{1,60}\\. (underneath|in reality|in practice|actually|below the surface),? \\b"
 message = "Appearance-versus-reality reveal (\"It feels like X. It's actually Y.\"). State Y and, if X matters, explain why people assume it."
 example = [
@@ -160,7 +160,7 @@ most_common_in = ["claude"]
 
 [[rule]]
 id = "template.fragment-chain"
-severity = "error"
+severity = "bite"
 pattern = "(?<=[.!?] )(and|but|or|because|so|yet) [^.!?\\n]{1,40}\\. (and|but|or|because|so|yet) [^.!?\\n]{1,40}\\.|(?<=[.!?] )(and|but) (then|now|yet|still) [^.!?\\n]{1,30}\\.|(?<=[.!?] )(better|worse|faster|slower|cheaper|simpler|harder|easier|safer)\\.|(?<=[.!?] )(every|each) (single )?(time|one|day|deploy|request|commit)\\.|(?<=[.!?] )(always|never|nothing|everything|twice|once|no exceptions|no excuses|zero)\\."
 message = "Conjunction-led fragment chain (\"X. And Y. And Z.\") or one-word verdict sentence. Join the fragments into one sentence with a verb."
 example = [
@@ -176,7 +176,7 @@ most_common_in = ["claude"]
 
 [[rule]]
 id = "template.no-x-no-y-just-z"
-severity = "error"
+severity = "bite"
 pattern = "\\bno [^.!?\\n,]{1,25}, no [^.!?\\n,]{1,25}, (just|only|simply) \\b|\\bno [^.!?\\n,.]{1,25}\\. no [^.!?\\n.]{1,25}\\. (just|only|simply) \\b|\\b(without|zero) [^.!?\\n,]{1,25}, (without|zero) [^.!?\\n,]{1,25}, (just|only) \\b|\\bmore than just (a|an|the) \\b|\\bbeyond (just )?[^.!?\\n,]{1,40}, (it|this|that) (also|is|has|offers|provides)\\b|\\bisn't just (a|an|the|about) \\b|\\bnot just (a|an|the|about) [^.!?\\n,]{1,40}[,.] (it's|it is|this is|but) \\b"
 message = "Elimination triplet (\"No X, no Y, just Z\") or \"more than just X\" escalation. Say what the thing is; the excluded alternatives add nothing."
 example = [
@@ -192,7 +192,7 @@ most_common_in = ["claude", "gpt"]
 
 [[rule]]
 id = "template.is-a-x-not-a-y"
-severity = "error"
+severity = "bite"
 pattern = "\\b(is|was|are|were|becomes?|remains?) (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?, not (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?[.,;]|\\b(a|an) [a-z][a-z-]*( [a-z][a-z-]*)?, not (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?\\.|\\bfeature, not a bug\\b|\\bbug, not a feature\\b"
 unless = "\\b(is|was) (a|an) (int|integer|string|float|list|dict|array|byte|boolean|bool|char|struct|class|enum|pointer|reference|copy|view|tuple|set|map)\\b"
 message = "\"X is a N, not a M\" contrast where the reader never assumed M. State what it is, and mention the alternative only if someone actually proposed it."
@@ -202,14 +202,14 @@ example = [
   "Determinism is a feature, not a bug.",
 ]
 acceptable = [
-  "The linter blocks the commit when it finds an error.",
+  "The linter blocks the commit when it finds a violation.",
   "The value is a string, not a number, so the comparison fails.",
 ]
 most_common_in = ["claude"]
 
 [[rule]]
 id = "template.parenthetical-hedge"
-severity = "error"
+severity = "bite"
 pattern = "\\((and, increasingly,|and )?(perhaps|arguably|increasingly|maybe|possibly|probably|crucially|importantly|more importantly|and more importantly|or, more precisely|or more precisely|to be fair|to be honest|admittedly|frankly|honestly|ironically|unsurprisingly|not coincidentally|spoiler|read: )[^)\\n]{0,60}\\)"
 message = "Parenthetical aside carrying the actual judgement. Promote the aside to its own sentence or delete it."
 example = [
@@ -224,7 +224,7 @@ most_common_in = ["claude", "gpt"]
 
 [[rule]]
 id = "template.false-concession"
-severity = "error"
+severity = "bite"
 pattern = "(^|(?<=[.!?] ))(while|although|though|even though) [^.!?\\n,]{1,60} (is|are|remains?|shows?|has|have|holds?) (promising|promise|impressive|impressive strides|potential|strides|merit|advantages|benefits|progress|appeal|value|momentum|traction|clear benefits|real strengths|its (strengths|merits|place|uses|appeal)|come a long way|made (great |significant |real )?(strides|progress)),? [^.!?\\n]{1,60} (remains?|is still|are still|still (faces|poses|presents|raises)|faces?|poses?|persists?|linger)\\b|\\bdespite (its|their|these|the) (many |clear |obvious |undeniable )?(strengths|advantages|benefits|promise|potential|progress|merits|success|successes|popularity|appeal),? [^.!?\\n]{1,60} (faces?|remains?|is not without|still)\\b"
 message = "Formula concession (\"While X is promising, Y remains a challenge\"). Drop the balancing clause and state the concrete problem with its cause."
 example = [
@@ -240,7 +240,7 @@ most_common_in = ["gpt", "gemini"]
 
 [[rule]]
 id = "template.title-case-triple"
-severity = "warning"
+severity = "bark"
 pattern = "\\b(Digital|Data|Cloud|Customer|Business|Enterprise|Strategic|Operational|Organizational|Organisational|Agile|Innovation|Modern|Intelligent|Smart|Seamless|Unified|Scalable|Sustainable|Holistic|End-to-End|Next-Generation|Value-Driven|Human-Centered|Human-Centred|Customer-Centric|Data-Driven|AI-Powered|AI-Driven|Future-Ready) [A-Z][a-z]+(-[A-Z][a-z]+)? (Journey|Transformation|Excellence|Enablement|Empowerment|Roadmap|Framework|Ecosystem|Paradigm|Strategy|Vision|Mindset|Culture|Initiative|Experience|Solutions?|Platform|Alignment|Synergy|Acceleration|Optimization|Optimisation|Innovation|Readiness)\\b"
 message = "Capitalized buzzword triple presented as a proper noun. Lowercase it and say what the work actually is."
 example = [
@@ -255,7 +255,7 @@ most_common_in = ["gpt", "gemini"]
 
 [[rule]]
 id = "template.triad-that-actually"
-severity = "error"
+severity = "bite"
 pattern = "\\b[^.!?\\n,;:]{1,40}, [^.!?\\n,;:]{1,40},? (and|or) [^.!?\\n,;:]{1,40} (that|which|who) (actually|really|truly|genuinely) \\w+|\\b(that|which|who) (actually|really|truly|genuinely) (works?|matters?|ships?|deliver(s|ed)?|help(s|ed)?|scales?|lasts?|sticks?|stays?|holds?|gets? (used|read|done)|makes? (sense|a difference)|moves? the needle|solves?|fits?|cares?|means? (it|something))\\b"
 message = "\"W, X, and Y that actually Z\": a list capped with an intensified relative clause. The \"actually\" implies everything else is fake. Drop the triad and the intensifier; say what Z is and how you know."
 example = [
@@ -272,7 +272,7 @@ most_common_in = ["claude", "gpt"]
 
 [[rule]]
 id = "template.participial-tail"
-severity = "error"
+severity = "bite"
 pattern = ', (highlighting|underscoring|emphasi[sz]ing|showcasing|reflecting|cementing|solidifying|demonstrating|reinforcing|symboli[sz]ing|signal(l)?ing|fostering|ensuring|paving the way|marking|underlining|proving|illustrating) (its|the|their|his|her|our|a|an|how|that)\b'
 message = "Sentence tail that tells the reader what the fact means (\", highlighting its commitment to...\"). Cut the tail; if the interpretation matters, make it a sentence with a subject."
 example = [

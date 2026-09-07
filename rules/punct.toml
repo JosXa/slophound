@@ -9,7 +9,7 @@
 
 [[rule]]
 id = "punct.em-dash"
-severity = "error"
+severity = "bite"
 pattern = '\s?\u2014\s?|\s\u2013\s|\s--\s'
 headings = true
 message = "Em dash. Use a period, comma, colon, semicolon, parentheses, or \"because\", \"but\", \"so\". Split the thought if it needs splitting."
@@ -19,7 +19,7 @@ most_common_in = ["gpt", "claude", "gemini"]
 
 [[rule]]
 id = "punct.curly-quotes"
-severity = "error"
+severity = "bite"
 pattern = '[\u201c\u201d\u2018\u2019]'
 headings = true
 message = "Typographic quote. Use straight quotes (\" and ') in documents that live in a repository."
@@ -29,7 +29,7 @@ most_common_in = ["gpt", "claude"]
 
 [[rule]]
 id = "punct.emoji"
-severity = "error"
+severity = "bite"
 pattern = '[\U0001F300-\U0001FAFF\u2600-\u27BF\u2B50\u2705\u274C]\uFE0F?'
 headings = true
 message = "Emoji decorating prose. Delete it."
@@ -38,7 +38,7 @@ acceptable = ["## Getting started", "Done."]
 
 [[rule]]
 id = "punct.decorative-separator"
-severity = "error"
+severity = "bite"
 pattern = '\s[\u00b7\u2022\u2192\u21d2]\s'
 headings = true
 message = "Middle dot, bullet, or arrow used as inline decoration. Use a comma, a list, or a plain word."
@@ -47,7 +47,7 @@ acceptable = ["Fast, simple, and correct.", "The request goes to the queue, then
 
 [[rule]]
 id = "punct.bold-label-restates"
-severity = "warning"
+severity = "bark"
 pattern = '^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\*\*([A-Za-z][^*:\n]{1,40}):?\*\*:?[ \t]*\1\b'
 message = "Bold label that restates the sentence following it. Drop the label."
 example = ["- **Performance:** Performance improved by 40%."]
@@ -56,7 +56,7 @@ most_common_in = ["gpt", "claude"]
 
 [[rule]]
 id = "punct.mid-sentence-colon"
-severity = "suggestion"
+severity = "sniff"
 pattern = "\\b(if you'?re coming from|for those (familiar|unfamiliar) with|in practice|put differently|the short version|the (tl;dr|tldr)) [^.!?\\n:]{0,60}:\\s+[a-z]"
 message = "Colon as a mid-sentence connector. Let the clause stand as its own sentence."
 example = ["If you're coming from traditional automation: instead of handlers, you describe conditions."]
@@ -64,7 +64,7 @@ acceptable = ["Three formats are supported: JSON, YAML, and TOML."]
 
 [[rule]]
 id = "punct.emphasized-copula"
-severity = "error"
+severity = "bite"
 pattern = '(?<![*\w])\*(is|are|was|were|not|does|do|did|will|can)\*(?![*\w])|(?<![_\w])_(is|are|was|were|not|does|do|did|will|can)_(?![_\w])'
 message = "Italicized function word for stress (\"this *is* the fix\"). Spoken emphasis does not survive on the page; restructure the sentence so the contrast is in the words."
 example = ["This *is* the fix.", "The queue _was_ the bottleneck."]

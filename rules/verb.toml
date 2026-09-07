@@ -8,7 +8,7 @@
 #
 # Fields per [[rule]]:
 #   id            "verb.<slug>", unique. Must start with "verb.".
-#   severity      "warning" by default for this layer: the parser is small and
+#   severity      "bark" by default for this layer: the parser is small and
 #                 sometimes wrong, so grammar-inferred findings never fail a
 #                 run unless --strict is given.
 #   dependency    A spaCy DependencyMatcher pattern: a list of nodes, or a list
@@ -47,7 +47,7 @@
 
 [[rule]]
 id = "verb.buys-us"
-severity = "warning"
+severity = "bark"
 message = "\"buys (us) X\" is a Claude reflex for trading one thing for another. Name the trade: what was spent, what was gained, and for how long."
 most_common_in = ["claude"]
 # Two alternative patterns: a demonstrative or gerund subject ("That buys",
@@ -81,7 +81,7 @@ acceptable = [
 
 [[rule]]
 id = "verb.holds"
-severity = "warning"
+severity = "bark"
 message = "\"that holds\" asserts an argument survives without saying what was tested. State the condition it survives and what would break it."
 most_common_in = ["claude"]
 dependency = [
@@ -102,7 +102,7 @@ acceptable = [
 
 [[rule]]
 id = "verb.lands"
-severity = "warning"
+severity = "bark"
 message = "Code does not \"land\". Say merged, deployed, or released, and when."
 most_common_in = ["claude", "gpt"]
 dependency = [
@@ -122,7 +122,7 @@ acceptable = [
 
 [[rule]]
 id = "verb.unlocks"
-severity = "warning"
+severity = "bark"
 message = "\"unlocks\" promises value without naming it. Say what becomes possible and why it was blocked before."
 most_common_in = ["claude", "gpt"]
 dependency = [
@@ -142,7 +142,7 @@ acceptable = [
 
 [[rule]]
 id = "verb.surfaces"
-severity = "warning"
+severity = "bark"
 message = "\"surfaces\" as a verb hides who shows what to whom. Say where the information appears and who sees it."
 most_common_in = ["claude"]
 dependency = [
@@ -161,7 +161,7 @@ acceptable = [
 
 [[rule]]
 id = "verb.leans-on"
-severity = "warning"
+severity = "bark"
 message = "\"leans on\" is vague about dependency. Say depends on, calls, or reads, and what happens when that thing is missing."
 most_common_in = ["claude"]
 dependency = [
@@ -180,7 +180,7 @@ acceptable = [
 
 [[rule]]
 id = "verb.settles"
-severity = "warning"
+severity = "bark"
 message = "\"that settles it\" declares a debate closed without showing the evidence. State the fact that decides it."
 most_common_in = ["claude"]
 dependency = [
@@ -200,7 +200,7 @@ acceptable = [
 
 [[rule]]
 id = "verb.demonstrative-enables"
-severity = "warning"
+severity = "bark"
 message = "\"this enables/allows/ensures X\" states a benefit with no actor. Name who does what as a result."
 most_common_in = ["gpt", "claude", "gemini"]
 dependency = [

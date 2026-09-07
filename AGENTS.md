@@ -47,7 +47,7 @@ Rules live in TOML, split across files by the detection layer that executes them
 
 Every rule has:
 
-- a severity: `error`, `warning`, or `suggestion`, in the Grammarly sense. Em dashes are always an error.
+- a severity: `bite` (exact match, must be fixed), `bark` (grammar-inferred), or `sniff` (document rhythm), in the Grammarly sense of error, warning, and suggestion. Em dashes are always a bite. The `--formal` flag prints the Grammarly words for CI systems and reporters; the rule files accept either vocabulary.
 - a message that fully explains the problem and how to fix it. The report never requires a second lookup.
 - at least one `example` sentence the rule must fire on and at least one `acceptable` sentence it must not fire on. The test runner checks both. A rule without an `acceptable` case is rejected, because that is how word blacklists happen.
 - provenance metadata such as which model families the pattern is most common in. This is informational. All rules are always active; there are no per-model profiles or adapters.
@@ -56,7 +56,7 @@ Every rule has:
 
 Human-readable, modelled on eslint, rustc, and Bun: file, line, column, severity, rule id, the offending line with the match marked, the full rule message. A summary line closes the report with counts per severity and a density figure (findings per hundred words). Density is informational.
 
-Exit code 0 when there are no errors, 1 when there is at least one error, 2 when the tool itself failed. Warnings and suggestions never change the exit code.
+Exit code 0 when there are no bites, 1 when there is at least one bite, 2 when the tool itself failed. Barks and sniffs never change the exit code.
 
 ### False positives
 

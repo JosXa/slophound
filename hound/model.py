@@ -5,7 +5,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-SEVERITIES = ("error", "warning", "suggestion")
+# Severity tiers, strongest first. The hound bites when a fixed phrase or template
+# matched, barks when the grammar layer inferred the problem, and sniffs at
+# document-level rhythm. Only bites fail the run (barks too under --strict).
+BITE, BARK, SNIFF = "bite", "bark", "sniff"
+SEVERITIES = (BITE, BARK, SNIFF)
+# The professional vocabulary used by --formal (and SLOPHOUND_FORMAL=1) so CI
+# systems and reporters that parse linter output see familiar words.
+FORMAL_NAMES = {BITE: "error", BARK: "warning", SNIFF: "suggestion"}
+# Rule files may use either vocabulary; the loader normalises to the hound words.
+SEVERITY_ALIASES = {v: k for k, v in FORMAL_NAMES.items()} | {"violation": BITE}
 CATEGORIES = ("phrase", "template", "punct", "verb", "adj", "doc")
 REGEX_CATEGORIES = ("phrase", "template", "punct")
 SPACY_CATEGORIES = ("verb", "adj")

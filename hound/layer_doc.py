@@ -200,7 +200,7 @@ def participial_closer_share(doc: Document):
 
 @metric("em_dash_density")
 def em_dash_density(doc: Document):
-    """Em dashes per 100 words. Kept for the density figure; punct.em-dash is the error."""
+    """Em dashes per 100 words. Kept for the density figure; punct.em-dash is the bite."""
     n_words = doc.word_count() or 1
     n = doc.masked.count("\u2014")
     return n / n_words * 100, None, f"{n} em dashes in {n_words} words"

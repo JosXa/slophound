@@ -3,12 +3,12 @@
 # These rules look at the whole text rather than a phrase: rhythm, repetition,
 # and layout habits that only show up in aggregate. One triad is fine; a triad
 # every third sentence is a machine. Findings from this layer are
-# "suggestion" severity: they never fail a run, they tell the writer where the
+# "sniff" severity: they never fail a run, they tell the writer where the
 # text feels generated even when no single sentence is wrong.
 #
 # Fields per [[rule]]:
 #   id              "doc.<slug>", unique. Must start with "doc.".
-#   severity        Normally "suggestion".
+#   severity        Normally "sniff" (formal name: suggestion).
 #   metric          Name of a metric implemented in hound/layer_doc.py. Each
 #                   metric computes one number over the document. Available:
 #                     sentence_length_cv        coefficient of variation of
@@ -41,7 +41,7 @@
 
 [[rule]]
 id = "doc.uniform-sentence-length"
-severity = "suggestion"
+severity = "sniff"
 metric = "sentence_length_cv"
 threshold = 0.30
 min_sentences = 8
@@ -59,7 +59,7 @@ The service polls the queue every ten seconds. Failed items retry three times, e
 
 [[rule]]
 id = "doc.repeated-paragraph-opener"
-severity = "suggestion"
+severity = "sniff"
 metric = "paragraph_opener_repeats"
 threshold = 2
 min_paragraphs = 4
@@ -89,7 +89,7 @@ Under overload the scheduler sheds low-priority work first.
 
 [[rule]]
 id = "doc.sentence-opener-run"
-severity = "suggestion"
+severity = "sniff"
 metric = "sentence_opener_run"
 threshold = 3
 message = "Three or more consecutive sentences start with the same word. That drumbeat reads as generated; rewrite one of them."
@@ -106,7 +106,7 @@ We moved the cache first. The lock went next, once the cache no longer needed it
 
 [[rule]]
 id = "doc.triad-density"
-severity = "suggestion"
+severity = "sniff"
 metric = "triad_density"
 threshold = 1.5
 min_sentences = 4
@@ -124,7 +124,7 @@ The service is fast and, since March, cheap. It handles retries and timeouts; du
 
 [[rule]]
 id = "doc.bold-label-bullets"
-severity = "suggestion"
+severity = "sniff"
 metric = "bold_label_bullets"
 threshold = 3
 message = "A list of **Label:** bullets is a slide, not prose. Write sentences, or drop the labels and let the items speak."
@@ -149,7 +149,7 @@ Three things changed. The blast radius is now contained to the cache layer, manu
 
 [[rule]]
 id = "doc.connective-openers"
-severity = "suggestion"
+severity = "sniff"
 metric = "connective_openers"
 threshold = 3
 min_paragraphs = 4
@@ -179,7 +179,7 @@ We removed the cache in June.
 
 [[rule]]
 id = "doc.staccato-paragraphs"
-severity = "suggestion"
+severity = "sniff"
 metric = "short_paragraph_share"
 threshold = 0.7
 min_paragraphs = 6
@@ -213,7 +213,7 @@ The lesson is to ship smaller and watch the unsampled numbers for the first hour
 
 [[rule]]
 id = "doc.participial-closers"
-severity = "suggestion"
+severity = "sniff"
 metric = "participial_closer_share"
 threshold = 0.25
 min_sentences = 4
