@@ -10,7 +10,9 @@ Corpus (`tests/corpus/`):
   density ceiling so grammar rules cannot drift into a word blacklist.
 
 Extra checks: masking keeps offsets, output renders, and the repository's own
-Markdown passes.
+Markdown passes. Corpus and own-docs checks run core rules only; mode rules
+(`mode = "ste"` and the like) are checked against their own examples but do
+not judge the corpus.
 """
 
 from __future__ import annotations
@@ -183,6 +185,11 @@ def main(argv: list[str], rules_dir: Path | None = None) -> int:
         print(f"FAIL rules: {exc}")
         return 2
     engine = Engine(rules)
+    # Corpus and own-docs checks mirror a default run: mode rules (opt-in
+    # registers such as STE) stay out, or the human corpus would be judged by
+    # a standard it never claimed to follow. Each rule is still checked alone.
+    core = Engine([r for r in rules if r.mode is None])
+    core._nlp = engine.nlp
 
     failures = 0
     total = 0
@@ -204,8 +211,8 @@ def main(argv: list[str], rules_dir: Path | None = None) -> int:
             report(rule.id, check_rule(engine, rule))
         report("render", check_render(engine))
         report("severity-aliases", check_severity_aliases())
-        report("corpus", check_corpus(engine))
-        report("own-docs", check_own_docs(engine))
+        report("corpus", check_corpus(core))
+        report("own-docs", check_own_docs(core))
     except Exception:
         traceback.print_exc()
         return 2

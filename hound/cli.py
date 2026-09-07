@@ -14,13 +14,14 @@ prints error / warning / suggestion instead for CI logs and reporters.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 from .engine import Engine
 from .loader import RuleError, load_rules
 from .masking import build_document
-from .model import BARK, BITE, CATEGORIES, Finding, Rule
+from .model import BARK, BITE, CATEGORIES, MODES, Finding, Rule
 from .report import Vocabulary, footer, formal_requested, render, summary_line
 
 EXIT_CLEAN = 0
@@ -47,6 +48,17 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"skip a whole category for this run; one of {', '.join(CATEGORIES)}",
     )
     p.add_argument("--only", action="append", default=[], metavar="ID[,ID]", help="run only these rule ids")
+    p.add_argument(
+        "--mode",
+        action="append",
+        default=[],
+        metavar="MODE[,MODE]",
+        help=(
+            f"also run the rules of an opt-in register; one of {', '.join(MODES)} "
+            "(also SLOPHOUND_MODES=ste). ste: ASD-STE100 Simplified Technical English "
+            "(passive voice, formal vocabulary)"
+        ),
+    )
     p.add_argument("--strict", action="store_true", help="barks count as bites for the exit code")
     p.add_argument(
         "--formal",
@@ -67,7 +79,13 @@ def _split(values: list[str]) -> set[str]:
     return out
 
 
-def select_rules(rules: list[Rule], disable: set[str], disable_category: set[str], only: set[str]) -> list[Rule]:
+def select_rules(
+    rules: list[Rule],
+    disable: set[str],
+    disable_category: set[str],
+    only: set[str],
+    modes: set[str] = frozenset(),
+) -> list[Rule]:
     known = {r.id for r in rules}
     for rid in disable | only:
         if rid not in known:
@@ -75,14 +93,24 @@ def select_rules(rules: list[Rule], disable: set[str], disable_category: set[str
     for cat in disable_category:
         if cat not in CATEGORIES:
             raise RuleError(f"unknown category {cat!r}; expected one of {', '.join(CATEGORIES)}")
+    for mode in modes:
+        if mode not in MODES:
+            raise RuleError(f"unknown mode {mode!r}; expected one of {', '.join(MODES)}")
     selected = []
     for r in rules:
         if only and r.id not in only:
             continue
         if r.id in disable or r.category in disable_category:
             continue
+        # --only names a rule explicitly, so it runs even when its mode is off.
+        if r.mode and r.mode not in modes and not only:
+            continue
         selected.append(r)
     return selected
+
+
+def modes_requested(env: str | None) -> set[str]:
+    return {m.strip() for m in (env or "").split(",") if m.strip()}
 
 
 def read_input(path: str) -> tuple[str, str]:
@@ -108,7 +136,8 @@ def main(argv: list[str]) -> int:
 
     try:
         rules = load_rules(args.rules) if args.rules else load_rules()
-        rules = select_rules(rules, _split(args.disable), _split(args.disable_category), _split(args.only))
+        modes = _split(args.mode) | modes_requested(os.environ.get("SLOPHOUND_MODES"))
+        rules = select_rules(rules, _split(args.disable), _split(args.disable_category), _split(args.only), modes)
     except RuleError as exc:
         print(f"slophound: {exc}", file=sys.stderr)
         return EXIT_FAILURE

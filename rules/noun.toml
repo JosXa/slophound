@@ -1,0 +1,127 @@
+# slophound noun rules. Detection layer: spaCy part-of-speech + dependency parse.
+#
+# These rules catch noun clusters: three or more common nouns stacked into one
+# phrase ("cache layer invalidation retry strategy"). Language models compress
+# a whole clause into a noun pile because it looks precise; a reader has to
+# unpack it, and often cannot tell which noun modifies which. ASD-STE100 caps
+# clusters at three nouns; slophound barks at three and bites at four.
+#
+# Fields per [[rule]]: see rules/verb.toml. The same DependencyMatcher syntax
+# applies. Severity, message, example and acceptable are required; mode is
+# optional (these rules are core and always run).
+#
+# How the parse looks: spaCy attaches each modifier noun to its head with the
+# dependency "compound". The head of the cluster is the noun that is not itself
+# a compound child. "build cache eviction policy" parses as policy > build and
+# policy > eviction > cache: a tree, not always a chain, so each rule lists the
+# tree shapes for its size. Only POS = "NOUN" counts; proper nouns (product and
+# company names such as "TeamViewer Remote Management API") are excluded,
+# because a name is a name however long it is. The small parser sometimes tags
+# an unfamiliar noun as PROPN, VERB or ADJ ("session token refresh" comes out
+# with "token" as a verb), which undercounts a chain; that errs toward silence,
+# the right direction for this layer. Pick examples the parser gets right.
+#
+# Two DependencyMatcher facts shape the patterns below:
+#
+# - Two nodes that both hang off the same parent with ">" may bind the SAME
+#   token, so "head > n1, head > n2" matches a single compound child twice.
+#   Siblings are therefore written with "$--" (n2 is a left sibling of n1),
+#   which guarantees distinct tokens under one head. Compound modifiers always
+#   precede their head, so a leftward walk covers every sibling order once the
+#   rightmost child is bound first; where the shape is asymmetric (only one
+#   sibling has a child of its own) both orders are listed.
+# - The matcher cannot express "has no compound child", so the three-noun rule
+#   also matches inside a four-noun cluster. The spaCy layer resolves that: when
+#   two rules of the same category overlap, the more severe finding wins.
+#
+# Hyphenated compounds ("em-dash density", "pre-commit hook") are tokenised as
+# separate nouns joined by "compound", yet the hyphen already tells the reader
+# how to group them. The spaCy layer drops any noun.* finding whose matched
+# text contains a hyphen.
+
+[[rule]]
+id = "noun.cluster-four"
+severity = "bite"
+message = "Four or more nouns stacked into one phrase (\"cache layer invalidation retry strategy\"). A reader cannot tell which noun modifies which. Unpack it with a preposition or a clause: \"the strategy for retrying cache invalidation\"."
+most_common_in = ["claude", "gpt"]
+dependency = [
+  # Chain: head > n1 > n2 > n3.
+  [
+    { RIGHT_ID = "head", RIGHT_ATTRS = { POS = "NOUN" } },
+    { LEFT_ID = "head", REL_OP = ">", RIGHT_ID = "n1", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n1", REL_OP = ">", RIGHT_ID = "n2", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n2", REL_OP = ">", RIGHT_ID = "n3", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+  ],
+  # Two siblings under the head, the right one has a child.
+  [
+    { RIGHT_ID = "head", RIGHT_ATTRS = { POS = "NOUN" } },
+    { LEFT_ID = "head", REL_OP = ">", RIGHT_ID = "n1", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n1", REL_OP = "$--", RIGHT_ID = "n2", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n1", REL_OP = ">", RIGHT_ID = "n3", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+  ],
+  # Two siblings under the head, the left one has a child.
+  [
+    { RIGHT_ID = "head", RIGHT_ATTRS = { POS = "NOUN" } },
+    { LEFT_ID = "head", REL_OP = ">", RIGHT_ID = "n1", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n1", REL_OP = "$--", RIGHT_ID = "n2", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n2", REL_OP = ">", RIGHT_ID = "n3", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+  ],
+  # Three siblings under the head.
+  [
+    { RIGHT_ID = "head", RIGHT_ATTRS = { POS = "NOUN" } },
+    { LEFT_ID = "head", REL_OP = ">", RIGHT_ID = "n1", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n1", REL_OP = "$--", RIGHT_ID = "n2", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n2", REL_OP = "$--", RIGHT_ID = "n3", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+  ],
+  # One child under the head that itself has two children.
+  [
+    { RIGHT_ID = "head", RIGHT_ATTRS = { POS = "NOUN" } },
+    { LEFT_ID = "head", REL_OP = ">", RIGHT_ID = "n1", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n1", REL_OP = ">", RIGHT_ID = "n2", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n2", REL_OP = "$--", RIGHT_ID = "n3", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+  ],
+]
+example = [
+  "Open the user account settings page overview.",
+  "The tenant database connection pool size is fixed.",
+  "The build cache eviction policy changed.",
+]
+acceptable = [
+  "Open the settings page for the user account.",
+  "The connection pool for the tenant database has a fixed size.",
+  "The TeamViewer Remote Management API returns JSON.",
+  "The pull request description was empty.",
+  "Set the request timeout value.",
+]
+
+[[rule]]
+id = "noun.cluster-three"
+severity = "bark"
+message = "Three nouns stacked into one phrase (\"database connection pool\"). Readable, but one more and it tips over. Consider a preposition: \"the connection pool of the database\"."
+most_common_in = ["claude", "gpt"]
+dependency = [
+  # Chain: head > n1 > n2.
+  [
+    { RIGHT_ID = "head", RIGHT_ATTRS = { POS = "NOUN", DEP = { NOT_IN = ["compound"] } } },
+    { LEFT_ID = "head", REL_OP = ">", RIGHT_ID = "n1", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n1", REL_OP = ">", RIGHT_ID = "n2", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+  ],
+  # Two siblings under the head.
+  [
+    { RIGHT_ID = "head", RIGHT_ATTRS = { POS = "NOUN", DEP = { NOT_IN = ["compound"] } } },
+    { LEFT_ID = "head", REL_OP = ">", RIGHT_ID = "n1", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+    { LEFT_ID = "n1", REL_OP = "$--", RIGHT_ID = "n2", RIGHT_ATTRS = { POS = "NOUN", DEP = "compound" } },
+  ],
+]
+example = [
+  "Set the request timeout value.",
+  "Check the database connection pool.",
+  "Read the deployment pipeline configuration first.",
+]
+acceptable = [
+  "Set the timeout value for each request.",
+  "Check the connection pool.",
+  "The pull request description was empty.",
+  "The TeamViewer Remote Management API returns JSON.",
+  "The pre-commit hook runs on every staged file.",
+]

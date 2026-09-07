@@ -321,3 +321,21 @@ acceptable = [
   "Thanks for the review, and sorry for the delay.",
   "Wait for the build, then deploy.",
 ]
+
+[[rule]]
+id = "template.verb-for-never"
+severity = "bite"
+message = "An imperative split into \"for X, never for Y\" (\"Pick Postgres for transactions, never for blobs\"). A rule of thumb dressed as a maxim. Say when and why: \"Postgres handles transactions well; store blobs in object storage because ...\"."
+most_common_in = ["claude"]
+pattern = '(^|(?<=[.!?] ))(pick|use|choose|reach for|prefer|reserve|keep|save|take|go with|grab|deploy|run|ship|try|lean on|default to|opt for|rely on|trust|apply|bring in|call|hire|book|buy) [^.!?\n,;]{1,60}, (never|not|rarely|seldom|almost never|and never|but never) (for|when|if|on|with|in|as|to|at|where|as a)\b'
+example = [
+  "Pick Postgres for transactions, never for blobs.",
+  "Use it for reads, never for writes.",
+  "Reach for a queue when the work is slow, never when it is small.",
+]
+acceptable = [
+  "Postgres handles transactions well; store blobs in object storage.",
+  "Use it for reads. Writes go through the primary, because replicas lag.",
+  "We picked Postgres for the ledger and never regretted it.",
+  "Never use it for writes.",
+]

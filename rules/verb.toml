@@ -30,6 +30,9 @@
 #   acceptable    One or more sentences that MUST NOT trigger it. Both lists
 #                 are required and checked by `./slophound test`.
 #   most_common_in  Informational: model families where the pattern shows up.
+#   mode          Optional. "ste" marks a rule of the ASD-STE100 Simplified
+#                 Technical English register; it runs only with --mode ste (or
+#                 SLOPHOUND_MODES=ste). Rules without a mode always run.
 #
 # Parser caveat: en_core_web_sm is small and sometimes tags a verb as a noun
 # ("This lands next sprint" -> lands/NOUN). Examples here are chosen so the
@@ -243,4 +246,63 @@ acceptable = [
   "She sits at the front.",
   "This sits well with me.",
   "The config lives in one file.",
+]
+
+# ---------------------------------------------------------------------------
+# ASD-STE100 register (mode = "ste"). Simplified Technical English asks for the
+# active voice: the reader should know who does what. These rules are off
+# unless --mode ste is given, because passives are ordinary in descriptive
+# prose and the goal of the core rule set is AI-isms, not a house style.
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "verb.passive-agent"
+severity = "bark"
+mode = "ste"
+message = "Passive voice with the agent spelled out (\"the cache was invalidated by the scheduler\"). The active sentence is already there in reverse; write it: \"the scheduler invalidates the cache\"."
+dependency = [
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { POS = "VERB", TAG = "VBN" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "aux", RIGHT_ATTRS = { DEP = "auxpass" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "agent", RIGHT_ATTRS = { DEP = "agent", LOWER = "by" } },
+  ],
+]
+example = [
+  "The cache was invalidated by the scheduler.",
+  "Each request is signed by the gateway before it leaves the cluster.",
+  "The report was written by the on-call engineer.",
+]
+acceptable = [
+  "The scheduler invalidates the cache.",
+  "The gateway signs each request before it leaves the cluster.",
+  "We sorted the results by date.",
+  "The library is used by thousands of projects, so the API is stable.",
+]
+unless = "\\bis (used|maintained|backed|owned|supported|funded|trusted) by\\b"
+
+[[rule]]
+id = "verb.passive"
+severity = "sniff"
+mode = "ste"
+message = "Passive voice without an agent (\"the config is loaded at startup\"). Simplified Technical English wants to know who acts. Name the actor (\"the service loads the config at startup\") or, in an instruction, use the imperative (\"load the config\")."
+dependency = [
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { POS = "VERB", TAG = "VBN" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "aux", RIGHT_ATTRS = { DEP = "auxpass" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubjpass" } },
+  ],
+]
+# Definitional, naming, and state-of-the-world passives have no useful actor.
+unless = "\\b(is|are|was|were) (called|named|known|defined|described|referred|considered|regarded|said|deemed|born|located|based|situated|derived|expected|required|allowed|permitted|deprecated|supported|documented|recommended|needed)\\b|\\bby\\b"
+example = [
+  "The config is loaded at startup.",
+  "Errors are logged and the request is retried.",
+  "The migration was applied last week.",
+]
+acceptable = [
+  "The service loads the config at startup.",
+  "The function is called once per request.",
+  "This is defined as the sum of both.",
+  "Retries are required for every network call.",
+  "The cache was invalidated by the scheduler.",
 ]

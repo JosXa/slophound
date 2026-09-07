@@ -13,7 +13,7 @@ Python scripts run through `uv`; rules in TOML.
 
 ### Why
 
-Agents cannot see the slop they wrote. The same model that produced `this buys us a week of headroom` will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist burns reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
+Agents cannot see the slop they wrote. The same model that produced `this buys us a week of headroom` will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist spends reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
 
 A deterministic linter removes the judgement call. Red means fix it, green means done, and the same text produces the same findings on every run. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. We don't preclude eventually adding an LLM to the mix, but for now it remains a deterministic set of NLP tools that report typical AI-isms.
 
@@ -49,8 +49,9 @@ Every rule has:
 
 - a severity: `bite` (exact match, must be fixed), `bark` (grammar-inferred), or `sniff` (document rhythm), in the Grammarly sense of error, warning, and suggestion. Em dashes are always a bite. The `--formal` flag prints the Grammarly words for CI systems and reporters; the rule files accept either vocabulary.
 - a message that fully explains the problem and how to fix it. The report never requires a second lookup.
-- at least one `example` sentence the rule must fire on and at least one `acceptable` sentence it must not fire on. The test runner checks both. A rule without an `acceptable` case is rejected, because that is how word blacklists happen.
-- provenance metadata such as which model families the pattern is most common in. This is informational. All rules are always active; there are no per-model profiles or adapters.
+- at least one `example` sentence the rule must fire on and at least one `acceptable` sentence it must not fire on. `./slophound test` checks both. A rule without an `acceptable` case is rejected, because that is how word blacklists happen.
+- provenance metadata such as which model families the pattern is most common in. This is informational. There are no per-model profiles or adapters.
+- optionally a `mode`. Rules without one are the core set and always run. Rules with a mode (currently only `ste`, for ASD-STE100 checks like passive voice and formal vocabulary) run when the user passes `--mode` or sets `SLOPHOUND_MODES`. Modes group opinionated checks that would be noise in a general document; they are never a way to switch off a core rule.
 
 ### Output
 

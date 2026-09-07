@@ -1,6 +1,6 @@
 # Logo
 
-`assets/logo.png` is a 1254 x 1254 RGBA PNG with a transparent background. It was produced with an image generation model from the prompt below, after several rounds of iteration on pose and expression. Keep the prompt here so the character can be regenerated or extended (favicon, sticker, dark-mode variant) without rediscovering what worked.
+`assets/logo.png` is a 1254 x 1254 RGBA PNG with a transparent background. It was produced with an image model from the prompt below, after several rounds of iteration on pose and expression. Keep the prompt here so the character can be regenerated or extended (favicon, sticker, dark-mode variant) without rediscovering what worked.
 
 ## Prompt
 

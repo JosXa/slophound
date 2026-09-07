@@ -15,10 +15,14 @@ SEVERITIES = (BITE, BARK, SNIFF)
 FORMAL_NAMES = {BITE: "error", BARK: "warning", SNIFF: "suggestion"}
 # Rule files may use either vocabulary; the loader normalises to the hound words.
 SEVERITY_ALIASES = {v: k for k, v in FORMAL_NAMES.items()} | {"violation": BITE}
-CATEGORIES = ("phrase", "template", "punct", "verb", "adj", "doc")
+CATEGORIES = ("phrase", "template", "punct", "verb", "adj", "noun", "doc")
 REGEX_CATEGORIES = ("phrase", "template", "punct")
-SPACY_CATEGORIES = ("verb", "adj")
+SPACY_CATEGORIES = ("verb", "adj", "noun")
 DOC_CATEGORIES = ("doc",)
+# Modes are opt-in rule sets for a register rather than for AI-isms. A rule with
+# `mode = "ste"` only runs when --mode ste (or SLOPHOUND_MODES=ste) is given;
+# rules without a mode are core and always run.
+MODES = ("ste",)
 
 
 @dataclass
@@ -43,6 +47,8 @@ class Rule:
     min_paragraphs: int = 0
     # Informational provenance.
     most_common_in: list[str] = field(default_factory=list)
+    # Opt-in register (see MODES); None means core, always active.
+    mode: str | None = None
     # Whether the rule may fire inside Markdown headings (phrase rules only).
     headings: bool = False
 

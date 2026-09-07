@@ -47,8 +47,9 @@ For CI logs and tools that parse linter output, `--formal` (or `SLOPHOUND_FORMAL
 | `--strict` | Barks count as bites for the exit code. |
 | `--formal` | Print `error` / `warning` / `suggestion` instead of `bite` / `bark` / `sniff`. Same as `SLOPHOUND_FORMAL=1`. |
 | `--disable ID[,ID]` | Skip specific rules for this run. |
-| `--disable-category CAT[,CAT]` | Skip a whole rule file (`phrase`, `template`, `punct`, `verb`, `adj`, `doc`). |
+| `--disable-category CAT[,CAT]` | Skip a whole rule file (`phrase`, `template`, `punct`, `verb`, `adj`, `noun`, `doc`). |
 | `--only ID[,ID]` | Run just these rules. |
+| `--mode MODE[,MODE]` | Enable an optional rule set. `ste` adds ASD-STE100 Simplified Technical English checks: passive voice and formal vocabulary. Same as `SLOPHOUND_MODES=ste`. |
 | `--lang XX` | spaCy language code for the grammar layer. Non-English models download on demand. |
 | `--skip-quotes` | Leave blockquotes unlinted. |
 | `--no-footer` | Omit the false-positive instructions. |
@@ -60,10 +61,12 @@ Code blocks, inline code, URLs, link targets, tables, and HTML comments are neve
 Detection runs in three layers, ordered from cheapest to most expensive:
 
 1. **Regex** for fixed phrases, sentence templates, and punctuation (`rules/phrase.toml`, `rules/template.toml`, `rules/punct.toml`). These bite.
-2. **Dependency parsing** with spaCy for constructions that regex cannot tell apart from legitimate use: "the map holds three keys" passes, "that holds even under load" fires (`rules/verb.toml`, `rules/adj.toml`). These bark.
-3. **Document statistics** for rhythm and repetition: uniform sentence length, repeated paragraph openers, triad density, bold-label bullet lists (`rules/doc.toml`). These sniff.
+2. **Dependency parsing** with spaCy for constructions that regex cannot tell apart from legitimate use: "the map holds three keys" passes, "that holds even under load" fires (`rules/verb.toml`, `rules/adj.toml`, `rules/noun.toml`). These bark, except for noun clusters of four or more, which bite.
+3. **Document statistics** for rhythm and repetition: uniform sentence length, repeated paragraph openers, triad density, bullet lists with bold labels (`rules/doc.toml`). These sniff.
 
 Every rule has its own message, at least one `example` sentence it must fire on, and at least one `acceptable` sentence it must leave alone. `./slophound test` checks all of them, plus a small corpus of human and generated text under `tests/corpus/`, plus this repository's own Markdown.
+
+Rules with a `mode` field are off by default and run only under `--mode`. The corpus and own-docs checks run the core rules only.
 
 ## False positives
 
