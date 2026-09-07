@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="slophound: a bloodhound detective holding a red-marked page at arm's length" width="240">
+</p>
+
 # slophound
 
 A linter for prose written by language models. Point it at a Markdown file, get back the sentences that make it read like a machine wrote it, with line numbers and instructions. Make it red, make it green.
