@@ -1,12 +1,16 @@
-<p align="center">
-  <img src="assets/logo.png" alt="slophound: a bloodhound detective holding a red-marked page at arm's length" width="240">
-</p>
-
-# slophound
+<div align="center">
+  <img src="assets/logo.png" alt="slophound: a bloodhound detective holding a red-marked page at arm's length" width="220">
+  <h1>slophound</h1>
+  <p><strong>Agents cannot see the slop they wrote. slophound can.</strong></p>
+  <p>
+    <img alt="Deterministic" src="https://img.shields.io/badge/deterministic-no%20LLM%20in%20the%20loop-2d2d2d">
+    <img alt="Rules in TOML" src="https://img.shields.io/badge/rules-TOML-1f3a5f">
+    <img alt="Runs with uv" src="https://img.shields.io/badge/runs%20with-uv-c8102e">
+    <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-2d2d2d">
+  </p>
+</div>
 
 A linter for prose written by language models. Point it at a Markdown file, get back the sentences that make it read like a machine wrote it, with line numbers and instructions. Make it red, make it green.
-
-Agents cannot see the slop they wrote. slophound can.
 
 ```
 docs/adr-014.md:12:1  bark   verb.buys-us
