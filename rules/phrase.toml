@@ -269,10 +269,26 @@ acceptable = ["Use the queue when the consumer can lag by more than a minute; ot
 [[rule]]
 id = "phrase.cliche-metaphors"
 severity = "bite"
-pattern = '\b((rich|intricate) tapestry|intricate interplay|delicate balance|double[- ]edged sword|tip of the iceberg|perfect storm|tipping point|at the forefront|only time will tell|unlock(s|ing)? the (full )?(potential|power|secrets)|at the end of the day|between a rock and a hard place|sheds? (new )?light on|strikes? a balance|smoking gun|a (new )?chapter in|dive deep into|deep dive into)\b'
-message = "Stock metaphor that no longer carries an image. Say the literal thing."
-example = ["Observability is a double-edged sword.", "This is only the tip of the iceberg.", "At the end of the day, latency wins."]
-acceptable = ["More logging costs about 4% CPU and pays off during incidents."]
+pattern = '\b((rich|intricate) tapestry|intricate interplay|delicate balance|double[- ]edged sword|tip of the iceberg|perfect storm|tipping point|at the forefront|only time will tell|unlock(s|ing)? the (full )?(potential|power|secrets)|at the end of the day|between a rock and a hard place|sheds? (new )?light on|strikes? a balance|smoking gun|a (new )?chapter in|dive deep into|deep dive into|(a |the )?(new|same|different|one|single|shared|common) roof|under (a|the|one) (new |same |single |shared )?roof|(a |the )?(new|permanent|natural|proper|forever) home for|(found|finds|find|finding) (a|its|their) (new )?home (in|under|with|at)|(a |the )?fresh coat of paint|(new|different|brighter|fresh) wallpaper|(a |the )?(new|fresh|second) lease (of|on) life)\b'
+# Literal buildings and moving house keep their roofs and homes.
+unless = '\b(house|houses|building|buildings|apartment|flat|garage|shed|barn|tenant|tenants|landlord|rent|mortgage|roofing|roofer|shingles|tiles|leak|leaks|leaking|rain|snow|storm|wall|walls|homeless|shelter|shelters|family|families|refugee|refugees|adopt|adopted|adoption|pet|pets|dog|dogs|cat|cats)\b'
+message = "Stock metaphor that no longer carries an image (\"a new roof\", \"found a home in the platform team\", \"fresh coat of paint\"). Say the literal thing: who owns it now, what changed."
+example = [
+  "Observability is a double-edged sword.",
+  "This is only the tip of the iceberg.",
+  "At the end of the day, latency wins.",
+  "Same object, new name, new roof.",
+  "The billing service found a new home in the platform team.",
+  "Both services now live under one roof.",
+  "The redesign is a fresh coat of paint on the same API.",
+]
+acceptable = [
+  "More logging costs about 4% CPU and pays off during incidents.",
+  "The platform team owns the billing service now.",
+  "The house needs a new roof before the rain starts.",
+  "They found a home for the rescued dog.",
+  "We repainted the garage last spring.",
+]
 most_common_in = ["gpt", "gemini", "claude"]
 
 [[rule]]

@@ -339,3 +339,32 @@ acceptable = [
   "We picked Postgres for the ledger and never regretted it.",
   "Never use it for writes.",
 ]
+
+[[rule]]
+id = "template.echo-triplet"
+severity = "bite"
+message = "Three verbless phrases in a row, two of them opening with the same word (\"Same object, new name, new roof.\"). A caption, not a sentence. Say what changed and what did not: \"The object is unchanged; it has a new name and a new owner.\""
+most_common_in = ["claude"]
+# Sentence-level only: starts a sentence, ends it. Each phrase is two or three words
+# and has no conjunction, so a plain "A, B, and C" list does not match. Two of the
+# three lead words must be the same (backreferences are case-insensitive under re.I):
+# "same X, new Y, new Z", "same X, same Y, new Z", "old X, new Y, old Z".
+pattern = '(^|(?<=[.!?] ))(?P<a>[A-Za-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?, (?P<b>[a-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?, (?P<c>[a-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?[.!?]'
+# The whole match is the sentence; the repeated-lead requirement lives in the
+# alternation of the three lead words, so a triplet with three different leads is
+# excluded here rather than in the pattern.
+unless = '^(?!(?P<x>[A-Za-z][\w-]*) [^,]*, (?P=x) |(?P<y>[A-Za-z][\w-]*) [^,]*, [^,]*, (?P=y) |[A-Za-z][\w-]* [^,]*, (?P<z>[a-z][\w-]*) [^,]*, (?P=z) )'
+example = [
+  "Same object, new name, new roof.",
+  "Old habit, new tooling, old outcome.",
+  "We shipped it. Same bugs, same tests, new logo.",
+  "Less code, more tests, less fear.",
+]
+acceptable = [
+  "The object is unchanged; it has a new name and a new owner.",
+  "Same object, new name, and a new roof were on the list.",
+  "The same object now has a new name and a new roof.",
+  "First step, second step, third step.",
+  "Red apples, green pears, and red plums filled the bowl.",
+  "Old habit, new tooling, different outcome.",
+]
