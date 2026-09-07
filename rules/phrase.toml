@@ -616,16 +616,21 @@ most_common_in = ["claude", "gpt"]
 [[rule]]
 id = "phrase.reader-steering"
 severity = "error"
-pattern = "\\b(worth (reading|a (closer )?(look|read)|exploring|checking out|your time|paying attention to|a (quick )?mention)|here'?s what (caught my eye|stood out|i find interesting|i (noticed|learned|found))|you might be wondering|if you'?ve ever wondered|we'?ve all been there|you'?re in the right place|by the end of this (article|guide|post|piece|page)|in this day and age|since the dawn of|throughout history|you might (be surprised|not expect)|you'?d be forgiven for|(stay|stick|bear) with me|hear me out|let'?s face it|if you'?re like (me|most)|raise your hand if|sound familiar\\?|you know the (drill|feeling|type)|read on|keep reading|as you (can see|might expect|may know|probably know|might imagine)|you'?ll (notice|see|find) that)(?!\\w)"
+pattern = "\\b(worth (reading|exploring|noting|mentioning|knowing|considering|remembering|stating|repeating|checking out|paying attention to|(your|the|a|an|every) ((closer|quick|second|hard|brief) )?(time|attention|read|look|while|effort|trouble|money|investment|wait|price|mention|minute|glance|visit|try|shot|detour|pause))|here'?s what (caught my eye|stood out|i find interesting|i (noticed|learned|found))|you might be wondering|if you'?ve ever wondered|we'?ve all been there|you'?re in the right place|by the end of this (article|guide|post|piece|page)|in this day and age|since the dawn of|throughout history|you might (be surprised|not expect)|you'?d be forgiven for|(stay|stick|bear) with me|hear me out|let'?s face it|if you'?re like (me|most)|raise your hand if|sound familiar\\?|you know the (drill|feeling|type)|read on|keep reading|as you (can see|might expect|may know|probably know|might imagine)|you'?ll (notice|see|find) that)(?!\\w)"
 message = "The text is steering the reader instead of informing them. Drop the invitation and state the finding."
 example = [
   "The retry budget is worth a closer look.",
   "You might be wondering why the cache misses at midnight.",
   "As you can see, the queue drains in under a second.",
+  "A field guide to the models worth your time.",
+  "The migration guide is worth the effort.",
+  "This edge case is worth noting.",
 ]
 acceptable = [
   "The retry budget allows three attempts per request.",
   "The cache misses at midnight because the TTL is 24 hours.",
+  "The upgrade is worth 40 percent less latency for a day of work.",
+  "The license is worth about 300 euros per seat.",
 ]
 most_common_in = ["gpt", "gemini"]
 
