@@ -10,7 +10,7 @@
   </p>
 </div>
 
-A linter for prose written by language models. Point it at a Markdown file, get back the sentences that make it read like a machine wrote it, with line numbers and instructions. Make it red, make it green.
+A linter for prose written by language models. Feed it a document, a commit message, a PR description, a wiki page, anything with sentences in it. It returns the ones that make the text read like a machine wrote it, with line numbers and instructions for the fix. Markdown syntax is understood and masked; plain text works the same.
 
 ```
 docs/adr-014.md:12:1  bark   verb.buys-us
