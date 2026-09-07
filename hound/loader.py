@@ -14,7 +14,6 @@ from pathlib import Path
 from .model import (
     CATEGORIES,
     DOC_CATEGORIES,
-    MODES,
     REGEX_CATEGORIES,
     SEVERITIES,
     SEVERITY_ALIASES,
@@ -88,10 +87,6 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
     if not acceptable:
         raise RuleError(f"{where}: at least one acceptable sentence is required")
 
-    mode = raw.get("mode")
-    if mode is not None and mode not in MODES:
-        raise RuleError(f"{where}: mode must be one of {MODES}")
-
     rule = Rule(
         id=rid,
         category=category,
@@ -101,7 +96,6 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         acceptable=acceptable,
         source_file=path,
         most_common_in=most_common_in,
-        mode=mode,
         headings=bool(raw.get("headings", category == "phrase")),
     )
 

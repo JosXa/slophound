@@ -49,7 +49,6 @@ For CI logs and tools that parse linter output, `--formal` (or `SLOPHOUND_FORMAL
 | `--disable ID[,ID]` | Skip specific rules for this run. |
 | `--disable-category CAT[,CAT]` | Skip a whole rule file (`phrase`, `template`, `punct`, `verb`, `adj`, `noun`, `doc`). |
 | `--only ID[,ID]` | Run just these rules. |
-| `--mode MODE[,MODE]` | Enable an optional rule set. `ste` adds ASD-STE100 Simplified Technical English checks: passive voice and formal vocabulary. Same as `SLOPHOUND_MODES=ste`. |
 | `--lang XX` | spaCy language code for the grammar layer. Non-English models download on demand. |
 | `--skip-quotes` | Leave blockquotes unlinted. |
 | `--no-footer` | Omit the false-positive instructions. |
@@ -65,8 +64,6 @@ Detection runs in three layers, ordered from cheapest to most expensive:
 3. **Document statistics** for rhythm and repetition: uniform sentence length, repeated paragraph openers, triad density, bullet lists with bold labels (`rules/doc.toml`). These sniff.
 
 Every rule has its own message, at least one `example` sentence it must fire on, and at least one `acceptable` sentence it must leave alone. `./slophound test` checks all of them, plus a small corpus of human and generated text under `tests/corpus/`, plus this repository's own Markdown.
-
-Rules with a `mode` field are off by default and run only under `--mode`. The corpus and own-docs checks run the core rules only.
 
 ## False positives
 

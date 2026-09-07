@@ -663,16 +663,18 @@ most_common_in = ["claude"]
 [[rule]]
 id = "phrase.wordy-filler"
 severity = "bite"
-pattern = '\b(in order to|due to the fact that|in light of the fact|it\x27?s (clear|obvious|evident) that|what\x27?s clear is|it\x27?s worth (mentioning|pointing out|remembering)|is able to|are able to|owing to the fact that|it is (clear|evident|obvious|apparent) that|it can be seen that|has the ability to|at this point in time|in the event that|prior to|subsequent to|a (large|great|significant|considerable|substantial) (number|amount|majority) of|the vast majority of|it bears (mentioning|repeating|noting)|having said that|by and large|all things considered|for the most part|on the whole|with the aim of|so as to|as you might expect|in the (near|foreseeable) future|at the present time|in a timely (manner|fashion)|first and foremost|each and every|last but not least|in this regard|with regard to|in light of|as a matter of fact|for all intents and purposes|in the grand scheme of things|it is (important|essential|crucial|imperative|vital) to (note|remember|understand|recogni[sz]e)|the process of \w+ing|whether or not)\b|(^|(?<=[.!?] ))(granted|interestingly|prior to that|needless to say),'
-message = "Padding that says nothing. Delete it or replace it with the one-word version (in order to: to; prior to: before; the vast majority of: most)."
+pattern = '\b(in order to|due to the fact that|in light of the fact|it\x27?s (clear|obvious|evident) that|what\x27?s clear is|it\x27?s worth (mentioning|pointing out|remembering)|is able to|are able to|owing to the fact that|it is (clear|evident|obvious|apparent) that|it can be seen that|has the ability to|at this point in time|in the event that|prior to|subsequent to|a (large|great|significant|considerable|substantial) (number|amount|majority) of|the vast majority of|it bears (mentioning|repeating|noting)|having said that|by and large|all things considered|for the most part|on the whole|with the aim of|so as to|as you might expect|in the (near|foreseeable) future|at the present time|in a timely (manner|fashion)|first and foremost|each and every|last but not least|in this regard|with regard to|in light of|as a matter of fact|for all intents and purposes|in the grand scheme of things|it is (important|essential|crucial|imperative|vital) to (note|remember|understand|recogni[sz]e)|the process of \w+ing|whether or not|in excess of|numerous)\b|(^|(?<=[.!?] ))(granted|interestingly|prior to that|needless to say),'
+message = "Padding that says nothing. Delete it or replace it with the one-word version (in order to: to; prior to: before; the vast majority of: most; in excess of: more than; numerous: many)."
 example = [
   "We added a cache in order to reduce load on the database.",
   "The vast majority of requests hit the cache.",
   "Interestingly, the cold path was never measured.",
+  "The queue held in excess of numerous thousand messages.",
 ]
 acceptable = [
   "We added a cache to reduce load on the database.",
   "Ninety percent of requests hit the cache.",
+  "The queue held more than a thousand messages, many of them duplicates.",
 ]
 most_common_in = ["gpt", "gemini", "claude"]
 
@@ -707,29 +709,3 @@ acceptable = [
 ]
 most_common_in = ["gpt", "gemini", "claude"]
 
-# ---------------------------------------------------------------------------
-# ASD-STE100 register (mode = "ste"). Off unless --mode ste is given. These
-# words are correct English; Simplified Technical English replaces them with
-# the shorter everyday word so non-native readers and translators have one
-# term per idea.
-# ---------------------------------------------------------------------------
-
-[[rule]]
-id = "phrase.ste-vocabulary"
-severity = "bark"
-mode = "ste"
-headings = true
-message = "A formal word where Simplified Technical English uses the everyday one: commence (start), terminate (end, stop), sufficient (enough), additional (more), approximately (about), assist (help), attempt (try), indicate (show), obtain (get), numerous (many), purchase (buy), subsequently (then, later), regarding (about), endeavour (try), in excess of (more than), utilise (use), demonstrate (show), require (need), ensure (make sure), initiate (start), modify (change), permit (let), possess (have), retain (keep), remainder (rest)."
-pattern = '\b(commenc(e|es|ed|ing)|terminat(e|es|ed|ing)|sufficient(ly)?|additional(ly)?|approximately|assist(s|ed|ing|ance)?|attempt(s|ed|ing)?|indicat(e|es|ed|ing)|obtain(s|ed|ing)?|numerous|purchas(e|es|ed|ing)|subsequently|regarding|endeavo(u)?r(s|ed|ing)?|in excess of|utili[sz](e|es|ed|ing)|demonstrat(e|es|ed|ing)|initiat(e|es|ed|ing)|modif(y|ies|ied|ying)|permit(s|ted|ting)?|possess(es|ed|ing)?|retain(s|ed|ing)?|remainder)\b'
-unless = "\\b(terminate[sd]? the (process|connection|session|thread|pod|instance|contract|lease)|kill -9|SIGTERM|purchase order|attempt(s|ed)? (\\d+|[a-z]+) times?|the (first|second|third|last|final|next|previous) attempt|a (single|second|third|new) attempt|modifier|permit(s)? (to|for) \\w+ (\\d|expir)|access permit|work permit)\\b"
-example = [
-  "The job will commence once sufficient workers are available.",
-  "Approximately forty additional requests were obtained.",
-  "Attempt to modify the file, then terminate the run.",
-]
-acceptable = [
-  "The job starts once enough workers are available.",
-  "About forty more requests came in.",
-  "The client retried three times; the third attempt succeeded.",
-  "SIGTERM tells the process to terminate the connection cleanly.",
-]

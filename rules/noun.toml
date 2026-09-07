@@ -3,12 +3,11 @@
 # These rules catch noun clusters: three or more common nouns stacked into one
 # phrase ("cache layer invalidation retry strategy"). Language models compress
 # a whole clause into a noun pile because it looks precise; a reader has to
-# unpack it, and often cannot tell which noun modifies which. ASD-STE100 caps
-# clusters at three nouns; slophound barks at three and bites at four.
+# unpack it, and often cannot tell which noun modifies which. Technical writing
+# guides cap clusters at three nouns; slophound barks at three and bites at four.
 #
 # Fields per [[rule]]: see rules/verb.toml. The same DependencyMatcher syntax
-# applies. Severity, message, example and acceptable are required; mode is
-# optional (these rules are core and always run).
+# applies. Severity, message, example and acceptable are required.
 #
 # How the parse looks: spaCy attaches each modifier noun to its head with the
 # dependency "compound". The head of the cluster is the noun that is not itself
