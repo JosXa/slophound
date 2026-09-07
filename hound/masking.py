@@ -3,17 +3,19 @@ markup, while keeping every character offset identical to the original text.
 
 Three views, all exactly as long as the source text:
 
-- `masked`: code fences, inline code, URLs, link targets, front matter, HTML
-  comments, HTML tags and tables are replaced by spaces. Everything else,
+- `masked`: code fences, inline code, URLs, link targets, front matter (except
+  values the reader sees, such as a slide `heading:`), HTML comments, HTML tags
+  and tables are replaced by spaces. Everything else,
   including emphasis markers and quote characters, is untouched. Punctuation
   rules run here because they care about the raw characters.
 - `prose`: `masked` with typographic quotes normalised to ASCII and Markdown
   markup (heading hashes, list bullets, blockquote markers, emphasis) blanked.
   Phrase, template and grammar rules run here.
 
-Blocks describe the structure: each heading, list item, paragraph or blockquote
-paragraph becomes one block with its kind and span, so layers can skip headings
-or quotes and the document layer can reason about paragraphs.
+Blocks describe the structure: each heading, list item, paragraph, blockquote
+paragraph or rendered front-matter value (`field`) becomes one block with its
+kind and span, so layers can skip headings or quotes and the document layer can
+reason about paragraphs.
 
 Maintenance rules for this file:
 
@@ -39,11 +41,23 @@ _FENCE_RE = re.compile(r"^(```|~~~)[^\n]*\n.*?^\1[^\n]*$", re.M | re.S)
 # those must not count as the author using them.
 _INLINE_CODE_RE = re.compile(r"`[^`\n]+`")
 # Front matter at the top of the file, plus the per-slide `---` blocks Slidev
-# and Marp put between slides. Both are YAML, never prose. The body lines must
-# look like YAML (key at column 0 or an indented continuation) so a `---`
-# thematic break followed by prose is not swallowed. Added after slide decks
-# reported `layout: default` as a repeated paragraph opener.
+# and Marp put between slides. The YAML structure is never prose, but the values
+# often are: a slide's `heading:`, `lede:` or `callout:` is rendered text the
+# reader sees, so `_expose_front_matter_values` puts multi-word values back as
+# `field` blocks. The body lines must look like YAML (key at column 0 or an
+# indented continuation) so a `---` thematic break followed by prose is not
+# swallowed. Added after slide decks reported `layout: default` as a repeated
+# paragraph opener.
 _FRONT_MATTER_RE = re.compile(r"(?:\A|(?<=\n\n))---[ \t]*\n(?:[A-Za-z_][^\n]*\n|[ \t]+[^\n]*\n)*?---[ \t]*\n")
+# One YAML line: optional indent and list dash, optional `key:`, then the value.
+_YAML_LINE_RE = re.compile(r"^([ \t]*(?:-[ \t]+)?)(?:([A-Za-z_][\w-]*):[ \t]+)?(.*?)[ \t]*$")
+# Keys whose values are machine input even when they contain spaces (`class:
+# text-center mt-4`). Everything else with two or more words is treated as text
+# the reader will see.
+_MACHINE_KEYS = frozenset(
+    "class style src href url link image background backgroundimage icon color colour "
+    "accent layout theme transition font fonts id key glob path file files tags".split()
+)
 # Link label of an inline link. Only Title Case labels get blanked (see
 # `_blank_title_labels`): they are names of pages, not the author's words. Added
 # after a link to a Confluence page called "Artifact-Centric Approach" fired
@@ -87,7 +101,7 @@ _ATX_TRAILING_RE = re.compile(r"[ \t]+#+[ \t]*$")
 
 @dataclass
 class Block:
-    kind: str  # heading | list | paragraph | quote
+    kind: str  # heading | list | paragraph | quote | field
     start: int
     end: int  # exclusive
 
@@ -135,9 +149,47 @@ def _blank_matches(text: str, regex: re.Pattern) -> str:
     return out
 
 
+def _expose_front_matter_values(text: str, masked: str) -> tuple[str, set[int]]:
+    """Restore rendered text inside front matter blocks and report where it sits.
+
+    Slide decks and static-site pages keep visible copy in YAML: `heading:`,
+    `lede:`, `callout:`, `title:`, `description:`, list items with `title:` and
+    `detail:`. A value with two or more words, under a key that is not a machine
+    setting, is text the reader sees and is linted like a paragraph. Keys,
+    indentation and one-word or quoted-machine values stay blank. Returns the
+    updated masked view and the start offsets of the exposed lines.
+    """
+    field_lines: set[int] = set()
+    for fm in _FRONT_MATTER_RE.finditer(text):
+        pos = fm.start()
+        for raw_line in text[fm.start() : fm.end()].split("\n"):
+            line_start = pos
+            pos += len(raw_line) + 1
+            if raw_line.strip() == "---":
+                continue
+            m = _YAML_LINE_RE.match(raw_line)
+            if not m:
+                continue
+            key, value = m.group(2), m.group(3)
+            if key is not None and key.lower() in _MACHINE_KEYS:
+                continue
+            vstart = m.start(3)
+            vend = m.end(3)
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                vstart += 1
+                vend -= 1
+            if len(re.findall(r"[A-Za-z\u00C0-\u024F]{2,}", raw_line[vstart:vend])) < 2:
+                continue
+            s, e = line_start + vstart, line_start + vend
+            masked = masked[:s] + text[s:e] + masked[e:]
+            field_lines.add(line_start)
+    return masked, field_lines
+
+
 def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
     masked = text
     masked = _blank_matches(masked, _FRONT_MATTER_RE)
+    masked, field_lines = _expose_front_matter_values(text, masked)
     masked = _blank_matches(masked, _FENCE_RE)
     masked = _blank_matches(masked, _INLINE_CODE_RE)
     masked = _blank_matches(masked, _HTML_COMMENT_RE)
@@ -164,6 +216,10 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
         kind: str | None
         if not stripped:
             kind = None
+        elif line_start in field_lines:
+            # A front-matter value the reader sees (`lede: Both sit at the top.`).
+            # One block per line, like a heading; the rhythm metrics skip it.
+            kind = "field"
         elif _QUOTE_MARK_RE.match(line):
             kind = "quote"
             if skip_quotes:

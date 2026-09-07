@@ -81,7 +81,7 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
         by_key[nlp.vocab.strings[rule.id]] = rule
 
     findings: list[Finding] = []
-    blocks = doc.blocks_of("paragraph", "list", "quote")
+    blocks = doc.blocks_of("paragraph", "list", "quote", "field")
     texts = [doc.prose[b.start : b.end] for b in blocks]
     spans = sentence_spans(doc)
     import re

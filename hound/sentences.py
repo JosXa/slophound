@@ -15,7 +15,7 @@ _ABBREV = re.compile(r"\b(?:e\.g|i\.e|vs|etc|Mr|Mrs|Dr|Ms|St|No|Fig|approx|cf)\.
 _BOUNDARY = re.compile(r"[.!?]+[\"')\]]*(?=\s+[\"'(\[]?[A-Z0-9]|\s*$)")
 
 
-def sentence_spans(doc: Document, kinds: tuple[str, ...] = ("paragraph", "list", "quote")) -> list[tuple[int, int]]:
+def sentence_spans(doc: Document, kinds: tuple[str, ...] = ("paragraph", "list", "quote", "field")) -> list[tuple[int, int]]:
     spans: list[tuple[int, int]] = []
     for block in doc.blocks_of(*kinds):
         spans.extend(split_block(doc.prose, block.start, block.end))

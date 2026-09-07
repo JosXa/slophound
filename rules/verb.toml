@@ -217,3 +217,30 @@ acceptable = [
   "The retry loop ensures every message is delivered at least once.",
   "Two reviewers must approve before merge.",
 ]
+
+[[rule]]
+id = "verb.sits"
+severity = "bark"
+message = "A pronoun \"sits\" or \"lives\" somewhere (\"Both sit at the top\", \"this lives in the config layer\"). A ranking or location dressed as furniture. Say what it is: \"Both are frontier models\", \"the config layer owns this\"."
+most_common_in = ["claude", "gpt"]
+dependency = [
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = { IN = ["sit", "live"] }, POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", TAG = { IN = ["DT", "WDT"] } } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "place", RIGHT_ATTRS = { DEP = { IN = ["prep", "advmod"] }, LOWER = { IN = ["at", "in", "on", "behind", "between", "under", "above", "below", "beneath", "alongside", "atop", "inside", "outside", "there", "here", "downstream", "upstream"] } } },
+  ],
+]
+unless = "\\blive[sd]? in (?!(the|a|an|one|our|its|that|this|your|their|every|each) )\\S|\\b(sit|sits|sat|sitting|live|lives|lived|living) (well|right|badly|uneasily|comfortably|oddly) with\\b|\\b(both|these|those|they|we) (sit|sat|live|lived) (at|in|on) (the|a|an) (front|back|table|desk|bench|chair|couch|floor|room|office|city|town|country|house|flat|apartment)\\b"
+example = [
+  "Both sit at the top.",
+  "This sits behind a feature flag.",
+  "That sits in the middle of the range.",
+  "This lives in the config layer.",
+]
+acceptable = [
+  "The sensor sits at the top of the mast.",
+  "Both live in Berlin.",
+  "She sits at the front.",
+  "This sits well with me.",
+  "The config lives in one file.",
+]

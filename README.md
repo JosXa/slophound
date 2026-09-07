@@ -53,7 +53,7 @@ For CI logs and tools that parse linter output, `--formal` (or `SLOPHOUND_FORMAL
 | `--skip-quotes` | Leave blockquotes unlinted. |
 | `--no-footer` | Omit the false-positive instructions. |
 
-Code blocks, inline code, URLs, link targets, tables, front matter, and HTML comments are never linted.
+Code blocks, inline code, URLs, link targets, tables, and HTML comments are never linted. Front matter is masked except for values the reader sees: a slide deck's `heading:`, `lede:` or `callout:`, a page's `title:` or `description:`, and list entries with `title:` and `detail:` are linted like paragraphs, while keys, one-word settings and `class:`/`style:`/`layout:` values stay hidden.
 
 ## How it works
 

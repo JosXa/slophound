@@ -26,7 +26,7 @@ def _compile(pattern: str, flags: int = re.I | re.M) -> re.Pattern:
 
 def run(doc: Document, rules: list[Rule]) -> list[Finding]:
     findings: list[Finding] = []
-    spans = sentence_spans(doc, ("paragraph", "list", "quote", "heading"))
+    spans = sentence_spans(doc, ("paragraph", "list", "quote", "heading", "field"))
     headings = doc.blocks_of("heading")
 
     def in_heading(offset: int) -> bool:

@@ -102,7 +102,9 @@ def check_masking() -> list[str]:
     sample = (
         "---\ntitle: x\n---\n# Heading\n\nText with `code` and a [link](https://x.y/z) and\n\n```\nnot prose\n```\n"
         "> quote here\n\n| a | b |\n|---|---|\n\n<!-- comment --> tail\n\n"
-        "---\nlayout: slide\n---\n\nSee [Artifact Centric Approach](https://x.y/a) and [the guide](https://x.y/g).\n\n"
+        "---\nlayout: slide\nclass: text-center mt-4\nheading: Both sit at the top of the list\n"
+        "tiles:\n  - icon: gear\n    detail: Handles structured calls reliably.\n---\n\n"
+        "See [Artifact Centric Approach](https://x.y/a) and [the guide](https://x.y/g).\n\n"
         "<RepoTree\n  eyebrow=\"Repo layout\"\n  :depth=\"2\"\n/>\n\n"
         "::: tip\nInside the container.\n:::\n\n"
         "Costs are 3 < 5 here and stay visible.\n"
@@ -112,11 +114,16 @@ def check_masking() -> list[str]:
         problems.append("masking changed text length")
     for needle in (
         "title: x", "code", "https://x.y/z", "not prose", "| a | b |", "comment",
-        "layout: slide", "Artifact Centric", "eyebrow", "Repo layout", "::: tip",
+        "layout: slide", "text-center mt-4", "heading:", "icon: gear", "Artifact Centric",
+        "eyebrow", "Repo layout", "::: tip",
     ):
         if needle in doc.masked:
             problems.append(f"masking left {needle!r} visible")
-    for needle in ("the guide", "Inside the container", "3 < 5 here and stay visible"):
+    for needle in (
+        "the guide", "Inside the container", "3 < 5 here and stay visible",
+        # Front-matter values the reader sees are prose; keys and settings are not.
+        "Both sit at the top of the list", "Handles structured calls reliably.",
+    ):
         if needle not in doc.prose:
             problems.append(f"{needle!r} is prose and must stay visible")
     if "quote here" not in doc.prose:
@@ -127,6 +134,8 @@ def check_masking() -> list[str]:
     kinds = [b.kind for b in doc.blocks]
     if kinds[:3] != ["heading", "paragraph", "quote"]:
         problems.append(f"unexpected block kinds {kinds}")
+    if kinds.count("field") != 2:
+        problems.append(f"expected two field blocks for the exposed YAML values, got {kinds}")
     return problems
 
 

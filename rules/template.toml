@@ -303,3 +303,21 @@ acceptable = [
   "Two options remain: retry or fail.",
 ]
 most_common_in = ["claude"]
+
+[[rule]]
+id = "template.verbless-antithesis"
+severity = "bite"
+pattern = '(^|(?<=[.!?] ))[A-Z][\w.-]*( [\w.-]+){0,3} (for|when|if|where) [^.!?\n,;]{2,50}, (?!(and|or|but|then|so|yet|nor|while|whereas|because|since|not|which|who) )[A-Za-z][\w.-]*( [\w.-]+){0,3} (for|when|if|where) [^.!?\n,;]{2,50}[.!?]'
+message = "A balanced pair with no verb (\"Astra for the big job, Fable for the code you ship.\"). A slogan, not a sentence. Give each half its verb: \"Astra handles the big job; Fable writes the code you ship.\""
+most_common_in = ["claude"]
+example = [
+  "Astra for the big structural job, Fable 5.1 for the code you ship.",
+  "Apples for the kids, wine for the adults.",
+  "Postgres when the schema is stable, Mongo when it is not.",
+]
+acceptable = [
+  "Astra handles the big structural job; Fable 5.1 writes the code you ship.",
+  "We use Postgres when the schema is stable, and we reach for Mongo when it is not.",
+  "Thanks for the review, and sorry for the delay.",
+  "Wait for the build, then deploy.",
+]
