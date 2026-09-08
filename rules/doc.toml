@@ -28,6 +28,14 @@
 #                     participial_closer_share  share of sentences ending in
 #                                               ", ensuring/enabling/... X"
 #                     em_dash_density           em dashes per 100 words
+#                     signpost_density           structural signposts per 100 words
+#                                               (only documents of 150+ words)
+#                     conclusion_coda            stock closing coda, or Jaccard
+#                                               overlap of opening and final content
+#                                               words
+#                     every_template_openers     paragraphs opening "Every noun verb"
+#                     rhetorical_question_share  share of question sentences that
+#                                               the next sentence answers
 #   threshold       Number. The rule fires when value >= threshold, except for
 #                   metrics documented as "fires when value <= threshold".
 #   min_sentences   Optional. Skip documents shorter than this many sentences.
@@ -226,5 +234,109 @@ We moved the cache to the edge, ensuring lower latency. The lock was removed, en
 acceptable = [
 '''
 We moved the cache to the edge. Latency dropped from 80 ms to 12 ms at p50. The lock was removed, and writes now run in parallel. Alerts fire at five hundred instead of a thousand, which is early enough for the on-call to act.
+''',
+]
+
+[[rule]]
+id = "doc.signpost-density"
+severity = "sniff"
+metric = "signpost_density"
+threshold = 1.0
+message = "The document repeatedly announces its route instead of making the next point. Cut roadmap phrases such as \"First,\" and \"In this section\" unless readers need the navigation."
+example = [
+'''
+First, the migration starts by copying tenant records into the new store. Each copy is checked against the source before it can become visible. The worker keeps the original record until a second pass completes. A failed copy remains eligible for the next hourly batch. Operators can inspect the pending count from the migration dashboard. The dashboard also shows records rejected by the schema validator. Rejections stay in the old store until an engineer resolves them. In this section, we describe the validation pass that keeps a malformed record from blocking other tenants. The validator records the field, source value, and error code for each rejection. That detail lets support repair the record without replaying the whole tenant. Once the batch is stable, the cutover job changes reads to the new store. Writes continue to dual-write for one week. The team then compares both stores every morning. A mismatch pauses the next batch and opens an incident. This rollout limits the damage from a bad conversion while keeping the migration moving.
+''',
+]
+acceptable = [
+'''
+The migration starts by copying tenant records into the new store. Each copy is checked against the source before it becomes visible. The worker keeps the original record until a second pass completes. A failed copy remains eligible for the next hourly batch. Operators can inspect pending records from the migration dashboard. The dashboard also shows records rejected by the schema validator. Rejections stay in the old store until an engineer resolves them. The validator records the field, source value, and error code for each rejection. That detail lets support repair a record without replaying the tenant. Once the batch is stable, the cutover job changes reads to the new store. Writes continue to dual-write for one week. The team compares both stores every morning. A mismatch pauses the next batch and opens an incident. This rollout limits the damage from a bad conversion while keeping the migration moving.
+''',
+]
+
+[[rule]]
+id = "doc.conclusion-coda"
+severity = "sniff"
+metric = "conclusion_coda"
+threshold = 0.45
+min_paragraphs = 4
+message = "The final paragraph reads like a recap or moral. End on a concrete point instead of a stock coda or a summary of the opening."
+example = [
+'''
+The cache now keeps tenant reads close to the worker. That removes a network hop from the request path.
+
+Writes still pass through the primary database. The cache invalidates a tenant after each successful write.
+
+The rollout begins with internal tenants. We will compare cached and uncached responses before expanding it.
+
+Ultimately, the cache gives the service a simpler read path and a safer way to recover from a failed node.
+''',
+'''
+The cache keeps tenant reads close to the worker and removes a network hop from the request path.
+
+Writes still pass through the primary database. The cache invalidates a tenant after each successful write.
+
+The rollout begins with internal tenants. We will compare cached and uncached responses before expanding it.
+
+Tenant reads now use the cache close to the worker, removing the network hop from every request path.
+''',
+]
+acceptable = [
+'''
+The cache now keeps tenant reads close to the worker. That removes a network hop from the request path.
+
+Writes still pass through the primary database. The cache invalidates a tenant after each successful write.
+
+The rollout begins with internal tenants. We will compare cached and uncached responses before expanding it.
+
+The first external tenant moves on 14 June after the comparison job has run cleanly for seven days.
+''',
+]
+
+[[rule]]
+id = "doc.every-template-openers"
+severity = "sniff"
+metric = "every_template_openers"
+threshold = 2
+min_paragraphs = 4
+message = "Several paragraphs open with \"Every <noun> <verb>\". The repeated template creates a machine rhythm; start each paragraph on its specific claim."
+example = [
+'''
+Every request receives a trace identifier before it reaches the handler. The identifier follows the work through the queue.
+
+Every worker writes its lease to the coordinator before it accepts a job. A stale lease expires after thirty seconds.
+
+The coordinator records the current owner of each job. Operators can force a retry after checking the trace.
+
+Failures remain visible in the dashboard for fourteen days. That window gives support time to investigate recurring errors.
+''',
+]
+acceptable = [
+'''
+Requests receive a trace identifier before they reach the handler. The identifier follows the work through the queue.
+
+Workers write their lease to the coordinator before accepting a job. A stale lease expires after thirty seconds.
+
+The coordinator records the current owner of each job. Operators can force a retry after checking the trace.
+
+Failures remain visible in the dashboard for fourteen days. That window gives support time to investigate recurring errors.
+''',
+]
+
+[[rule]]
+id = "doc.rhetorical-question-share"
+severity = "sniff"
+metric = "rhetorical_question_share"
+threshold = 0.25
+min_sentences = 8
+message = "Several questions immediately answer themselves. State the claim directly, or keep only the question that the reader needs to consider."
+example = [
+'''
+What happens when the lease expires? The coordinator returns the job to the queue. Why keep the old record? It gives support a source for comparison. Who can restart a stalled job? The on-call engineer can do so from the dashboard. The worker records each retry. The dashboard keeps the trace for fourteen days. A weekly report lists recurring failures. Teams review that report during operations planning.
+''',
+]
+acceptable = [
+'''
+The coordinator returns a job to the queue when its lease expires. Support compares a failed record with the original source. The on-call engineer can restart a stalled job from the dashboard. The worker records each retry. The dashboard keeps the trace for fourteen days. A weekly report lists recurring failures. Teams review that report during operations planning. The next release adds a longer lease for batch jobs.
 ''',
 ]
