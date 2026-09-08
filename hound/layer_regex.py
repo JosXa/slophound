@@ -27,6 +27,7 @@ def _compile(pattern: str, flags: int = re.I | re.M) -> re.Pattern:
 def run(doc: Document, rules: list[Rule]) -> list[Finding]:
     findings: list[Finding] = []
     spans = sentence_spans(doc, ("paragraph", "list", "quote", "heading", "field"))
+    sentence_starts = {start for start, _ in spans}
     headings = doc.blocks_of("heading")
 
     def in_heading(offset: int) -> bool:
@@ -38,6 +39,8 @@ def run(doc: Document, rules: list[Rule]) -> list[Finding]:
         unless = _compile(rule.unless, re.I) if rule.unless else None
         for m in regex.finditer(text):
             if m.end() == m.start():
+                continue
+            if rule.sentence_start and m.start() not in sentence_starts:
                 continue
             if not rule.headings and in_heading(m.start()):
                 continue

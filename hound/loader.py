@@ -108,6 +108,10 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         except re.error as exc:
             raise RuleError(f"{where}: invalid regex: {exc}") from exc
         rule.pattern = pattern
+        sentence_start = raw.get("sentence_start", False)
+        if not isinstance(sentence_start, bool):
+            raise RuleError(f"{where}: sentence_start must be a boolean")
+        rule.sentence_start = sentence_start
         unless = raw.get("unless")
         if unless is not None:
             if not isinstance(unless, str):

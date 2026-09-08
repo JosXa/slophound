@@ -13,6 +13,10 @@
 id = "template.not-x-but-y"
 severity = "bite"
 pattern = "\\b(it|this|that|the \\w+|\\w+) (is|was|'s)(n't| not) (just |only |simply |merely |about )?[^.!?\\n;]{1,80}[.;,]\\s*(it|this|that)('s| is| was)( about)? \\b|\\bnot (just|only|merely|simply) (a |an |the |about )?[^.!?\\n,;]{1,60}[,;]?\\s*(but|it's|it is)( also| rather| about)? \\b|\\bit's not about [^.!?\\n]{1,60}[.,;]\\s*it's about\\b|\\bless [^.!?\\n,]{1,40}, more \\b|\\bforget [^.!?\\n.]{1,40}\\. this is\\b|\\bwhat matters (isn't|is not) [^.!?\\n,]{1,60}, it's\\b|\\bit's less about [^.!?\\n,]{1,50}(,| and| than) more about\\b|\\b[^.!?\\n]{1,40} (isn't|is not|was never) the point\\. \\b"
+# A conditional clause ("If it is not in the registry, it is not approved.")
+# has the same shape but states a rule, so the sentence is skipped when it
+# opens with a subordinator.
+unless = "^(if|when|whenever|unless|until|once|as long as|provided|so long as|where|wherever|while|should|in case)\\b"
 message = "Negation-then-reveal (\"It's not X, it's Y\"). Delete the negated half and state the positive claim."
 example = [
   "This isn't just a performance fix, it's a correctness fix.",
@@ -20,11 +24,16 @@ example = [
   "The problem was not the cache. It was the lock.",
   "This is not only faster but also safer.",
   "Less ceremony, more shipping.",
+  "The gap is not adoption. It is everything between one person's editor and the way we actually build and ship software.",
+  "The gap is not adoption.\nIt is everything between one person's editor and the way we actually build and ship software.",
 ]
 acceptable = [
   "This fixes a correctness bug and, as a side effect, a performance one.",
   "The lock caused the problem.",
   "It is not finished. We still need the migration script and a rollback plan.",
+  "If it is not in the registry, it is not approved.",
+  "When the flag is not set, the job is skipped.",
+  "Unless the test is not flaky, it stays in the suite.",
 ]
 most_common_in = ["claude", "gpt"]
 
@@ -288,19 +297,53 @@ most_common_in = ["gpt", "gemini"]
 [[rule]]
 id = "template.count-opener"
 severity = "bite"
-pattern = '(^|(?<=[.!?] ))(two|three|four|five|six|seven|eight|nine|ten|\d+) [a-z][^.!?\n]{0,60}:[ \t]*$|(^|(?<=[.!?] ))(two|three|four|five|six|seven|eight|nine|ten|\d+) (\w+ )?\w+, (both|all|each|none|one|no|most|cheapest|fastest|simplest|[a-z]+est) [^.!?\n]{1,40}[.!?]'
-message = "A sentence that opens with a count and has no verb (\"Three layers, cheapest first:\"). Telegram compression. Write the sentence: what are the layers, why that order."
+pattern = '\b(two|three|four|five|six|seven|eight|nine|ten|\d+)\b(?=\s+[a-z])'
+sentence_start = true
+message = "The sentence opens with a count. Start with the subject and put the count later: 'Four files changed' becomes 'The change affects 4 files.'"
 example = [
   "Three detection layers, cheapest first:",
   "Two options, both bad.",
   "Five rules, one file each.",
-]
-acceptable = [
+  "Five things sit next to each other and do not fit together well.",
   "Three layers run in order, cheapest first.",
   "Two options remain, and both are bad.",
-  "The bridge has three pillars.",
   "Four files changed.",
   "Two options remain: retry or fail.",
+  "5 things do not fit together well.",
+  "Five\nthings do not fit together well.",
+  "Five\tthings do not fit together well.",
+  "We checked. five things do not fit together well.",
+  "We deploy at 9 a.m. Five workers restart.",
+  "We checked Acme Inc. Five files changed.",
+  "We checked.  Five things do not fit together well.",
+  "We checked.\nFive things do not fit together well.",
+  "We checked!\tFive things do not fit together well.",
+  "  Five things do not fit together well.",
+  "**Five things** do not fit together well.",
+  "- Five things do not fit together well.",
+  "> Five things do not fit together well.",
+  "---\nlede: Five things do not fit together well.\n---\n",
+]
+acceptable = [
+  "The bridge has three pillars.",
+  "The change affects 4 files.",
+  "We checked five things.",
+  "We checked\nfive things.",
+  "We checked\nFive Things Incorporated.",
+  "- We checked\n  five things.",
+  "- We checked\nfive things.",
+  "1. We checked\n   five things.",
+  "The job runs at 9 a.m. five days a week.",
+  "The job runs at 9 p.m. five days a week.",
+  "We checked Acme Inc. five times.",
+  "One can disable retries.",
+  "Zero the buffer before returning it.",
+  "We compared Fig. Five with Fig. Six.",
+  "The remaining options are: two retries or failure.",
+  "Fivefold growth followed the release.",
+  "## Five things to check",
+  "`Five things` is the example text.",
+  "5. Check the logs.",
 ]
 most_common_in = ["claude"]
 

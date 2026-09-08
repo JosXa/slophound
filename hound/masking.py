@@ -35,8 +35,11 @@ from dataclasses import dataclass
 # Characters normalised in the prose view. Same length, so offsets survive.
 _QUOTE_MAP = str.maketrans({"\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"'})
 
-# Fenced code, ``` or ~~~, closed by the same fence. Code is never prose.
-_FENCE_RE = re.compile(r"^(```|~~~)[^\n]*\n.*?^\1[^\n]*$", re.M | re.S)
+# Fenced code, ``` or ~~~, closed by the same fence. Code is never prose. The
+# fence may be indented: CommonMark allows three spaces, and a fence inside a
+# list item sits at the item's continuation indent (a numbered step in
+# docs/adding-rules.md exposed this; its code leaked into the verb layer).
+_FENCE_RE = re.compile(r"^[ \t]*(```|~~~)[^\n]*\n.*?^[ \t]*\1[^\n]*$", re.M | re.S)
 # Inline code. Documentation quotes phrases in backticks to talk about them, and
 # those must not count as the author using them.
 _INLINE_CODE_RE = re.compile(r"`[^`\n]+`")
@@ -214,6 +217,7 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
         stripped = line.strip()
 
         kind: str | None
+        list_continuation = False
         if not stripped:
             kind = None
         elif line_start in field_lines:
@@ -229,6 +233,11 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
             kind = "heading"
         elif _BULLET_RE.match(line):
             kind = "list"
+        elif current is not None and current.kind == "list":
+            # Markdown allows lazy continuations without indentation. Until a
+            # blank line or another block marker, prose stays in the list item.
+            kind = "list"
+            list_continuation = True
         else:
             kind = "paragraph"
 
@@ -254,9 +263,8 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
         if kind is None:
             current = None
             continue
-        # Headings and list items are one block per line. Paragraph and quote
-        # lines continue the previous block of the same kind.
-        if current is not None and current.kind == kind and kind in ("paragraph", "quote"):
+        # List markers start a new block; continuation lines extend it.
+        if current is not None and current.kind == kind and (kind in ("paragraph", "quote") or list_continuation):
             current.end = line_end
         else:
             current = Block(kind, line_start, line_end)

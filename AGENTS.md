@@ -8,6 +8,7 @@ Python scripts run through `uv`; rules in TOML.
 
 - The pre-commit hook in `.githooks/` runs slophound on every staged Markdown file, this one included. Enable it once per clone with `git config core.hooksPath .githooks`.
 - Any AI-ism you catch in your own writing here is a candidate rule. Check the catalog; if it is missing, add it with the sentence you just wrote as the `example`.
+- When adding, widening, or repairing a rule, first read [Adding rules](docs/adding-rules.md): what qualifies as a rule, how to pick tier and layer, how examples prove a rule, how to measure noise on human text, and the TOML escaping traps.
 
 ## Vision
 

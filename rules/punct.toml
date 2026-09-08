@@ -10,12 +10,21 @@
 [[rule]]
 id = "punct.em-dash"
 severity = "bite"
-pattern = '\s?\u2014\s?|\s\u2013\s|\s--\s'
+pattern = '\s?\u2014(?!\s*and\b)\s?|\s\u2013\s|\s--\s'
 headings = true
 message = "Em dash. Use a period, comma, colon, semicolon, parentheses, or \"because\", \"but\", \"so\". Split the thought if it needs splitting."
-example = ["The cache\u2014once warm\u2014serves most reads.", "It failed \u2013 twice.", "It failed -- twice."]
-acceptable = ["The cache, once warm, serves most reads.", "Pages 12\u201314 cover the setup.", "Use --verbose for more output."]
+example = ["The cache\u2014once warm\u2014serves most reads.", "It failed \u2013 twice.", "It failed -- twice.", "We shipped\u2014andromeda is the release name.", "We shipped\u2014but the test failed."]
+acceptable = ["The cache, once warm, serves most reads.", "Pages 12\u201314 cover the setup.", "Use --verbose for more output.", "We built it \u2014 and shipped it.", "We built it\u2014and shipped it.", "We built it \u2014\nAND shipped it."]
 most_common_in = ["gpt", "claude", "gemini"]
+
+[[rule]]
+id = "punct.em-dash-and"
+severity = "bite"
+pattern = '\u2014\s*and\b'
+headings = true
+message = "Drop the em dash before 'and' entirely. Keep 'and' and a single space between the joined words; do not replace the dash with other punctuation."
+example = ["We built it \u2014 and shipped it.", "We built it\u2014and shipped it.", "We built it \u2014\tand shipped it.", "We built it \u2014\nAND shipped it."]
+acceptable = ["We built it and shipped it.", "We built it \u2014 but have not shipped it.", "We shipped\u2014andromeda is the release name.", "It failed \u2013 and retried.", "It failed -- and retried."]
 
 [[rule]]
 id = "punct.curly-quotes"

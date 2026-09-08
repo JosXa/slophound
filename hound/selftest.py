@@ -24,7 +24,7 @@ from pathlib import Path
 from .engine import Engine
 from .loader import RULES_DIR, RuleError, load_rules
 from .masking import build_document
-from .model import BITE, DOC_CATEGORIES, SPACY_CATEGORIES, Finding, Rule
+from .model import BARK, BITE, DOC_CATEGORIES, SPACY_CATEGORIES, Finding, Rule
 from .report import Vocabulary, render, summary_line
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -136,6 +136,22 @@ def check_masking() -> list[str]:
         problems.append(f"unexpected block kinds {kinds}")
     if kinds.count("field") != 2:
         problems.append(f"expected two field blocks for the exposed YAML values, got {kinds}")
+    wrapped_list = "- We checked\n  five things.\n- We fixed\ntwo things.\n"
+    list_doc = build_document("<wrapped-list>", wrapped_list)
+    items = list_doc.blocks_of("list")
+    if len(items) != 2 or any("\n" not in list_doc.prose[b.start:b.end] for b in items):
+        problems.append("list continuations must stay in their list item")
+    if len(list_doc.prose) != len(wrapped_list):
+        problems.append("list continuation masking changed text length")
+    # A fenced block indented inside a list item is still code (CommonMark allows
+    # up to three spaces, list continuation allows more). docs/adding-rules.md
+    # had one with "That holds" in it and verb.holds fired on the code.
+    indented_fence = "1. Run it:\n\n   ```sh\n   tools/parse.py \"That holds.\"\n   ```\n\n   Then read.\n"
+    fence_doc = build_document("<indented-fence>", indented_fence)
+    if "That holds" in fence_doc.masked:
+        problems.append("indented fenced code inside a list item must be masked")
+    if "Then read." not in fence_doc.prose:
+        problems.append("text after an indented fence must stay visible")
     return problems
 
 
@@ -174,6 +190,60 @@ def check_severity_aliases() -> list[str]:
     return [f"alias {k!r} maps to {SEVERITY_ALIASES.get(k)!r}, expected {v!r}" for k, v in expected.items() if SEVERITY_ALIASES.get(k) != v]
 
 
+def check_regex_context(engine: Engine) -> list[str]:
+    """Check rule interaction, sentence boundaries, and offsets after masking."""
+    from . import layer_regex
+    from .loader import _build_rule
+
+    ids = {"phrase.patronizing", "phrase.easy-part", "phrase.rhetorical-prompts", "phrase.formula-heading", "phrase.strategy-buzzwords", "template.count-opener", "punct.em-dash", "punct.em-dash-and"}
+    rules = [rule for rule in engine.rules if rule.id in ids]
+    cases = [
+        ("We built it \u2014 and shipped it.", [("punct.em-dash-and", BITE)]),
+        ("We built it\u2014and shipped it.", [("punct.em-dash-and", BITE)]),
+        ("We built it \u2014\nAND shipped it.", [("punct.em-dash-and", BITE)]),
+        ("We built it \u2014 and shipped it \u2014 yesterday.", [("punct.em-dash-and", BITE), ("punct.em-dash", BITE)]),
+        ("Installation is the easy part.", [("phrase.easy-part", BARK)]),
+        ("Nobody explains the plan. Everyone agrees anyway.", [("phrase.patronizing", BITE), ("phrase.patronizing", BITE)]),
+        ("**Five things** remain.  Two options remain.", [("template.count-opener", BITE), ("template.count-opener", BITE)]),
+        ("We checked\nFive Things Incorporated.\nFive things remain.", [("template.count-opener", BITE)]),
+        ("We checked. five things remain.", [("template.count-opener", BITE)]),
+        ("Five\nthings remain.", [("template.count-opener", BITE)]),
+        ("- We checked\n  five things.\n- Two things remain.", [("template.count-opener", BITE)]),
+        ("- We checked\nfive things.\n- Two things remain.", [("template.count-opener", BITE)]),
+        ("## Five things\n\n- Five things remain.", [("template.count-opener", BITE)]),
+        ("We shipped it and checked five things.", []),
+        ("`Nobody explains` and `Everyone agrees` are example phrases.", []),
+        ("The line items follow Acme Inc. invoice numbering.", []),
+        ("The invoice came from Acme Inc. Our north star metric is retention.", [("phrase.strategy-buzzwords", BITE)]),
+        ("We deploy at 9 a.m. Five workers restart.", [("template.count-opener", BITE)]),
+        ("Why this matters: retries can duplicate writes.", [("phrase.rhetorical-prompts", BITE)]),
+        ("## Why this matters so much for AI", [("phrase.rhetorical-prompts", BITE)]),
+    ]
+    problems = []
+    for text, expected in cases:
+        doc = build_document("<regex-context>", text)
+        # Inspect raw findings so deduplication cannot hide overlapping rules.
+        findings = sorted(layer_regex.run(doc, rules), key=lambda f: f.start)
+        actual = [(f.rule.id, f.severity) for f in findings]
+        if actual != expected:
+            problems.append(f"{text!r}: expected {expected!r}, got {actual!r}")
+        for finding in findings:
+            if finding.rule.id == "template.count-opener" and text[finding.start:finding.end] not in {"Five", "five", "Two"}:
+                problems.append(f"count opener has incorrect source offsets in {text!r}")
+
+    raw = {
+        "id": "template.test", "severity": BITE, "pattern": "test", "message": "Test.",
+        "example": ["test"], "acceptable": ["other"], "sentence_start": "true",
+    }
+    try:
+        _build_rule(raw, "template", Path("<test>"))
+    except RuleError:
+        pass
+    else:
+        problems.append("loader accepted a non-boolean sentence_start")
+    return problems
+
+
 def main(argv: list[str], rules_dir: Path | None = None) -> int:
     verbose = "-v" in argv or "--verbose" in argv
     started = time.monotonic()
@@ -204,6 +274,7 @@ def main(argv: list[str], rules_dir: Path | None = None) -> int:
             report(rule.id, check_rule(engine, rule))
         report("render", check_render(engine))
         report("severity-aliases", check_severity_aliases())
+        report("regex-context", check_regex_context(engine))
         report("corpus", check_corpus(engine))
         report("own-docs", check_own_docs(engine))
     except Exception:
