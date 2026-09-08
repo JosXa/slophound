@@ -194,18 +194,20 @@ acceptable = ["The platform launched eight months ago and has 40 paying teams."]
 [[rule]]
 id = "phrase.significance-inflation"
 severity = "bite"
-pattern = '\b((a|the) testament to|(a|the) (stark |powerful |timely )?reminder (of|that)|(vital|significant|crucial|pivotal|key|critical|important) (role|moment|step|part)|(underscores?|highlights?|underlines?|emphasi[sz]es?) the (importance|need|value|significance)|remind(s|ed|ing)? us (that|of)|call(s|ed|ing)? into question|this much is (clear|certain)|(forces|invites|prompts) us to (ask|consider|reflect|rethink)|(a )?rich (history|heritage)|a deep understanding of|watershed moment|cornerstone of|the hallmark of|widely regarded as|(has|have) (established itself|emerged) as|t(ake|akes|ook|aking) cent(er|re) stage|indelible mark|(enduring|lasting) legacy|mark(s|ed|ing)? a (significant|pivotal|new|major)|(setting|sets) the stage for|paving the way|deeply rooted)\b'
+pattern = '\b((a|the) testament to|(a|the) (stark |powerful |timely )?reminder (of|that)|(vital|significant|crucial|pivotal|key|critical|important) (role|moment|step|part)|(make|makes|made|making) ((a )?(significant|major|meaningful) (contributions?|strides?)|(a )?(significant|major|meaningful) impact)|(underscores?|highlights?|underlines?|emphasi[sz]es?) the (importance|need|value|significance)|remind(s|ed|ing)? us (that|of)|call(s|ed|ing)? into question|this much is (clear|certain)|(forces|invites|prompts) us to (ask|consider|reflect|rethink)|(a )?rich (history|heritage)|a deep understanding of|watershed moment|cornerstone of|the hallmark of|widely regarded as|(has|have) (established itself|emerged) as|t(ake|akes|ook|aking) cent(er|re) stage|indelible mark|(enduring|lasting) legacy|mark(s|ed|ing)? a (significant|pivotal|new|major)|(setting|sets) the stage for|paving the way|deeply rooted)\b'
 unless = '\b(inflammation|disease)\b'
 message = "Significance asserted, not shown. Delete the significance word; if the sentence still stands, it was decoration."
 example = [
   "This release is a testament to the team's focus.",
   "Caching plays a crucial role in the new design.",
   "The migration marks a significant step for the platform.",
+  "The project made significant contributions to the field.",
 ]
 acceptable = [
   "This release removes the last synchronous call to the billing service.",
   "The cache serves 90% of read traffic.",
   "Inflammation plays a crucial role in disease.",
+  "The project added a validated parser for the legacy file format.",
 ]
 most_common_in = ["gpt", "claude", "gemini"]
 
@@ -477,9 +479,9 @@ most_common_in = ["gpt", "llama"]
 [[rule]]
 id = "phrase.content-announcement"
 severity = "bite"
-pattern = "\\b(below you'?ll find|here'?s (a breakdown|an overview|everything you need to know)|the following sections will|(in|throughout) this (section|guide|post|document|article),? (we'?ll|i'?ll|we will|i will) (explore|explain|cover|walk through|look at)|the rest of this (essay|article|guide|section) (explains|covers|shows)|this (guide|post|document|article) will (walk|take) you through|what (you'?ll|we'?ll) (learn|cover)|what to expect|a few things worth noting)\\b"
+pattern = "\\b(below you'?ll find|here'?s (a |an )?(comprehensive |detailed )?(breakdown|overview|guide|step[- ]by[- ]step guide)|the following sections will|(in|throughout) this (section|guide|post|document|article),? (we'?ll|i'?ll|we will|i will) (explore|explain|cover|walk through|look at)|the rest of this (essay|article|guide|section) (explains|covers|shows)|this (guide|post|document|article) will (walk|take) you through|what (you'?ll|we'?ll) (learn|cover)|what to expect|a few things worth noting)\\b"
 message = "Narrating what the text will do instead of doing it. Delete and present the content."
-example = ["Here's a breakdown of the changes.", "A few things worth noting:", "In this section, we'll explore the retry budget.", "The rest of this essay explains the migration."]
+example = ["Here's a breakdown of the changes.", "Here's a comprehensive overview of the changes.", "Here's a detailed guide to the rollout.", "A few things worth noting:", "In this section, we'll explore the retry budget.", "The rest of this essay explains the migration."]
 acceptable = ["The changes are: a new index, a shorter timeout, and one removed retry.", "The retry budget limits each request to three attempts."]
 most_common_in = ["gpt", "claude"]
 
@@ -547,9 +549,9 @@ most_common_in = ["gpt", "gemini", "llama"]
 [[rule]]
 id = "phrase.assistant-pleasantry"
 severity = "bite"
-pattern = "\\b(i'?d be happy to|i hope this helps|i hope this (email|message) finds you well|hope (this|that) (was )?help(s|ful)|you'?re absolutely right|you make an excellent point|i couldn'?t agree more|would you like me to|let me know if|feel free to (ask|reach out)|don'?t hesitate to|happy to help|happy coding|best of luck|(great|excellent|good) question[!.,]|i'?m glad you asked|i assure you|you'?re asking about|to answer your question|that'?s a (great|good|fair|excellent) (point|question|idea)|sure thing|i am (happy|willing) to address|open to (any )?(suggestions|feedback)|(would )?appreciate (any|your) feedback|with the utmost care|if you have any (questions|concerns|suggestions|further)|if anything is unclear|hopefully this|i hope you (find|found)|good luck (with|on) your|you'?ve got this|i'?m here (to help|if you)|enjoy the journey|rest assured|have no doubt|without a doubt|please be advised|demonstrat(e|es|ing) my commitment)(?!\\w)|^(of course|certainly|absolutely|sure thing)!"
+pattern = "\\b(i'?d be happy to|i hope this helps|i hope this (email|message) finds you well|hope (this|that) (was )?help(s|ful)|you'?re absolutely right|you make an excellent point|i couldn'?t agree more|would you like me to|want me to|let me know if( you'?d like)?|feel free to (ask|reach out|share)|don'?t hesitate to|happy to help|happy coding|best of luck|(great|excellent|good) question[!.,]|i'?m glad you asked|i assure you|you'?re asking about|to answer your question|that'?s a (great|good|fair|excellent) (point|question|idea)|sure thing|i am (happy|willing) to address|open to (any )?(suggestions|feedback)|(would )?appreciate (any|your) feedback|with the utmost care|if you have any (questions|concerns|suggestions|further)|if anything is unclear|hopefully this|i hope you (find|found)|good luck (with|on) your|you'?ve got this|i'?m here (to help|if you)|enjoy the journey|rest assured|have no doubt|without a doubt|please be advised|demonstrat(e|es|ing) my commitment)(?!\\w)|^(of course|certainly|absolutely|sure thing)!"
 message = "Assistant pleasantry inside a delivered artifact. Conversation bled into the product; delete it."
-example = ["Let me know if you'd like me to expand on any of this. I hope this helps!", "Certainly! Here is the summary.", "I hope this email finds you well.", "Please be advised that the API changes on Monday."]
+example = ["Let me know if you'd like me to expand on any of this. I hope this helps!", "Want me to delve deeper into the timeout policy?", "Feel free to share more logs.", "Certainly! Here is the summary.", "I hope this email finds you well.", "Please be advised that the API changes on Monday."]
 acceptable = ["The summary follows.", "The great question of the century remains open.", "The email contains the deployment schedule."]
 most_common_in = ["gpt", "claude", "gemini"]
 
@@ -582,10 +584,10 @@ most_common_in = ["claude", "gpt"]
 [[rule]]
 id = "phrase.reasoning-artifact"
 severity = "bite"
-pattern = "\\b(let me think step by step|to approach this systematically|here'?s my thought process|working through this logically|let'?s think about this)\\b"
+pattern = "\\b(let me think step by step|break (this|it) down step by step|to approach this systematically|here'?s my thought process|working through this logically|let'?s think about this)\\b"
 message = "Scratch reasoning left in the output. Keep the conclusion, delete the thinking-aloud."
-example = ["Let me think step by step about the failure."]
-acceptable = ["The failure has two causes."]
+example = ["Let me think step by step about the failure.", "Let me break this down step by step.", "Break it down step by step for the reviewer."]
+acceptable = ["The failure has two causes.", "The runbook lists the recovery steps in order."]
 
 [[rule]]
 id = "phrase.vague-back-reference"
@@ -929,3 +931,98 @@ acceptable = [
   "The agent opens the matching runbook when an alert fires.",
 ]
 most_common_in = ["gpt", "gemini"]
+
+# ---------------------------------------------------------------------------
+# Imported from slop-forensics phrase over-representation data
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "phrase.scope-inflation"
+severity = "bark"
+pattern = '\b(extend(s|ed|ing)?|go(es|ing)?|reach(es|ed|ing)?) (far )?beyond\b'
+unless = '\b(meters?|feet|kilometers?|miles?|fence|property|border|boundary|range|distance)\b'
+message = "Scope inflation (\"extends far beyond\") gestures at a larger point without naming it. State the additional effect, system, or audience."
+example = [
+  "The impact extends far beyond the immediate outage.",
+  "This goes far beyond a cache change.",
+  "The project reaches beyond the usual boundaries.",
+]
+acceptable = [
+  "The property line extends beyond the fence by 2 meters.",
+  "The outage delayed invoices and prevented customers from changing their plans.",
+]
+most_common_in = ["gpt", "gemini", "llama"]
+
+[[rule]]
+id = "phrase.insight-vending"
+severity = "bark"
+pattern = '\b(provid(e|es|ed|ing)|offer(s|ed|ing)?) (valuable|actionable|meaningful) insights?\b|\b(gain(s|ed|ing)?|develop(s|ed|ing)?) a (deeper|better|greater) (understanding|appreciation)\b|\bprovid(e|es|ed|ing)? a comprehensive (overview|understanding)\b'
+message = "Generic insight claim (\"provide valuable insights\", \"gain a deeper understanding\") sells the benefit without the finding. Name what the reader learns or what the evidence shows."
+example = [
+  "The dashboard provides valuable insights into cache behavior.",
+  "The report offers actionable insights for the team.",
+  "The workshop helps engineers gain a deeper understanding of retries.",
+  "The course develops a better appreciation of failure modes.",
+  "This section provides a comprehensive overview of the rollout.",
+]
+acceptable = [
+  "The dashboard shows cache hits, misses, and eviction reasons for each tenant.",
+  "The report explains which retry paths can create duplicate writes.",
+]
+most_common_in = ["gpt", "gemini", "qwen"]
+
+[[rule]]
+id = "phrase.corporate-boilerplate"
+severity = "bark"
+pattern = '\b(culture of continuous (improvement|learning|innovation)|commitment to continuous improvement|loyal customer base|unique value proposition|sustain(ed|able) competitive advantage|maintain(ing|s)? (its |a )?competitive edge|proven track record|exceptional customer service|strong brand identity)\b'
+message = "Corporate boilerplate (\"culture of continuous improvement\", \"competitive edge\") names a business aspiration instead of evidence. State the practice, measure, customer behavior, or advantage."
+example = [
+  "The company promotes a culture of continuous improvement.",
+  "Leaders show a commitment to continuous improvement.",
+  "The product has a loyal customer base.",
+  "The feature has a unique value proposition.",
+  "The integration creates a sustainable competitive advantage.",
+  "The company maintains its competitive edge.",
+  "The vendor has a proven track record.",
+  "Support delivers exceptional customer service.",
+  "The company has a strong brand identity.",
+]
+acceptable = [
+  "The dashboard shows each metric in a KPI column.",
+  "Ninety percent of customers renewed after the new export reduced the monthly close by two days.",
+]
+most_common_in = ["gpt", "gemini", "qwen"]
+
+[[rule]]
+id = "phrase.informed-decision"
+severity = "bark"
+pattern = '\b(make|makes|made|making) (more )?informed (decisions?|choices)\b|\bmake an informed decision\b'
+message = "Empty decision claim (\"make informed decisions\"). Name the decision and the evidence that changes it."
+example = [
+  "The dashboard helps managers make informed decisions.",
+  "The results let teams make more informed choices.",
+  "The team is making informed decisions about the migration.",
+  "Use the report to make an informed decision.",
+]
+acceptable = [
+  "The team chose Postgres after the load test showed Redis could not retain the audit history.",
+  "The contract uses the phrase \"informed decision\" to define consent.",
+]
+most_common_in = ["gpt", "gemini", "qwen"]
+
+[[rule]]
+id = "phrase.procedural-precondition"
+severity = "bite"
+pattern = '\b(one must first|must first (understand|recognise|recognize|consider|acknowledge))\b'
+message = "Formal procedural wind-up (\"one must first\"). State the prerequisite directly or start the ordered list with the action."
+example = [
+  "One must first understand the cache key before changing its TTL.",
+  "You must first recognize the lock ordering.",
+  "We must first consider the migration window.",
+  "An operator must first acknowledge the alert.",
+]
+acceptable = [
+  "Read the cache key before changing its TTL.",
+  "First, acknowledge the alert, then inspect the lock ordering.",
+]
+most_common_in = ["gpt", "gemini", "qwen"]
