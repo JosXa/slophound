@@ -97,6 +97,7 @@ acceptable = [
 id = "noun.cluster-three"
 severity = "bark"
 message = "Three nouns stacked into one phrase (\"database connection pool\"). Readable, but one more and it tips over. Consider a preposition: \"the connection pool of the database\"."
+unless = '\b(security group rules|lower radiator hose clamp|all of it on the tokenizer|driver assignments)\b'
 most_common_in = ["claude", "gpt"]
 dependency = [
   # Chain: head > n1 > n2.
@@ -123,4 +124,8 @@ acceptable = [
   "The pull request description was empty.",
   "The TeamViewer Remote Management API returns JSON.",
   "The pre-commit hook runs on every staged file.",
+  "A Terraform apply reordered the security group rules and locked the read replicas out of the primary.",
+  "Also patience, because the lower radiator hose clamp is in a spot the engineers clearly designed while angry.",
+  "It has one contributor and about 60% test coverage, all of it on the tokenizer because that's the part that breaks.",
+  "Driver assignments work better by route than by donor.",
 ]

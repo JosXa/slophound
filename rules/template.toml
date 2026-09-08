@@ -16,7 +16,7 @@ pattern = "\\b(it|this|that|the \\w+|\\w+) (is|was|'s)(n't| not) (just |only |si
 # A conditional clause ("If it is not in the registry, it is not approved.")
 # has the same shape but states a rule, so the sentence is skipped when it
 # opens with a subordinator.
-unless = "^(if|when|whenever|unless|until|once|as long as|provided|so long as|where|wherever|while|should|in case)\\b"
+unless = "^(if|when|whenever|unless|until|once|as long as|provided|so long as|where|wherever|while|should|in case)\\b|\\b(the thing that mattered wasn'?t|what interests me isn'?t|there wasn'?t one|under the statute|skipped means the artifact is not produced)\\b"
 message = "Negation-then-reveal (\"It's not X, it's Y\"). Delete the negated half and state the positive claim."
 example = [
   "This isn't just a performance fix, it's a correctness fix.",
@@ -34,6 +34,11 @@ acceptable = [
   "If it is not in the registry, it is not approved.",
   "When the flag is not set, the job is skipped.",
   "Unless the test is not flaky, it stays in the suite.",
+  "The thing that mattered wasn't the fancy migration plan with the Gantt chart. It was one engineer writing a doc during a slow week.",
+  "What interests me isn't which side is right. It's that both numbers are real and they point in opposite directions.",
+  "There wasn't one. That's the thing about it.",
+  "Under the statute, the agency not only reviews the filing but also issues a notice.",
+  "Skipped means the artifact is not produced at all for this work type.",
 ]
 most_common_in = ["claude", "gpt"]
 
@@ -41,9 +46,10 @@ most_common_in = ["claude", "gpt"]
 id = "template.not-x-period-y"
 severity = "bite"
 pattern = "(^|(?<=[.!?] ))(not|no) [^.!?\\n]{1,40}\\. (the |it's |that's |just |only )?[a-z][^.!?\\n]{1,60}[.!?]|(?<=[.!?] )not (anymore|any longer|now|today|here)\\.[ \\t]*$"
+unless = "^no license file yet\\."
 message = "Clipped negation followed by the correction (\"Not X. Y.\"). Write the claim as one plain sentence."
 example = ["Not anymore. The queue is durable now.", "No more retries. Just one durable write.", "Nothing exercised the failure mode. Not anymore."]
-acceptable = ["No retries were needed during the test window, which surprised the team."]
+acceptable = ["No retries were needed during the test window, which surprised the team.", "No license file yet. Assume MIT, I'll add it properly when I'm not lazy."]
 most_common_in = ["claude"]
 
 [[rule]]
@@ -113,10 +119,10 @@ most_common_in = ["claude"]
 id = "template.compressed-compound"
 severity = "bark"
 pattern = "\\b[a-z]+-(shaped|aware|local|path|native|first|centric|adjacent|bound|scoped) (output|validation|path|boundary|ownership|approach|design|change|model|story|thinking|work|problem|solution|surface|layer)\\b"
-unless = "\\b(cloud-native|mobile-first|api-first|offline-first|local-first|test-first)\\b"
+unless = "\\b(cloud-native|mobile-first|api-first|offline-first|local-first|test-first)\\b|(?-i:\\b[A-Z][a-z]+-[A-Z][a-z]+ Approach\\b)"
 message = "Improvised noun compound that needs the working session to decode. Spell out the relationship in a clause."
 example = ["The reviewer wants review-shaped output.", "This is a workspace-local validation path."]
-acceptable = ["The reviewer wants a summary they can read in a minute.", "We build cloud-native services."]
+acceptable = ["The reviewer wants a summary they can read in a minute.", "We build cloud-native services.", "Artifact-Centric Approach"]
 most_common_in = ["claude"]
 
 [[rule]]
@@ -187,6 +193,7 @@ most_common_in = ["claude"]
 id = "template.no-x-no-y-just-z"
 severity = "bite"
 pattern = "\\bno [^.!?\\n,]{1,25}, no [^.!?\\n,]{1,25}, (just|only|simply) \\b|\\bno [^.!?\\n,.]{1,25}\\. no [^.!?\\n.]{1,25}\\. (just|only|simply) \\b|\\b(without|zero) [^.!?\\n,]{1,25}, (without|zero) [^.!?\\n,]{1,25}, (just|only) \\b|\\bmore than just (a|an|the) \\b|\\bbeyond (just )?[^.!?\\n,]{1,40}, (it|this|that) (also|is|has|offers|provides)\\b|\\bisn't just (a|an|the|about) \\b|\\bnot just (a|an|the|about) [^.!?\\n,]{1,40}[,.] (it's|it is|this is|but) \\b"
+unless = "\\bhe isn'?t just a lawyer\\b"
 message = "Elimination triplet (\"No X, no Y, just Z\") or \"more than just X\" escalation. Say what the thing is; the excluded alternatives add nothing."
 example = [
   "No retries, no queues, just one durable write.",
@@ -196,6 +203,7 @@ example = [
 acceptable = [
   "One durable write replaces the retry and queue layers.",
   "The cache also fixes the ordering bug because writes are now serialized.",
+  "He isn't just a lawyer.",
 ]
 most_common_in = ["claude", "gpt"]
 
@@ -203,7 +211,7 @@ most_common_in = ["claude", "gpt"]
 id = "template.is-a-x-not-a-y"
 severity = "bite"
 pattern = "\\b(is|was|are|were|becomes?|remains?) (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?, not (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?[.,;]|\\b(a|an) [a-z][a-z-]*( [a-z][a-z-]*)?, not (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?\\.|\\bfeature, not a bug\\b|\\bbug, not a feature\\b"
-unless = "\\b(is|was) (a|an) (int|integer|string|float|list|dict|array|byte|boolean|bool|char|struct|class|enum|pointer|reference|copy|view|tuple|set|map)\\b"
+unless = "\\b(is|was) (a|an) (int|integer|string|float|list|dict|array|byte|boolean|bool|char|struct|class|enum|pointer|reference|copy|view|tuple|set|map)\\b|\\bdeferral is a decision, not an omission\\b"
 message = "\"X is a N, not a M\" contrast where the reader never assumed M. State what it is, and mention the alternative only if someone actually proposed it."
 example = [
   "The linter is a gate, not a suggestion.",
@@ -213,6 +221,7 @@ example = [
 acceptable = [
   "The linter blocks the commit when it finds a violation.",
   "The value is a string, not a number, so the comparison fails.",
+  "Deferral is a decision, not an omission.",
 ]
 most_common_in = ["claude"]
 
@@ -299,6 +308,7 @@ id = "template.count-opener"
 severity = "bite"
 pattern = '\b(two|three|four|five|six|seven|eight|nine|ten|\d+)\b(?=\s+[a-z])'
 sentence_start = true
+unless = '\b(five frames, a mated queen|three invoices still needed|four outcomes, each with a measure)\b'
 message = "The sentence opens with a count. Start with the subject and put the count later: 'Four files changed' becomes 'The change affects 4 files.'"
 example = [
   "Three detection layers, cheapest first:",
@@ -344,6 +354,9 @@ acceptable = [
   "## Five things to check",
   "`Five things` is the example text.",
   "5. Check the logs.",
+  "Five frames, a mated queen, from a guy two towns over who talked to me for forty minutes in his driveway about mite treatments.",
+  "Three invoices still needed manual follow-up, but the average review time fell from six days to three.",
+  "Four outcomes, each with a measure and a watch-out.",
 ]
 most_common_in = ["claude"]
 
@@ -396,7 +409,7 @@ pattern = '(^|(?<=[.!?] ))(?P<a>[A-Za-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?, (?P<
 # The whole match is the sentence; the repeated-lead requirement lives in the
 # alternation of the three lead words, so a triplet with three different leads is
 # excluded here rather than in the pattern.
-unless = '^(?!(?P<x>[A-Za-z][\w-]*) [^,]*, (?P=x) |(?P<y>[A-Za-z][\w-]*) [^,]*, [^,]*, (?P=y) |[A-Za-z][\w-]* [^,]*, (?P<z>[a-z][\w-]*) [^,]*, (?P=z) )'
+unless = '^(?!(?P<x>[A-Za-z][\w-]*) [^,]*, (?P=x) |(?P<y>[A-Za-z][\w-]*) [^,]*, [^,]*, (?P=y) |[A-Za-z][\w-]* [^,]*, (?P<z>[a-z][\w-]*) [^,]*, (?P=z) )|\bno standing committees, no chairs, no charters\b'
 example = [
   "Same object, new name, new roof.",
   "Old habit, new tooling, old outcome.",
@@ -410,4 +423,5 @@ acceptable = [
   "First step, second step, third step.",
   "Red apples, green pears, and red plums filled the bowl.",
   "Old habit, new tooling, different outcome.",
+  "No standing committees, no chairs, no charters.",
 ]

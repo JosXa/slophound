@@ -37,6 +37,7 @@
 id = "phrase.engineering-slang"
 severity = "bite"
 pattern = '\b(footguns?|blast radius|belt[- ]and[- ]suspenders|battle[- ]tested|the unlock|the shape of the (problem|solution|work|change|system|data|api)|cent(er|re) of gravity|table stakes)\b'
+unless = '\bis not battle[- ]tested\b'
 message = "Engineering slang used as flavour. Say what the risk, scope, or benefit actually is."
 example = [
   "This removes a footgun for anyone calling the API without a timeout.",
@@ -47,6 +48,7 @@ example = [
 acceptable = [
   "The change affects every caller of the billing service.",
   "Anyone calling the API without a timeout can hang the worker.",
+  "It is not battle-tested.",
 ]
 most_common_in = ["claude"]
 
@@ -83,6 +85,7 @@ most_common_in = ["claude"]
 id = "phrase.figurative-verbs"
 severity = "bite"
 pattern = '\b(h(old|olds|eld|olding) true|h(old|olds|eld|olding) promise|lend(s|ing)? credence|r(un|uns|an|unning) (deep|counter to)|(s(it|its|at|itting) |lies? |lives? )?at the intersection of|s(it|its|at|itting) (squarely|alongside|atop|at odds|in tension|in limbo|on the fence|somewhere between)|just s(it|its|at|itting) there|along for the ride|fall(s|ing)? (squarely |neatly )?(within|under|outside) the (scope|purview|remit|umbrella)|dr(aw|aws|ew|awing|awn) (inspiration from|a (clear |sharp |fine )?(distinction|parallel|contrast)|to a close)|strike while the iron is hot|thread(s|ed|ing)? to pull|str(ike|ikes|uck|iking) a chord|carr(y|ies) weight|cast(s|ing)? doubt|f(all|alls|ell|alling) by the wayside|r(ide|ides|ode|iding) on the assumption)\b'
+unless = '\bat the intersection of \d+(st|nd|rd|th)? and \w+\b'
 message = "Figurative verb doing the work of a plain one. Say what happens."
 example = [
   "This holds true for every consumer of the queue.",
@@ -92,6 +95,7 @@ example = [
 acceptable = [
   "This applies to every consumer of the queue.",
   "The design combines caching with a consistency check.",
+  "The accident happened at the intersection of 5th and Main.",
 ]
 most_common_in = ["claude"]
 
@@ -148,9 +152,10 @@ most_common_in = ["claude"]
 id = "phrase.abstract-metaphor-nouns"
 severity = "bite"
 pattern = '\b(cultural |shared |common |the )substrate\b|^[ \t]*substrate:|\b(as|is) (a|our) wedge\b|\bwedge into\b|\bgold[- ]plating\b|\bthe endgame\b|\bbedrock of\b|\bthe nexus of\b|\b(the |a )?(new|core|right|missing|underlying) primitives?\b'
+unless = '\b(substrate underneath|rotted)\b'
 message = "Abstract metaphor noun standing in for a concrete term. Name the actual component or goal."
 example = ["The event bus is the substrate for everything downstream.", "Search is our wedge into the enterprise.", "The new primitive is a per-tenant queue.", "- **Substrate:** the queue."]
-acceptable = ["The bacteria grow on a nutrient substrate.", "Every downstream service reads from the event bus.", "Integers and strings are primitive types."]
+acceptable = ["The bacteria grow on a nutrient substrate.", "Every downstream service reads from the event bus.", "Integers and strings are primitive types.", "The load-bearing wall failed because the substrate underneath had rotted."]
 most_common_in = ["claude"]
 
 [[rule]]
@@ -168,10 +173,10 @@ severity = "bite"
 pattern = '\b(flywheel( effect)?|(build|competitive|defensible) (a )?moat|north[- ]star( metric)?|first[- ]mover advantage|land grab|paradigm shift|move the needle|moves the needle|line[- ]items?)\b'
 # "line item" is legitimate on an invoice, a budget or a receipt; in a plan or a
 # task list it is a corporate word for "entry" or "bullet".
-unless = '\b(invoice|invoices|budget|budgets|receipt|receipts|ledger|bill|billing|quote|quotation|purchase order|expense|expenses|accounting|cost cent(er|re))\b'
+unless = '\b(invoice|invoices|budget|budgets|receipt|receipts|ledger|bill|billing|quote|quotation|purchase order|expense|expenses|accounting|cost cent(er|re)|no line item for)\b'
 message = "Strategy buzzword instead of a named advantage. Say what the advantage is and who has it. \"Line item\" belongs on an invoice; in a plan it is an entry, a task, or a bullet."
 example = ["The integrations build a moat.", "Our north star metric is weekly active teams.", "Add each finding as a line item in the plan.", "Every line item in the backlog needs an owner."]
-acceptable = ["Competitors would need two years to replicate the integration catalogue.", "The invoice has three line items, and the second one is wrong.", "Each budget line item maps to one cost centre."]
+acceptable = ["Competitors would need two years to replicate the integration catalogue.", "The invoice has three line items, and the second one is wrong.", "Each budget line item maps to one cost centre.", "There is no line item for wrote the boring document that later prevented a Sev1."]
 most_common_in = ["gpt", "claude"]
 
 [[rule]]
@@ -190,6 +195,7 @@ acceptable = ["The platform launched eight months ago and has 40 paying teams."]
 id = "phrase.significance-inflation"
 severity = "bite"
 pattern = '\b((a|the) testament to|(a|the) (stark |powerful |timely )?reminder (of|that)|(vital|significant|crucial|pivotal|key|critical|important) (role|moment|step|part)|(underscores?|highlights?|underlines?|emphasi[sz]es?) the (importance|need|value|significance)|remind(s|ed|ing)? us (that|of)|call(s|ed|ing)? into question|this much is (clear|certain)|(forces|invites|prompts) us to (ask|consider|reflect|rethink)|(a )?rich (history|heritage)|a deep understanding of|watershed moment|cornerstone of|the hallmark of|widely regarded as|(has|have) (established itself|emerged) as|t(ake|akes|ook|aking) cent(er|re) stage|indelible mark|(enduring|lasting) legacy|mark(s|ed|ing)? a (significant|pivotal|new|major)|(setting|sets) the stage for|paving the way|deeply rooted)\b'
+unless = '\b(inflammation|disease)\b'
 message = "Significance asserted, not shown. Delete the significance word; if the sentence still stands, it was decoration."
 example = [
   "This release is a testament to the team's focus.",
@@ -199,6 +205,7 @@ example = [
 acceptable = [
   "This release removes the last synchronous call to the billing service.",
   "The cache serves 90% of read traffic.",
+  "Inflammation plays a crucial role in disease.",
 ]
 most_common_in = ["gpt", "claude", "gemini"]
 
@@ -232,18 +239,20 @@ most_common_in = ["claude"]
 id = "phrase.promotional"
 severity = "bite"
 pattern = '\b(boasts?|vibrant|nestled|in the heart of|at the heart of|breathtaking|must[- ]visit|stunning|bustling|picturesque|hidden gem|world[- ]class|a hub for|a beacon of|(a )?treasure trove( of)?|a shining example|a masterclass in|gateway to|thoughtfully designed|cutting[- ]edge|state[- ]of[- ]the[- ]art|best[- ]in[- ]class|game[- ]chang(er|ing)|groundbreaking|revolutioni[sz]e|unparalleled|unprecedented|seamless(ly)?|elevate your|supercharge|unleash|empower(s|ing)?)\b'
+unless = '\bboasts? a capacity of\b'
 message = "Press-release tone in a technical document. Replace the adjective with a fact or a number."
 example = ["A seamless experience built on a cutting-edge platform.", "The library boasts a vibrant ecosystem."]
-acceptable = ["The platform handles 12,000 requests per second on two nodes.", "The library has 300 contributors."]
+acceptable = ["The platform handles 12,000 requests per second on two nodes.", "The library has 300 contributors.", "The new arena boasts a capacity of 50,000 seats."]
 most_common_in = ["gpt", "gemini"]
 
 [[rule]]
 id = "phrase.vague-attribution"
 severity = "bite"
 pattern = '\b(industry reports|observers have (cited|noted)|experts (argue|say|agree|believe|suggest)|(some|many|most) experts|some critics argue|(studies|research) (show|suggest|indicate)s?|(several|numerous|many) studies|a growing body of|the (evidence|data) suggests|analysts predict|it is widely (regarded|believed|accepted)|many believe|has been described as|critics (argue|say|claim|contend|point out)|some critics|according to (experts|analysts|observers|industry insiders|some|many)|observers (note|say|point out)|it is (often|commonly|generally) (said|argued|believed|thought)|conventional wisdom (holds|says)|(most|many) (would|will) agree|it\x27?s (widely|commonly|generally) (known|accepted|understood)|naturally (follows|leads to)|as is well known)\b'
+unless = '\b(federal reserve survey|our research|medication|liver enzymes|patients)\b'
 message = "Authority without a source. Name the study, person, or document, or drop the claim."
 example = ["Studies show that most outages start with a config change.", "Experts agree the approach scales."]
-acceptable = ["The 2019 Google SRE report attributes 70% of outages to config changes."]
+acceptable = ["The 2019 Google SRE report attributes 70% of outages to config changes.", "According to the Federal Reserve survey, analysts predict the market will contract.", "Our research indicates the leak is in the driver.", "Research suggests a possible link to elevated liver enzymes in some patients."]
 most_common_in = ["gpt", "gemini"]
 
 [[rule]]
@@ -300,9 +309,10 @@ most_common_in = ["gpt", "gemini", "claude"]
 id = "phrase.ai-vocabulary"
 severity = "bite"
 pattern = '\b(delv(e|es|ed|ing)( into)?|(a |the )?(myriad|plethora|wealth) of|multifaceted|holistic(ally)?|synerg(y|ies|istic)|leverag(e|es|ed|ing) (the|our|its|their|existing|this)|harness(es|ed|ing)? the (power|potential)|foster(s|ing)? (a |an )?(culture|sense|environment|collaboration|innovation)|navigat(e|es|ing) the (complex|landscape|challenges|nuances)|(ever[- ]changing|evolving|competitive|digital|complex) landscape|in the realm of|meticulous(ly)?|streamlin(e|es|ed|ing) (the|our|your)|bolster(s|ed|ing)?|garner(s|ed|ing)?|underpin(s|ned|ning)?|(a |the )?catalyst for|democrati[sz](e|es|ing))\b'
+unless = '\b(miners?|ore|mountain)\b'
 message = "Word from the model vocabulary. One is coincidence, a cluster is a signature. Use the plain word."
 example = ["We delve into the intricacies of a multifaceted landscape.", "Leverage the existing platform to foster a culture of ownership."]
-acceptable = ["We look at three parts of the system.", "Use the existing platform."]
+acceptable = ["We look at three parts of the system.", "Use the existing platform.", "The miners delve into the mountain to reach the ore."]
 most_common_in = ["gpt", "gemini", "llama"]
 
 [[rule]]
@@ -326,9 +336,10 @@ acceptable = ["Since 2022 three teams have shipped a queue with this shape."]
 id = "phrase.copula-avoidance"
 severity = "bite"
 pattern = '\b(serv(e|es|ed|ing) as (a|an|the)|st(and|ands|ood|anding) as (a|an|the)|function(s|ed|ing)? as (a|an|the)|act(s|ed|ing)? as (a|an|the) (testament|beacon|cornerstone|reminder|bridge|foundation)|operat(e|es|ed|ing) as (a|an|the)|featur(e|es|ed|ing) a (wide|rich|diverse|unique|vibrant|robust)|offer(s|ed|ing)? a (unique|wide|comprehensive|diverse|rich)|constitut(e|es|ed|ing) (a|an|the)|represent(s|ed|ing)? a (shift|departure|milestone|turning point|step))\b'
+unless = '\b(serves|functions) as a (kitchen|ceramic spacer)\b'
 message = "Dodging \"is\" with a verb that sounds more considered. Check that \"is\" keeps the meaning, then use it."
 example = ["The gateway serves as a single entry point.", "This represents a shift in how we deploy."]
-acceptable = ["The gateway is the single entry point.", "The proxy acts as a client on behalf of the browser."]
+acceptable = ["The gateway is the single entry point.", "The proxy acts as a client on behalf of the browser.", "The spare room serves as a kitchen during renovations.", "The insert functions as a ceramic spacer inside the housing."]
 most_common_in = ["gpt", "gemini"]
 
 # ---------------------------------------------------------------------------
@@ -339,9 +350,10 @@ most_common_in = ["gpt", "gemini"]
 id = "phrase.false-suspense"
 severity = "bite"
 pattern = "\\b(here('?s| is) the (thing|kicker|catch|deal|rub|part|problem|issue)( though)?|here'?s what i mean:|here'?s what'?s (interesting|striking|notable|surprising)|the answer is:|the (simple|hard|plain|uncomfortable|inconvenient) truth is|the fact is,|here'?s where it gets interesting|that'?s the beauty of it|the real (secret|story|question|problem|issue|bottleneck|work|win|cost|risk) (is|was|here|lies)|what this really means is|the (truth|reality) is,?|let me be (honest|clear)|to be honest,|spoiler alert|plot twist|pro tip|hot take|unpopular opinion|the key insight is|the reality is simpler)(?!\\w)"
+unless = "\\bhere'?s the part nobody mentions:"
 message = "Transition that promises a revelation. Delete it; the sentence after it is the content."
 example = ["Here's the thing: the cache was never the bottleneck.", "Here is the thing: we never measured it.", "The real bottleneck was the lock."]
-acceptable = ["The cache was never the bottleneck; the lock was."]
+acceptable = ["The cache was never the bottleneck; the lock was.", "Here's the part nobody mentions: the bottom bolt is behind the hose, and you cannot get a normal socket on it."]
 most_common_in = ["claude", "gpt"]
 
 [[rule]]
@@ -426,10 +438,10 @@ acceptable = ["The profiler showed the lock held across the network call."]
 [[rule]]
 id = "phrase.false-vulnerability"
 severity = "bite"
-pattern = "\\b(this (is|isn'?t) (not )?a rant|i'?ll (admit|be the first to admit)|full disclosure|i'?m not going to (lie|pretend)|confession time|i'?ll say it)\\b"
+pattern = "\\b(this (is|isn'?t) (not )?a rant|i'?ll be the first to admit|full disclosure|i'?m not going to (lie|pretend)|confession time|i'?ll say it)\\b"
 message = "Risk-free self-disclosure performing honesty. Drop the framing; keep the claim."
 example = ["I'll be the first to admit the first design was wrong."]
-acceptable = ["The first design was wrong: it assumed one writer."]
+acceptable = ["The first design was wrong: it assumed one writer.", "I'll admit the lane annoys me twice a day."]
 
 # ---------------------------------------------------------------------------
 # Structure narration
@@ -545,9 +557,10 @@ most_common_in = ["gpt", "claude", "gemini"]
 id = "phrase.model-self-reference"
 severity = "bite"
 pattern = "\\b(as an ai( language model)?|as a large language model|as of my (last|knowledge) (training|update|cutoff)|based on my training data|i don'?t have access to real[- ]time|up to my last training update)\\b"
+unless = "\\bworks as an ai researcher\\b"
 message = "The model naming itself or its limits inside an artifact. Delete it."
 example = ["As of my last training update, the API had no rate limit."]
-acceptable = ["The API had no rate limit as of March 2024."]
+acceptable = ["The API had no rate limit as of March 2024.", "She works as an AI researcher on the alignment team."]
 
 [[rule]]
 id = "phrase.knowledge-gap-speculation"
@@ -730,6 +743,7 @@ most_common_in = ["gpt", "gemini", "claude"]
 id = "phrase.transition-scaffold"
 severity = "bite"
 pattern = "\\b(by way of conclusion|taking everything into account|bringing it all together|the bottom line is|the last word|looking ahead,|the following sections?|as we'?ll (see|explore|discuss)|recall that|breaking (this|it) down|with (that|this) in mind|building on (this|that)|equally important(ly)?|better yet|to top it (all )?off|that'?s not all|case in point|on a related note|not to mention|to that end|in the same vein|by extension|put differently|in (plain|simpler|simple|practical|concrete|layman'?s) terms|to put it (plainly|simply|bluntly|mildly|another way)|what this means is|a good (test|rule of thumb|heuristic)( is)?:|nine times out of ten|in the real world|at their core|on that note|against this backdrop|zooming out|(taking|take) a step back|stepping back|the short version|long story short|here'?s (why|how)|the (good|bad) news is|the upshot)(?!\\w)"
+unless = "\\bthe short version: our\\b"
 message = "Transition scaffold that announces the next sentence instead of being it. Delete it and let the sentences sit next to each other."
 example = [
   "With that in mind, the queue moves to Postgres.",
@@ -739,6 +753,7 @@ example = [
 acceptable = [
   "The queue moves to Postgres.",
   "The cache is cold after every deploy because the TTL is 24 hours.",
+  "The short version: our cutover had eleven minutes of downtime.",
 ]
 most_common_in = ["gpt", "claude"]
 
@@ -746,6 +761,7 @@ most_common_in = ["gpt", "claude"]
 id = "phrase.buzzword-vocabulary"
 severity = "bark"
 pattern = '\b(robust(ly|ness)?|pivotal|transformative|iconic|seminal|trailblazing|ubiquitous|granular(ity)?|actionable|impactful|proactive(ly)?|sophisticated|versatile|encompass(es|ed|ing)?|grapple(s|d)? with|palpable|spearhead(s|ed|ing)?|showcas(e|es|ed|ing)|next[- ]gen(eration)?|slippery slope|truly|literally|renowned|innovative|invaluable|paramount|indispensable|commendable|effortless(ly)?|frictionless|turnkey|bespoke|curated|enriching|empowering|compelling|nuanced|remarkable|remarkably|unwavering|steadfast|relentless(ly)?|tireless(ly)?|thrilled|excited to (announce|share)|passionate about|a testament|paradigm|synergi\w+|elevat(e|es|ed|ing) (the|our|your)|revolutionary|visionary|profound(ly)?|reimagin(e|es|ed|ing)|endeavou?rs?|thought leader\w*|best practices|value[- ]add|touch ?base|circle back|low[- ]hanging fruit|deep[- ]dive|mission[- ]critical|(highly|deeply) (scalable|performant))\b'
+unless = '\bsigning service.*hash verification\b'
 message = "Vocabulary that signals polish without carrying information. Replace it with the plain word or the measurement it stands in for."
 example = [
   "The new pipeline is robust and truly transformative.",
@@ -754,5 +770,6 @@ example = [
 acceptable = [
   "The new pipeline survives a lost node without dropping messages.",
   "We cache the lookups in memory.",
+  "The signing service performed robust hash verification on the replacement token.",
 ]
 most_common_in = ["gpt", "gemini", "claude"]

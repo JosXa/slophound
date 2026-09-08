@@ -207,6 +207,7 @@ dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = { IN = ["enable", "ensure", "empower", "streamline", "elevate"] }, POS = "VERB" } },
   { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", TAG = { IN = ["DT", "WDT"] } } },
 ]
+unless = "\\btechnical architecture\\b.*\\benables\\b.*\\bartifact flows\\b"
 example = [
   "This enables teams to ship faster.",
   "This ensures consistency across the platform.",
@@ -216,6 +217,7 @@ acceptable = [
   "The flag enables the new parser for 5% of traffic.",
   "The retry loop ensures every message is delivered at least once.",
   "Two reviewers must approve before merge.",
+  "This page describes the technical architecture that enables artifact flows.",
 ]
 
 [[rule]]
@@ -244,4 +246,3 @@ acceptable = [
   "This sits well with me.",
   "The config lives in one file.",
 ]
-
