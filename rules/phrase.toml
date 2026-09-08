@@ -359,19 +359,19 @@ most_common_in = ["claude", "gpt"]
 [[rule]]
 id = "phrase.false-exclusivity"
 severity = "bite"
-pattern = "\\b(nobody('?s| is)? (talking|tells you|talks) about|what (nobody|most people) (t(ell|ells|old|elling) you|miss|don'?t (know|realize|realise))|the (dirty|open) secret|the uncomfortable truth|the elephant in the room|the hidden cost|the silent killer|doesn'?t get enough attention|most people don'?t reali[sz]e)\\b"
+pattern = "\\b(nobody('?s| is)? (talking|tells you|talks) about|what (nobody|most people) (t(ell|ells|old|elling) you|miss|get wrong|don'?t (know|realize|realise))|this is the part (most people|everyone) (skip|miss)|the part (everyone|most people) (miss(es)?|skip(s)?)|the (dirty|open) secret|the uncomfortable truth|the elephant in the room|the hidden cost|the silent killer|doesn'?t get enough attention|most people don'?t reali[sz]e)\\b"
 message = "Forbidden-knowledge framing for something plainly documented. State the point without the intrigue."
-example = ["Here's what nobody tells you about retries.", "The uncomfortable truth is that the tests were skipped."]
-acceptable = ["The tests were skipped in CI for two weeks."]
+example = ["Here's what nobody tells you about retries.", "The uncomfortable truth is that the tests were skipped.", "What most people get wrong is the retry budget.", "This is the part most people skip: measuring the baseline.", "The part everyone misses: distribution comes first."]
+acceptable = ["The tests were skipped in CI for two weeks.", "Most people missed the train because the platform changed."]
 most_common_in = ["gpt", "claude"]
 
 [[rule]]
 id = "phrase.metacommentary"
 severity = "bite"
-pattern = "\\b(at its (core|heart)|the key here is|let me explain|let'?s (unpack|break this down|dive in(to)?|explore|take a closer look)|this is where \\w+ comes in|this matters because|(the )?key takeaway|the takeaway is|quick (recap|overview)|to recap|in other words|simply put|put simply|to put it another way|said differently|in plain english|in simpler terms|what i mean is|to state (it|this) plainly|the test( is)?:|hint:|spoiler:|you already know this,? but|but that'?s (another|a different) (post|story|article|topic)|dressed up as|if you think about it|let'?s (examine|take a look|look at)|the inner workings|why choose|main takeaways?|(take|took|taking) a closer look|a closer look at|under the hood,|everything you need to know)(?!\\w)"
+pattern = "\\b(at its (core|heart)|the key (here|point) is|let me explain|let'?s (unpack|break this down|dive in(to)?|explore|take a closer look)|this is where \\w+ comes in|this matters because|that last part matters more than it sounds|(the )?key takeaway|the takeaway is|quick (recap|overview)|to recap|in other words|simply put|put simply|to put it another way|said differently|in plain english|in simpler terms|what i mean is|to state (it|this) plainly|the test( is)?:|hint:|spoiler:|you already know this,? but|but that'?s (another|a different) (post|story|article|topic)|dressed up as|if you think about it|let'?s (examine|take a look|look at)|the inner workings|why choose|main takeaways?|(take|took|taking) a closer look|a closer look at|under the hood,|everything you need to know)(?!\\w)"
 message = "The text talks about itself. Cut the narration and make the point once."
-example = ["At its core, the scheduler is a priority queue.", "Simply put, we were double-writing."]
-acceptable = ["The scheduler is a priority queue.", "We were double-writing."]
+example = ["At its core, the scheduler is a priority queue.", "Simply put, we were double-writing.", "The key point is that the cache never expires.", "That last part matters more than it sounds."]
+acceptable = ["The scheduler is a priority queue.", "We were double-writing.", "The cache never expires."]
 most_common_in = ["gpt", "claude"]
 
 [[rule]]
@@ -385,11 +385,11 @@ acceptable = ["The service that enqueues the job owns the retry.", "## Retries c
 [[rule]]
 id = "phrase.dramatic-labels"
 severity = "bite"
-pattern = '(^|(?<=[.!?] ))(the (catch|kicker|upshot|tradeoff|trick|downside|bottom line|takeaway|result|fix|payoff|problem|reason|best part|good news|bad news))(\?|:)'
+pattern = '(^|(?<=[.!?] ))(the (catch|kicker|upshot|tradeoff|trick|downside|bottom line|takeaway|result|fix|payoff|problem|reason|best part|worst part|scary part|good news|bad news|detail that makes it work|part (everyone|most people) (miss(es)?|skip(s)?)|thing nobody tells you))(\?|:)'
 headings = false
 message = "Punchy label, colon, then the sentence. The label adds drama and no information; start with the sentence."
-example = ["The catch: every retry doubles the load.", "The kicker: nobody was paged."]
-acceptable = ["Every retry doubles the load.", "The bottom line of the invoice shows the tax."]
+example = ["The catch: every retry doubles the load.", "The kicker: nobody was paged.", "The worst part: nobody checked the intermediate output.", "The scary part? The token never expires.", "The detail that makes it work: a separate worker grades the result.", "The part everyone misses: distribution is the moat.", "The thing nobody tells you: the queue needs a dead-letter policy."]
+acceptable = ["Every retry doubles the load.", "The bottom line of the invoice shows the tax.", "The detail that makes it work is a separate worker."]
 most_common_in = ["claude", "gpt"]
 
 [[rule]]
@@ -477,10 +477,10 @@ most_common_in = ["gpt", "llama"]
 [[rule]]
 id = "phrase.content-announcement"
 severity = "bite"
-pattern = "\\b(below you'?ll find|here'?s (a breakdown|an overview|everything you need to know)|the following sections will|this (guide|post|document|article) will (walk|take) you through|what (you'?ll|we'?ll) (learn|cover)|what to expect|a few things worth noting)\\b"
+pattern = "\\b(below you'?ll find|here'?s (a breakdown|an overview|everything you need to know)|the following sections will|(in|throughout) this (section|guide|post|document|article),? (we'?ll|i'?ll|we will|i will) (explore|explain|cover|walk through|look at)|the rest of this (essay|article|guide|section) (explains|covers|shows)|this (guide|post|document|article) will (walk|take) you through|what (you'?ll|we'?ll) (learn|cover)|what to expect|a few things worth noting)\\b"
 message = "Narrating what the text will do instead of doing it. Delete and present the content."
-example = ["Here's a breakdown of the changes.", "A few things worth noting:"]
-acceptable = ["The changes are: a new index, a shorter timeout, and one removed retry."]
+example = ["Here's a breakdown of the changes.", "A few things worth noting:", "In this section, we'll explore the retry budget.", "The rest of this essay explains the migration."]
+acceptable = ["The changes are: a new index, a shorter timeout, and one removed retry.", "The retry budget limits each request to three attempts."]
 most_common_in = ["gpt", "claude"]
 
 [[rule]]
@@ -547,20 +547,20 @@ most_common_in = ["gpt", "gemini", "llama"]
 [[rule]]
 id = "phrase.assistant-pleasantry"
 severity = "bite"
-pattern = "\\b(i'?d be happy to|i hope this helps|hope (this|that) (was )?help(s|ful)|you'?re absolutely right|you make an excellent point|i couldn'?t agree more|would you like me to|let me know if|feel free to (ask|reach out)|don'?t hesitate to|happy to help|happy coding|best of luck|(great|excellent|good) question[!.,]|i'?m glad you asked|i assure you|you'?re asking about|to answer your question|that'?s a (great|good|fair|excellent) (point|question|idea)|sure thing|i am (happy|willing) to address|open to (any )?(suggestions|feedback)|(would )?appreciate (any|your) feedback|with the utmost care|if you have any (questions|concerns|suggestions|further)|if anything is unclear|hopefully this|i hope you (find|found)|good luck (with|on) your|you'?ve got this|i'?m here (to help|if you)|enjoy the journey|rest assured|have no doubt|without a doubt|demonstrat(e|es|ing) my commitment)(?!\\w)|^(of course|certainly|absolutely|sure thing)!"
+pattern = "\\b(i'?d be happy to|i hope this helps|i hope this (email|message) finds you well|hope (this|that) (was )?help(s|ful)|you'?re absolutely right|you make an excellent point|i couldn'?t agree more|would you like me to|let me know if|feel free to (ask|reach out)|don'?t hesitate to|happy to help|happy coding|best of luck|(great|excellent|good) question[!.,]|i'?m glad you asked|i assure you|you'?re asking about|to answer your question|that'?s a (great|good|fair|excellent) (point|question|idea)|sure thing|i am (happy|willing) to address|open to (any )?(suggestions|feedback)|(would )?appreciate (any|your) feedback|with the utmost care|if you have any (questions|concerns|suggestions|further)|if anything is unclear|hopefully this|i hope you (find|found)|good luck (with|on) your|you'?ve got this|i'?m here (to help|if you)|enjoy the journey|rest assured|have no doubt|without a doubt|please be advised|demonstrat(e|es|ing) my commitment)(?!\\w)|^(of course|certainly|absolutely|sure thing)!"
 message = "Assistant pleasantry inside a delivered artifact. Conversation bled into the product; delete it."
-example = ["Let me know if you'd like me to expand on any of this. I hope this helps!", "Certainly! Here is the summary."]
-acceptable = ["The summary follows.", "The great question of the century remains open."]
+example = ["Let me know if you'd like me to expand on any of this. I hope this helps!", "Certainly! Here is the summary.", "I hope this email finds you well.", "Please be advised that the API changes on Monday."]
+acceptable = ["The summary follows.", "The great question of the century remains open.", "The email contains the deployment schedule."]
 most_common_in = ["gpt", "claude", "gemini"]
 
 [[rule]]
 id = "phrase.model-self-reference"
 severity = "bite"
-pattern = "\\b(as an ai( language model)?|as a large language model|as of my (last|knowledge) (training|update|cutoff)|based on my training data|i don'?t have access to real[- ]time|up to my last training update)\\b"
+pattern = "\\b(as an ai( language model)?|as a (large )?language model|as of my (last|knowledge) (training|update|cutoff)|based on my training data|i don'?t have access to real[- ]time|up to my last training update)\\b"
 unless = "\\bworks as an ai researcher\\b"
 message = "The model naming itself or its limits inside an artifact. Delete it."
-example = ["As of my last training update, the API had no rate limit."]
-acceptable = ["The API had no rate limit as of March 2024.", "She works as an AI researcher on the alignment team."]
+example = ["As of my last training update, the API had no rate limit.", "As a language model, I cannot check the current API status."]
+acceptable = ["The API had no rate limit as of March 2024.", "She works as an AI researcher on the alignment team.", "The language model runs in the browser."]
 
 [[rule]]
 id = "phrase.knowledge-gap-speculation"
@@ -590,10 +590,10 @@ acceptable = ["The failure has two causes."]
 [[rule]]
 id = "phrase.vague-back-reference"
 severity = "bite"
-pattern = "\\b(as (mentioned|noted|discussed|stated) (above|earlier|previously|before)|as we (saw|will see|'?ll see)|as previously mentioned|as i (mentioned|said)( before| earlier)?)\\b"
+pattern = "\\b(as (mentioned|noted|discussed|stated) (above|earlier|previously|before)|as we('ve| have) seen|as we (saw|will see|'?ll see)|as previously mentioned|as i (mentioned|said)( before| earlier)?)\\b"
 message = "Backward pointer without a target. Link the section or repeat the one fact you need."
-example = ["As mentioned above, the cache is cold after deploy."]
-acceptable = ["The cache is cold after deploy (see Deployment)."]
+example = ["As mentioned above, the cache is cold after deploy.", "As we've seen in this section, retries can duplicate writes."]
+acceptable = ["The cache is cold after deploy (see Deployment).", "The section showed that retries can duplicate writes."]
 most_common_in = ["gpt", "claude"]
 
 [[rule]]
@@ -773,3 +773,32 @@ acceptable = [
   "The signing service performed robust hash verification on the replacement token.",
 ]
 most_common_in = ["gpt", "gemini", "claude"]
+
+# --- imported from prose catalogs (humanize-cli, no-ai-slop, skill-deslop) ---
+
+[[rule]]
+id = "phrase.vague-declarative"
+severity = "bite"
+pattern = '\b(the reasons are structural|the implications are significant|the consequences are real|the stakes are high|this is the deepest problem)(?!\w)'
+message = "Vague declaration of importance without the fact that would prove it. Name the cause, consequence, or constraint."
+example = [
+  "The reasons are structural.",
+  "The implications are significant.",
+  "The consequences are real.",
+  "The stakes are high.",
+  "This is the deepest problem.",
+]
+acceptable = [
+  "The schema prevents a tenant from reading another tenant's rows.",
+  "A missing index adds 800 ms to every query.",
+]
+most_common_in = ["gpt", "claude", "gemini"]
+
+[[rule]]
+id = "phrase.circular-closer"
+severity = "bite"
+pattern = '\b(and so )?we return to where we began(?!\w)'
+message = "Circular ending that announces closure without adding a conclusion. End on the last concrete point or next action."
+example = ["And so we return to where we began."]
+acceptable = ["The migration ends after the final backfill completes."]
+most_common_in = ["gpt", "claude"]
