@@ -49,6 +49,7 @@ For CI logs and tools that parse linter output, `--formal` (or `SLOPHOUND_FORMAL
 | `--disable ID[,ID]` | Skip specific rules for this run. |
 | `--disable-category CAT[,CAT]` | Skip a whole rule file (`phrase`, `template`, `punct`, `verb`, `adj`, `noun`, `doc`). |
 | `--only ID[,ID]` | Run just these rules. |
+| `--no-emoji` | Also flag emoji in prose. Off by default: emoji are a taste, not a machine tell. |
 | `--lang XX` | spaCy language code for the grammar layer. Non-English models download on demand. |
 | `--skip-quotes` | Leave blockquotes unlinted. |
 | `--no-footer` | Omit the false-positive instructions. |

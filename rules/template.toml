@@ -308,10 +308,10 @@ most_common_in = ["gpt", "gemini"]
 [[rule]]
 id = "template.count-opener"
 severity = "bite"
-pattern = '\b(two|three|four|five|six|seven|eight|nine|ten|\d+)\b(?=\s+[a-z])'
+pattern = '\b(two|three|four|five|six|seven|eight|nine|ten)\b(?=\s+[a-z])'
 sentence_start = true
 unless = '\b(five frames, a mated queen|three invoices still needed|four outcomes, each with a measure)\b'
-message = "The sentence opens with a count. Start with the subject and put the count later: 'Four files changed' becomes 'The change affects 4 files.'"
+message = "The sentence opens with a spelled-out count. Start with the subject and put the count later: 'Four files changed' becomes 'The change affects 4 files.'"
 example = [
   "Three detection layers, cheapest first:",
   "Two options, both bad.",
@@ -321,7 +321,6 @@ example = [
   "Two options remain, and both are bad.",
   "Four files changed.",
   "Two options remain: retry or fail.",
-  "5 things do not fit together well.",
   "Five\nthings do not fit together well.",
   "Five\tthings do not fit together well.",
   "We checked. five things do not fit together well.",
@@ -356,6 +355,9 @@ acceptable = [
   "## Five things to check",
   "`Five things` is the example text.",
   "5. Check the logs.",
+  "5 things do not fit together well.",
+  "90 days of logs are kept.",
+  "5 human approval for the concrete action, plus 3 audit trail so the approval can be checked later",
   "Five frames, a mated queen, from a guy two towns over who talked to me for forty minutes in his driveway about mite treatments.",
   "Three invoices still needed manual follow-up, but the average review time fell from six days to three.",
   "Four outcomes, each with a measure and a watch-out.",

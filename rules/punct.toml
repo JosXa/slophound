@@ -37,6 +37,9 @@ example = ["He called it \u201cdone\u201d.", "It\u2019s fine."]
 acceptable = ["He called it \"done\".", "It's fine.", "In today\u2019s hearing, the committee considered the bill."]
 most_common_in = ["gpt", "claude"]
 
+# Off by default: emoji are a taste, not a machine tell. The CLI skips this
+# rule unless --no-emoji is passed (see hound/cli.py). The test runner still
+# proves it like every other rule.
 [[rule]]
 id = "punct.emoji"
 severity = "bite"

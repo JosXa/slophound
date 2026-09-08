@@ -55,6 +55,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--lang", default="en", metavar="XX", help="language code for the grammar layer (default en)")
     p.add_argument("--skip-quotes", action="store_true", help="do not lint Markdown blockquotes")
+    p.add_argument(
+        "--no-emoji",
+        action="store_true",
+        help="also flag emoji in prose (punct.emoji is off by default; it is a taste, not a tell)",
+    )
     p.add_argument("--no-footer", action="store_true", help="omit the false-positive instructions")
     p.add_argument("--rules", type=Path, default=None, help=argparse.SUPPRESS)
     return p
@@ -67,11 +72,15 @@ def _split(values: list[str]) -> set[str]:
     return out
 
 
+EMOJI_RULE = "punct.emoji"
+
+
 def select_rules(
     rules: list[Rule],
     disable: set[str],
     disable_category: set[str],
     only: set[str],
+    no_emoji: bool = False,
 ) -> list[Rule]:
     known = {r.id for r in rules}
     for rid in disable | only:
@@ -85,6 +94,9 @@ def select_rules(
         if only and r.id not in only:
             continue
         if r.id in disable or r.category in disable_category:
+            continue
+        # Emoji are a taste, not a machine tell: the rule runs only on request.
+        if r.id == EMOJI_RULE and not (no_emoji or r.id in only):
             continue
         selected.append(r)
     return selected
@@ -113,7 +125,9 @@ def main(argv: list[str]) -> int:
 
     try:
         rules = load_rules(args.rules) if args.rules else load_rules()
-        rules = select_rules(rules, _split(args.disable), _split(args.disable_category), _split(args.only))
+        rules = select_rules(
+            rules, _split(args.disable), _split(args.disable_category), _split(args.only), args.no_emoji
+        )
     except RuleError as exc:
         print(f"slophound: {exc}", file=sys.stderr)
         return EXIT_FAILURE
