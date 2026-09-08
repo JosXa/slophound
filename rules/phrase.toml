@@ -170,13 +170,15 @@ most_common_in = ["claude"]
 [[rule]]
 id = "phrase.strategy-buzzwords"
 severity = "bite"
-pattern = '\b(flywheel( effect)?|(build|competitive|defensible) (a )?moat|north[- ]star( metric)?|first[- ]mover advantage|land grab|paradigm shift|move the needle|moves the needle|line[- ]items?)\b'
+pattern = '\b(flywheel( effect)?|(build|competitive|defensible) (a )?moat|north[- ]star( metric)?|first[- ]mover advantage|land grab|paradigm shift|move the needle|moves the needle|line[- ]items?|house style)\b'
 # "line item" is legitimate on an invoice, a budget or a receipt; in a plan or a
 # task list it is a corporate word for "entry" or "bullet".
-unless = '\b(invoice|invoices|budget|budgets|receipt|receipts|ledger|bill|billing|quote|quotation|purchase order|expense|expenses|accounting|cost cent(er|re)|no line item for)\b'
-message = "Strategy buzzword instead of a named advantage. Say what the advantage is and who has it. \"Line item\" belongs on an invoice; in a plan it is an entry, a task, or a bullet."
-example = ["The integrations build a moat.", "Our north star metric is weekly active teams.", "Add each finding as a line item in the plan.", "Every line item in the backlog needs an owner."]
-acceptable = ["Competitors would need two years to replicate the integration catalogue.", "The invoice has three line items, and the second one is wrong.", "Each budget line item maps to one cost centre.", "There is no line item for wrote the boring document that later prevented a Sev1."]
+# "house style" is a publisher's or newsroom's style guide; anywhere else it is a
+# way of waving off a convention without saying what it is or who decided it.
+unless = '\b(invoice|invoices|budget|budgets|receipt|receipts|ledger|bill|billing|quote|quotation|purchase order|expense|expenses|accounting|cost cent(er|re)|no line item for|publisher|publishing|newsroom|editor|editors|editorial|magazine|journal|typesett\w*|copy[- ]?edit\w*)\b'
+message = "Strategy buzzword instead of a named advantage. Say what the advantage is and who has it. \"Line item\" belongs on an invoice; in a plan it is an entry, a task, or a bullet. \"House style\" belongs to a publisher; elsewhere name the convention and who set it."
+example = ["The integrations build a moat.", "Our north star metric is weekly active teams.", "Add each finding as a line item in the plan.", "Every line item in the backlog needs an owner.", "Middle dots in headings are house style here.", "We skip the separator rule because it matches our house style."]
+acceptable = ["Competitors would need two years to replicate the integration catalogue.", "The invoice has three line items, and the second one is wrong.", "Each budget line item maps to one cost centre.", "There is no line item for wrote the boring document that later prevented a Sev1.", "The publisher's house style spells out numbers under ten.", "The team writes headings as a number, a middle dot, and a title; the template author chose that.", "Every newsroom copy editor learns the house style first."]
 most_common_in = ["gpt", "claude"]
 
 [[rule]]
