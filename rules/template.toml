@@ -67,10 +67,10 @@ most_common_in = ["claude"]
 [[rule]]
 id = "template.self-answered-question"
 severity = "bite"
-pattern = "(^|(?<=[.!?] ))(the (result|catch|reason|kicker|problem|best part|bottom line|upshot|cost|answer|fix))\\? [A-Z]"
+pattern = "(^|(?<=[.!?] ))(the (result|catch|reason|kicker|problem|best part|worst part|scary part|bottom line|upshot|cost|answer|fix|detail|part everyone misses))\\? [A-Z]"
 message = "Question asked only to answer it in the next breath. Fold the answer into a statement."
-example = ["The result? Two outages in a week.", "The catch? Every retry doubles the load."]
-acceptable = ["Two outages followed in a week.", "What is the result of the query when the table is empty?"]
+example = ["The result? Two outages in a week.", "The catch? Every retry doubles the load.", "The worst part? Nobody saw it coming.", "The scary part? The token never expires.", "The detail? A second worker grades every result.", "The part everyone misses? Distribution decides adoption."]
+acceptable = ["Two outages followed in a week.", "What is the result of the query when the table is empty?", "The detail is a second worker that grades every result."]
 most_common_in = ["gpt", "claude"]
 
 [[rule]]
@@ -186,16 +186,18 @@ most_common_in = ["claude"]
 [[rule]]
 id = "template.no-x-no-y-just-z"
 severity = "bite"
-pattern = "\\bno [^.!?\\n,]{1,25}, no [^.!?\\n,]{1,25}, (just|only|simply) \\b|\\bno [^.!?\\n,.]{1,25}\\. no [^.!?\\n.]{1,25}\\. (just|only|simply) \\b|\\b(without|zero) [^.!?\\n,]{1,25}, (without|zero) [^.!?\\n,]{1,25}, (just|only) \\b|\\bmore than just (a|an|the) \\b|\\bbeyond (just )?[^.!?\\n,]{1,40}, (it|this|that) (also|is|has|offers|provides)\\b|\\bisn't just (a|an|the|about) \\b|\\bnot just (a|an|the|about) [^.!?\\n,]{1,40}[,.] (it's|it is|this is|but) \\b"
+pattern = "\\bno [^.!?\\n,]{1,25}, no [^.!?\\n,]{1,25}, (just|only|simply) \\b|\\bno [^.!?\\n,.]{1,25}\\. no [^.!?\\n.]{1,25}\\. (just|only|simply) \\b|\\b(without|zero) [^.!?\\n,]{1,25}, (without|zero) [^.!?\\n,]{1,25}, (just|only) \\b|\\bmore than just (a|an|the) \\b|\\bbeyond (just )?[^.!?\\n,]{1,40}, (it|this|that) (also|is|has|offers|provides)\\b|\\bisn't just (a|an|the|about) \\b|\\bnot just (a|an|the|about) [^.!?\\n,]{1,40}[,.] (it's|it is|this is|but) \\b|\\b[^.!?\\n]{1,40}\\. not [^.!?\\n]{1,25}\\. (just|only|simply) \\b"
 message = "Elimination triplet (\"No X, no Y, just Z\") or \"more than just X\" escalation. Say what the thing is; the excluded alternatives add nothing."
 example = [
   "No retries, no queues, just one durable write.",
   "This is more than just a cache.",
   "Beyond speed, it also fixes the ordering bug.",
+  "Store the payload. Not the metadata. Just the content hash.",
 ]
 acceptable = [
   "One durable write replaces the retry and queue layers.",
   "The cache also fixes the ordering bug because writes are now serialized.",
+  "Store the payload and its metadata with the content hash.",
 ]
 most_common_in = ["claude", "gpt"]
 
@@ -411,3 +413,29 @@ acceptable = [
   "Red apples, green pears, and red plums filled the bowl.",
   "Old habit, new tooling, different outcome.",
 ]
+
+# --- imported from prose catalogs (humanize-cli, no-ai-slop, skill-deslop) ---
+
+[[rule]]
+id = "template.numbered-prose-list"
+severity = "bite"
+pattern = '(^|(?<=[.!?] ))the first (?P<label>[a-z][\w-]*) [^.!?\n]{1,70}\. the second (?P=label) [^.!?\n]{1,70}\. the third (?P=label) [^.!?\n]{1,70}\.'
+message = "A numbered list disguised as repeated prose (\"The first limitation ... The second limitation ...\"). Use a list, or connect the points by their causes."
+example = [
+  "The first limitation is the short evaluation window. The second limitation is the missing baseline. The third limitation is overfitting to one season.",
+  "The first wall blocks delegated access. The second wall blocks scoped permissions. The third wall blocks audit exports.",
+]
+acceptable = [
+  "The evaluation has three limitations: a short window, no baseline, and possible overfitting.",
+  "The first wall blocks delegated access. We measured a second wall of missing scoped permissions.",
+]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "template.question-one-word-answer"
+severity = "bark"
+pattern = '(^|(?<=[.!?] ))[A-Z][^?\n]{1,60}\? [A-Z][A-Za-z-]{1,20}[.!?]'
+message = "Question followed by a one-word verdict (\"The result? Devastating.\") performs suspense instead of making a claim. Combine it into a statement."
+example = ["The result? Devastating.", "Why? Cost."]
+acceptable = ["The result was devastating.", "Why did the deploy fail? The certificate had expired."]
+most_common_in = ["gpt", "claude"]
