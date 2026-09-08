@@ -164,6 +164,118 @@ def connective_openers(doc: Document):
     return len(hits), hits[0] if hits else None, f"{len(hits)} paragraphs open with a connective"
 
 
+# These phrases describe the document's route instead of advancing its subject.
+# A single signpost can orient a long guide; the density metric below needs a
+# repeated habit before it reports one.
+_SIGNPOST_RE = re.compile(
+    r"(?:\b(?:first|next),|\bhaving (?:covered|established)\b|\bin (?:this|the following|"
+    r"the next) section\b|\bas (?:mentioned|noted) (?:above|earlier)\b|\blet(?: us|'s) turn to\b)",
+    re.I,
+)
+
+
+@metric("signpost_density")
+def signpost_density(doc: Document):
+    """Structural signposts per 100 prose words; short documents are not scored."""
+    n_words = doc.word_count()
+    if n_words < 150:
+        return 0.0, None, f"{n_words} words; fewer than 150 needed to score signposts"
+    matches = list(_SIGNPOST_RE.finditer(doc.prose))
+    density = len(matches) / n_words * 100
+    span = (matches[0].start(), matches[0].end()) if matches else None
+    return density, span, f"{len(matches)} structural signposts in {n_words} words ({density:.1f} per 100)"
+
+
+# A closing paragraph beginning with one of these stock moral/recap phrases is
+# a tell on its own. The lexical branch below catches a recap without requiring
+# a grammar parser or a curated topic vocabulary.
+_CODA_START_RE = re.compile(
+    r"^(?:ultimately,|in the end,|in conclusion|as we've seen|only time will tell|"
+    r"remember,|the future\b)",
+    re.I,
+)
+# A conversational signoff can follow a real conclusion without becoming part
+# of it. Treat that boilerplate as outside the prose ending when locating a coda.
+_SIGNOFF_RE = re.compile(r"^(?:let me know if|i hope this helps|happy to|feel free to)\b", re.I)
+_CONTENT_STOPWORDS = frozenset(
+    "a an and are as at be been being but by can could did do does for from had has have "
+    "he her here him his i if in into is it its may me might more most my no not of on or "
+    "our out over should so that the their them then there these they this those to under us "
+    "was we were what when where which who will with would you your".split()
+)
+
+
+def _content_words(text: str) -> set[str]:
+    """Lowercase content words for a deliberately simple lexical-overlap check."""
+    return {word.lower() for word in words(text) if len(word) > 3 and word.lower() not in _CONTENT_STOPWORDS}
+
+
+@metric("conclusion_coda")
+def conclusion_coda(doc: Document):
+    """Stock final coda, or high content-word Jaccard overlap with the opening."""
+    paras = _paragraphs(doc)
+    if len(paras) < 2:
+        return 0.0, None, ""
+    first, last = paras[0], paras[-1]
+    last_text = doc.prose[last.start : last.end].lstrip()
+    if len(paras) >= 3 and _SIGNOFF_RE.match(last_text):
+        last = paras[-2]
+        last_text = doc.prose[last.start : last.end].lstrip()
+    last_start = last.end - len(last_text)
+    coda = _CODA_START_RE.match(last_text)
+    if coda:
+        return 1.0, (last_start, last_start + coda.end()), "final paragraph opens with a stock conclusion coda"
+    opening = _content_words(doc.prose[first.start : first.end])
+    closing = _content_words(last_text)
+    union = opening | closing
+    overlap = len(opening & closing) / len(union) if union else 0.0
+    return overlap, (last.start, last.end) if overlap else None, (
+        f"opening and final paragraphs share {len(opening & closing)} of {len(union)} content words "
+        f"(Jaccard {overlap:.2f})"
+    )
+
+
+# This is intentionally paragraph-level: two normal sentences that start with
+# "Every" are common, while repeated paragraph templates create a visible beat.
+_EVERY_OPENER_RE = re.compile(
+    r"^every\s+[a-z][\w'-]*\s+(?:is|are|was|were|be|been|being|has|have|had|"
+    r"do|does|did|can|will|shall|must|should|would|may|might|[a-z]+(?:s|ed))\b",
+    re.I,
+)
+
+
+@metric("every_template_openers")
+def every_template_openers(doc: Document):
+    """Paragraphs opening with the repeated 'Every noun verb' template."""
+    hits = []
+    for block in _paragraphs(doc):
+        text = doc.prose[block.start : block.end].lstrip()
+        start = block.end - len(text)
+        match = _EVERY_OPENER_RE.match(text)
+        if match:
+            hits.append((start, start + match.end()))
+    return len(hits), hits[0] if hits else None, f'{len(hits)} paragraphs open with "Every <noun> <verb>"'
+
+
+_QUESTION_END_RE = re.compile(r"\?[\"')\]]*\s*$")
+
+
+@metric("rhetorical_question_share")
+def rhetorical_question_share(doc: Document):
+    """Question sentences immediately followed by a declarative answer sentence."""
+    spans = _sentences(doc)
+    hits = []
+    for current, following in zip(spans, spans[1:]):
+        question = doc.prose[current[0] : current[1]]
+        answer = doc.prose[following[0] : following[1]]
+        if _QUESTION_END_RE.search(question) and not _QUESTION_END_RE.search(answer):
+            hits.append((current[0], following[1]))
+    if len(hits) < 3:
+        return 0.0, None, f"{len(hits)} question-and-answer pairs; at least 3 are needed to score the share"
+    share = len(hits) / len(spans) if spans else 0.0
+    return share, hits[0], f"{len(hits)} of {len(spans)} prose sentences form question-and-answer pairs ({share:.0%})"
+
+
 @metric("short_paragraph_share")
 def short_paragraph_share(doc: Document):
     """Share of paragraphs that are a single sentence."""
