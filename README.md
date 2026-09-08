@@ -60,7 +60,7 @@ Code blocks, inline code, URLs, link targets, tables, and HTML comments are neve
 Detection runs in three layers, ordered from cheapest to most expensive:
 
 1. **Regex** for fixed phrases, sentence templates, and punctuation (`rules/phrase.toml`, `rules/template.toml`, `rules/punct.toml`). These bite.
-2. **Dependency parsing** with spaCy for constructions that regex cannot tell apart from legitimate use: "the map holds three keys" passes, "that holds even under load" fires (`rules/verb.toml`, `rules/adj.toml`, `rules/noun.toml`). These bark, except for noun clusters of four or more, which bite.
+2. **Dependency parsing** with spaCy for constructions that regex cannot tell apart from legitimate use: "the map holds three keys" passes, "that holds even under load" fires (`rules/verb.toml`, `rules/adj.toml`, `rules/noun.toml`). These bark, except for noun clusters: four or more nouns bite, three only sniff.
 3. **Document statistics** for rhythm and repetition: uniform sentence length, repeated paragraph openers, triad density, bullet lists with bold labels (`rules/doc.toml`). These sniff.
 
 Every rule has its own message, at least one `example` sentence it must fire on, and at least one `acceptable` sentence it must leave alone. `./slophound test` checks all of them, plus a small corpus of human and generated text under `tests/corpus/`, plus this repository's own Markdown.

@@ -4,7 +4,9 @@
 # phrase ("cache layer invalidation retry strategy"). Language models compress
 # a whole clause into a noun pile because it looks precise; a reader has to
 # unpack it, and often cannot tell which noun modifies which. Technical writing
-# guides cap clusters at three nouns; slophound barks at three and bites at four.
+# guides cap clusters at three nouns; slophound sniffs at three and bites at four.
+# Three-noun groups are often established domain names ("audit trail table",
+# "connection pool size"), so the three-rule is a hint, never an advisory.
 #
 # Fields per [[rule]]: see rules/verb.toml. The same DependencyMatcher syntax
 # applies. Severity, message, example and acceptable are required.
@@ -95,7 +97,7 @@ acceptable = [
 
 [[rule]]
 id = "noun.cluster-three"
-severity = "bark"
+severity = "sniff"
 message = "Three nouns stacked into one phrase (\"database connection pool\"). Readable, but one more and it tips over. Consider a preposition: \"the connection pool of the database\"."
 unless = '\b(security group rules|lower radiator hose clamp|all of it on the tokenizer|driver assignments)\b'
 most_common_in = ["claude", "gpt"]

@@ -20,8 +20,8 @@ Severity is a claim about confidence, so pick it by how the match is found.
 | Tier | Exit code | How the match is found | Typical categories |
 | --- | --- | --- | --- |
 | `bite` | fails | exact phrase, sentence template, glyph | `phrase`, `template`, `punct`, `noun.cluster-four` |
-| `bark` | passes | parser-inferred, or a phrase family with real false-positive risk | `verb`, `adj`, `noun.cluster-three`, `phrase.buzzword-vocabulary` |
-| `sniff` | passes | document statistic crossing a threshold | `doc` |
+| `bark` | passes | parser-inferred, or a phrase family with real false-positive risk | `verb`, `adj`, `phrase.buzzword-vocabulary` |
+| `sniff` | passes | document statistic crossing a threshold, or a hint too common in human text to advise on | `doc`, `noun.cluster-three` |
 
 A phrase rule may be a bark when the family is broad and you cannot list every literal sense in `unless`. A verb rule is never a bite: `en_core_web_sm` mis-tags often enough (`lands` as a noun, `token` as a verb, `burns` as a noun) that a grammar finding must stay advisory. When two rules grade the same construction (`noun.cluster-four` and `noun.cluster-three`), the spaCy layer shadows the weaker finding within a category, so the stronger rule needs no exclusion for the weaker shape.
 
