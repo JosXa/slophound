@@ -246,3 +246,41 @@ acceptable = [
   "This sits well with me.",
   "The config lives in one file.",
 ]
+
+# "carry" with an abstract object. Literal carrying (boxes, tons, passengers,
+# headers, ids, a signal on a wire) is fine, so the object lemma is the gate,
+# not the subject: "the field carries the reasoning" and "this carries risk"
+# are the same tell whether the subject is a noun or a demonstrative.
+[[rule]]
+id = "verb.carries"
+severity = "bark"
+message = "An object \"carries\" something abstract (\"two dropdowns carry the decision\", \"the field carries the reasoning\", \"this carries weight\"). A thing is made to do a person's job. Say what the thing holds or what the person does: \"the two dropdowns record the decision\", \"the field explains why\", \"reviewers take this seriously\"."
+most_common_in = ["claude"]
+dependency = [
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "csubj"] }, TAG = { NOT_IN = ["PRP", "NNP", "NNPS"] } } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["decision", "weight", "meaning", "reasoning", "risk", "responsibility", "intent", "intention", "message", "signal", "story", "argument", "implication", "context", "burden", "authority", "information", "knowledge", "judgment", "judgement", "assumption", "rationale", "logic", "narrative", "insight", "nuance", "tension", "cost", "consequence", "significance", "connotation", "baggage", "expectation", "obligation", "promise", "conviction", "tone", "sentiment", "emotion", "feeling", "idea", "lesson", "wisdom", "truth", "history", "memory", "identity", "spirit", "hope", "urgency"] } } },
+  ],
+]
+unless = "\\bcarr(y|ies|ied|ying) (the |a |an )?(signal|message)s? (to|from|over|across|through|between|on|into|out of|back)\\b|\\bcarr(y|ies|ied|ying) (a |the )?(risk|cost) of (\\d|[a-z]+ (percent|per cent|euros?|dollars?|ms|seconds?|minutes?))"
+example = [
+  "Two dropdowns carry the decision.",
+  "The field carries the reasoning.",
+  "This carries real risk.",
+  "That carries weight with reviewers.",
+  "The flag carries no meaning outside this module.",
+  "Each name carries an assumption about ownership.",
+]
+acceptable = [
+  "She carried the box upstairs.",
+  "The truck carries forty tons.",
+  "The cable carries ten gigabits per second.",
+  "The bus carries passengers to town.",
+  "Each request carries a correlation id in its header.",
+  "The response carries a Retry-After header.",
+  "The name carries over from the old schema.",
+  "The wire carries the signal to the receiver.",
+  "Kafka carries the message from the producer to the consumer.",
+  "The two dropdowns record the decision, and the free-text field explains why.",
+]
