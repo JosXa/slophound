@@ -802,3 +802,130 @@ message = "Circular ending that announces closure without adding a conclusion. E
 example = ["And so we return to where we began."]
 acceptable = ["The migration ends after the final backfill completes."]
 most_common_in = ["gpt", "claude"]
+
+# ---------------------------------------------------------------------------
+# Imported software-marketing phrases
+# ---------------------------------------------------------------------------
+
+[[rule]]
+id = "phrase.heroic-transformation"
+severity = "bite"
+pattern = '\b((can|could|will|would) change everything|change(s|d)? the course of (history|humanity|the world)|will forever change|would forever change|life (will|would) never be the same|make (the )?world a better place|make a difference (in|to) (the|this) world|part of something greater|the power of the human spirit|resilience of the human spirit)\b'
+message = "Heroic transformation claim with no technical content (\"change everything\", \"make a difference in the world\"). State the specific outcome and who receives it."
+example = [
+  "The new agent could change everything for operations.",
+  "This release will forever change the way teams deploy.",
+  "The integration lets us make a difference in the world.",
+]
+acceptable = [
+  "The agent closes incidents with a matching runbook in under two minutes.",
+  "The release adds a rollback command for every deployment.",
+]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.journey-and-destiny"
+severity = "bite"
+pattern = '\b(forge a new path|(the )?(road|path|journey) ahead (will|would|is)|beginning of a new chapter|ready to face (whatever |the )?challenges|face whatever challenges|every step of the way|what(ever)? the future holds?|the future held)\b'
+message = "Quest or destiny language in a technical document (\"the journey ahead\", \"what the future holds\"). Name the next decision, risk, or scheduled work."
+example = [
+  "The journey ahead will require patience.",
+  "This migration marks the beginning of a new chapter.",
+  "We will support customers every step of the way.",
+]
+acceptable = [
+  "The migration has two remaining steps: backfill the table and switch reads.",
+  "Support will respond to migration questions in the existing incident channel.",
+]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.hyperbolic-comparison"
+severity = "bite"
+pattern = '\b(unlike anything (i|we|you|they) (had|have|\x27ve) ever (seen|experienced|encountered)|never seen anything like|everything (i|we|you|they) thought (i|we|you|they) knew|anything (i|we|you|they) (had|have|\x27ve) ever (seen|experienced|encountered))\b'
+message = "Unverifiable superlative comparison (\"unlike anything we have ever seen\"). Compare named systems or give the measured difference."
+example = [
+  "The dashboard is unlike anything we have ever seen.",
+  "This outage changed everything we thought we knew about retries.",
+]
+acceptable = [
+  "The dashboard renders 14 charts from the same events the old dashboard used.",
+  "The outage showed that retries bypassed the per-tenant limit.",
+]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.abstract-advice"
+severity = "bark"
+pattern = '\b(it is advisable to|it(\x27s| is) essential to|it(\x27s| is) important to remember|there are a few considerations|as a professional|you may want to|remember that)\b'
+message = "Abstract advice to the reader (\"it is advisable to\", \"you may want to\"). State the condition and the action, or give the instruction directly."
+example = [
+  "It is advisable to consider the cache before deploying.",
+  "There are a few considerations before enabling replication.",
+  "You may want to rotate the key first.",
+]
+acceptable = [
+  "Rotate the key before enabling replication.",
+  "Enable replication only after the cache has a valid key.",
+]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.revelation-framing"
+severity = "bite"
+pattern = '\b(unveil(s|ed|ing)? the secrets|uncover the truth( behind)?|determined to uncover the truth|unlock the secrets)\b'
+message = "Mystery-story framing for an ordinary investigation (\"uncover the truth\", \"unveil the secrets\"). Name the question, evidence, or result."
+example = [
+  "The report unveils the secrets of reliable caching.",
+  "We need to uncover the truth behind the latency spike.",
+]
+acceptable = [
+  "The report identifies the cache keys that miss after deployment.",
+  "We need to identify which query caused the latency spike.",
+]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.decision-theater"
+severity = "bite"
+pattern = '\b((the )?ball is in your court|(the )?choice is yours|made the right (choice|decision))\b'
+message = "Dramatic verdict or hand-off (\"the choice is yours\", \"made the right decision\"). State the owner, decision, and reason."
+example = [
+  "The ball is in your court after the review.",
+  "The team made the right decision to rewrite the service.",
+]
+acceptable = [
+  "The architecture group owns the decision after the review.",
+  "The team chose a rewrite because the old service cannot isolate tenants.",
+]
+most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "phrase.performative-uncertainty"
+severity = "bite"
+pattern = '\b(maybe,? just maybe|perhaps,? just perhaps|maybe that was enough|for now, that(\x27s| is) enough|that was enough|only just getting started|was only just beginning)\b'
+message = "Literary uncertainty or a dramatic stopping point (\"maybe, just maybe\", \"only just getting started\"). State the confidence, remaining work, or stopping condition."
+example = [
+  "Maybe, just maybe, the cache is enough.",
+  "The migration is only just getting started.",
+]
+acceptable = [
+  "The cache removes the database reads that caused the incident.",
+  "The migration has completed the schema step; data backfill remains.",
+]
+most_common_in = ["gpt", "gemini"]
+
+[[rule]]
+id = "phrase.marketing-purpose"
+severity = "bark"
+pattern = '\b(designed to (enhance|elevate|transform|empower|revolutioni[sz]e)|built to (enhance|elevate|transform|empower|revolutioni[sz]e)|created to (enhance|elevate|transform|empower|revolutioni[sz]e))\b'
+message = "Marketing purpose clause (\"designed to enhance\"). Say what the component does, for whom, and under what condition."
+example = [
+  "The portal is designed to enhance the customer experience.",
+  "The agent was built to transform incident response.",
+]
+acceptable = [
+  "The portal lets account owners reset an expired SSO certificate.",
+  "The agent opens the matching runbook when an alert fires.",
+]
+most_common_in = ["gpt", "gemini"]
