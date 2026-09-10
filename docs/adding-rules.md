@@ -6,7 +6,7 @@ Contract: a rule ships only when `./slophound test` is green, the repo's own doc
 
 ## Does it belong
 
-A rule usually catches a construction a model produces where a person would have written something plainer. An explicit vocabulary preference from the project owner may also ban a word. Document such exceptions as preferences, not evidence that a text was generated. The `phrase.provenance` rule is one such exception: use origin, source, or history as appropriate. Existing code and quotation masking still applies.
+A rule usually catches a construction a model produces where a person would have written something plainer. Use origin, source, or history instead of `provenance`, as appropriate. Existing code and quotation masking still applies.
 
 - Bare words are blacklists. `robust`, `never`, `sits`, `actually`, `framework` appear in human technical prose at the same rate as in generated prose. Gate a word with the company it keeps: `the shape of the problem`, `sits at the intersection of`, `buys us`. If the only pattern you can write is one word, you have a vocabulary preference and not a rule.
 - Register is not slop. Passive voice, formal vocabulary (`commence`, `sufficient`), and long sentences were measured on the human corpus and on generated text; both fired at the same rate. Those rules were deleted. If a candidate would flag good human writing as often as generated writing, drop it.
