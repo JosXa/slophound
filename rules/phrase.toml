@@ -33,6 +33,24 @@
 # Engineering register
 # ---------------------------------------------------------------------------
 
+# Explicit vocabulary preference requested by Joscha, not an AI detector claim.
+[[rule]]
+id = "phrase.provenance"
+severity = "bite"
+pattern = '\bprovenances?\b'
+message = "Use a simpler word instead of provenance: origin for where something began, source for where it came from, or history for its past. Choose the word that fits the meaning."
+example = [
+  "Retained section IDs, paragraph annotations, authentication and exact-session provenance.",
+  "Provenance must be recorded.",
+  "The records have different provenances.",
+]
+acceptable = [
+  "Record the source of each document.",
+  "The origin of the data is known.",
+  "The painting has a documented ownership history.",
+  "The `provenance` field stores the source.",
+]
+
 [[rule]]
 id = "phrase.engineering-slang"
 severity = "bite"

@@ -51,7 +51,7 @@ Every rule has:
 - a severity: `bite` (exact match, must be fixed), `bark` (grammar-inferred), or `sniff` (document rhythm), in the Grammarly sense of error, warning, and suggestion. Em dashes are always a bite. The `--formal` flag prints the Grammarly words for CI systems and reporters; the rule files accept either vocabulary.
 - a message that fully explains the problem and how to fix it. The report never requires a second lookup.
 - at least one `example` sentence the rule must fire on and at least one `acceptable` sentence it must not fire on. `./slophound test` checks both. A rule without an `acceptable` case is rejected, because that is how word blacklists happen.
-- provenance metadata such as which model families the pattern is most common in. This is informational. There are no per-model profiles or adapters.
+- source information such as which model families the pattern is most common in. This is informational. There are no per-model profiles or adapters.
 
 ### Output
 
