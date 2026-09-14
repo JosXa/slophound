@@ -417,12 +417,13 @@ most_common_in = ["claude"]
 # and has no conjunction, so a plain "A, B, and C" list does not match. Two of the
 # three lead words must be the same (backreferences are case-insensitive under re.I):
 # "same X, new Y, new Z", "same X, same Y, new Z", "old X, new Y, old Z".
-pattern = '(^|(?<=[.!?] ))(?P<a>[A-Za-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?, (?P<b>[a-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?, (?P<c>[a-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?[.!?]'
+pattern = '(^|(?<=[.!?] ))(?P<a>[A-Za-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?, (?P<b>[a-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*)?, (?P<c>[a-z][\w-]*) [a-z][\w-]*( [a-z][\w-]*){0,3}[.!?]'
 # The whole match is the sentence; the repeated-lead requirement lives in the
 # alternation of the three lead words, so a triplet with three different leads is
 # excluded here rather than in the pattern.
 unless = '^(?!(?P<x>[A-Za-z][\w-]*) [^,]*, (?P=x) |(?P<y>[A-Za-z][\w-]*) [^,]*, [^,]*, (?P=y) |[A-Za-z][\w-]* [^,]*, (?P<z>[a-z][\w-]*) [^,]*, (?P=z) )|\bno standing committees, no chairs, no charters\b'
 example = [
+  "Same input, same output, no model in the loop.",
   "Same object, new name, new roof.",
   "Old habit, new tooling, old outcome.",
   "We shipped it. Same bugs, same tests, new logo.",

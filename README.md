@@ -28,7 +28,7 @@ docs/adr-014.md:31:1  bite   template.not-x-but-y
 
 ## What it catches
 
-A sample of the rule catalog. Each row is a real `example` sentence from a rule and the rewrite its message asks for.
+A sample of the rule catalog. Each row pairs a real `example` sentence from a rule with a rewrite that passes.
 
 | Found | Rule | Fix |
 |---|---|---|
@@ -56,7 +56,7 @@ A sample of the rule catalog. Each row is a real `example` sentence from a rule 
 | A cache is fast — until it lies. | `punct.em-dash` | A cache is fast until it lies. |
 | Five paragraphs in a row opening with "The linter" | `doc.repeated-paragraph-opener` | Vary the subject, or merge the paragraphs. |
 
-Deterministic. Same input, same output, no model in the loop. Rules are plain TOML that any agent can read, test, and repair when a finding is wrong.
+Deterministic: the same input produces the same findings on every run, and no model sits in the loop. Rules are plain TOML that any agent can read, test, and repair when a finding is wrong.
 
 ## Usage
 
