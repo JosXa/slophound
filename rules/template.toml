@@ -463,3 +463,62 @@ message = "Question followed by a one-word verdict (\"The result? Devastating.\"
 example = ["The result? Devastating.", "Why? Cost."]
 acceptable = ["The result was devastating.", "Why did the deploy fail? The certificate had expired."]
 most_common_in = ["gpt", "claude"]
+
+[[rule]]
+id = "template.verbless-pair"
+severity = "bite"
+# Two short phrases, a comma, a full stop, and no verb anywhere. The two-part
+# sibling of template.echo-triplet. Both halves must open with a quantity or
+# comparison word so that "Hello, world." and "Thanks, Bob." stay out; regex
+# cannot see verbs, so the closed lead sets stand in for that check.
+pattern = '\b(same|one|two|three|four|five|six|seven|eight|nine|ten|different|new|old|zero|no|fewer|more|less|half|double|twice|identical|another|every|each|whole|full|bigger|smaller|faster|slower|better|worse|cheaper|higher|lower|shorter|longer|simpler|harder|easier) [a-z][\w-]*( [a-z][\w-]*){0,2}, (same|one|two|three|four|five|six|seven|eight|nine|ten|different|new|old|zero|no|fewer|more|less|half|double|twice|identical|another|every|each|whole|full|all|both|none|nothing|everything|[a-z]+er) [a-z][\w-]*( [a-z][\w-]*){0,3}[.!?]'
+sentence_start = true
+# "Less X, more Y." belongs to template.not-x-but-y.
+unless = '^(less|more|fewer) [^,]+, (less|more|fewer) '
+message = "Two phrases and a comma standing in for a sentence (\"Same benchmark, one year apart.\"). A caption, not prose. Give it a verb: \"The same benchmark was run again a year later.\""
+most_common_in = ["claude"]
+example = [
+  "Same benchmark, one year apart.",
+  "One codebase, two runtimes.",
+  "Same input, different output.",
+  "Old habit, new tooling.",
+  "We rewrote it. Same bugs, new logo.",
+  "Three stages, three levels of detail.",
+]
+acceptable = [
+  "The same benchmark was run again a year later.",
+  "One codebase serves two runtimes.",
+  "Hello, world.",
+  "Thanks, Bob.",
+  "Same day, we shipped the fix.",
+  "Two teams, both editing the same file, clashed on every merge.",
+  "One more thing, the deploy is scheduled for Friday.",
+  "Less code, more tests.",
+]
+
+[[rule]]
+id = "template.is-where-cleft"
+severity = "bark"
+# "<noun> is where <something abstract happens>" moves the action into a
+# relative clause and leaves the subject with no verb of its own. The verb list
+# is closed to abstract happenings; "is where you set the port" and "is where
+# she grew up" name a real place or a real action and stay clean.
+pattern = '\b(is|was|are|were) where (most|all|much|many|the|a|an|our|its|their|your|this|that|these|those|[a-z][\w-]*) [^.!?\n]{0,40}\b(comes? from|came from|happens?|happened|begins?|began|starts?|started|ends?|ended|lives?|lived|sits?|sat|gets? (interesting|tricky|hard|complicated|messy|real)|got (interesting|tricky|hard|complicated|messy|real)|shines?|shone|breaks? down|broke down|falls? (apart|down|short)|fell (apart|down|short)|pays? off|paid off|matters|mattered|kicks? in|kicked in|comes? in|came in|goes? wrong|went wrong|takes? shape|took shape|adds? up|added up)\b'
+unless = '\b(room|building|office|city|town|street|house|kitchen|garage|station|floor|shelf|drawer|folder|directory|file|table|column|line \d+)\b is where'
+message = "\"X is where Y happens\" parks the action in a relative clause (\"The 2025 result is where most lean-file advice comes from\"). Let the subject act: \"Most lean-file advice traces back to the 2025 result.\""
+most_common_in = ["claude"]
+example = [
+  "The 2025 result is where most lean-file advice comes from.",
+  "The retry loop is where the latency comes from.",
+  "This is where the real work happens.",
+  "The handoff was where things fell apart.",
+  "The second week is where the discipline pays off.",
+]
+acceptable = [
+  "Most lean-file advice traces back to the 2025 result.",
+  "The retry loop causes the latency.",
+  "The config file is where you set the port.",
+  "Berlin is where she grew up.",
+  "The kitchen is where the party ends up.",
+  "Line 40 is where the exception is thrown.",
+]
