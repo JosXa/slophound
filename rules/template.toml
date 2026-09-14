@@ -495,30 +495,3 @@ acceptable = [
   "One more thing, the deploy is scheduled for Friday.",
   "Less code, more tests.",
 ]
-
-[[rule]]
-id = "template.is-where-cleft"
-severity = "bark"
-# "<noun> is where <something abstract happens>" moves the action into a
-# relative clause and leaves the subject with no verb of its own. The verb list
-# is closed to abstract happenings; "is where you set the port" and "is where
-# she grew up" name a real place or a real action and stay clean.
-pattern = '\b(is|was|are|were) where (most|all|much|many|the|a|an|our|its|their|your|this|that|these|those|[a-z][\w-]*) [^.!?\n]{0,40}\b(comes? from|came from|happens?|happened|begins?|began|starts?|started|ends?|ended|lives?|lived|sits?|sat|gets? (interesting|tricky|hard|complicated|messy|real)|got (interesting|tricky|hard|complicated|messy|real)|shines?|shone|breaks? down|broke down|falls? (apart|down|short)|fell (apart|down|short)|pays? off|paid off|matters|mattered|kicks? in|kicked in|comes? in|came in|goes? wrong|went wrong|takes? shape|took shape|adds? up|added up)\b'
-unless = '\b(room|building|office|city|town|street|house|kitchen|garage|station|floor|shelf|drawer|folder|directory|file|table|column|line \d+)\b is where'
-message = "\"X is where Y happens\" parks the action in a relative clause (\"The 2025 result is where most lean-file advice comes from\"). Let the subject act: \"Most lean-file advice traces back to the 2025 result.\""
-most_common_in = ["claude"]
-example = [
-  "The 2025 result is where most lean-file advice comes from.",
-  "The retry loop is where the latency comes from.",
-  "This is where the real work happens.",
-  "The handoff was where things fell apart.",
-  "The second week is where the discipline pays off.",
-]
-acceptable = [
-  "Most lean-file advice traces back to the 2025 result.",
-  "The retry loop causes the latency.",
-  "The config file is where you set the port.",
-  "Berlin is where she grew up.",
-  "The kitchen is where the party ends up.",
-  "Line 40 is where the exception is thrown.",
-]

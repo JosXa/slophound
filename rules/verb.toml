@@ -284,3 +284,50 @@ acceptable = [
   "Kafka carries the message from the producer to the consumer.",
   "The two dropdowns record the decision, and the free-text field explains why.",
 ]
+
+# A copula whose complement is a whole clause: "The result is where the advice
+# comes from", "AGENTS.md is what makes or breaks agents", "Caching is how we got
+# the latency down". The subject owns no verb; the action hides behind
+# where/what/why/how. Humans write this rarely (Conan Doyle 0.1 per 1k words,
+# RFC 7231 0.03) and mostly with a demonstrative subject ("That is why we left",
+# "This is what began it all"), which is a normal back-reference and stays clean.
+# The parser attaches the clause to the copula as ccomp, and the WRB/WP token
+# sits inside that clause, so the rule anchors on the copula and walks down.
+[[rule]]
+id = "verb.copula-cleft"
+severity = "bark"
+message = "A noun, a copula, and the whole action parked in a where/what/why/how clause (\"The 2025 result is where most lean-file advice comes from\"). The subject does nothing. Give it the verb: \"Most lean-file advice traces back to the 2025 result.\""
+most_common_in = ["claude"]
+dependency = [
+  [
+    {RIGHT_ID = "cop", RIGHT_ATTRS = {LEMMA = "be", DEP = "ROOT"}},
+    {LEFT_ID = "cop", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = {DEP = "nsubj", TAG = {IN = ["NN", "NNS", "NNP", "NNPS", "VBG"]}}},
+    {LEFT_ID = "cop", REL_OP = ">", RIGHT_ID = "clause", RIGHT_ATTRS = {DEP = "ccomp"}},
+    {LEFT_ID = "clause", REL_OP = ">>", RIGHT_ID = "wh", RIGHT_ATTRS = {TAG = {IN = ["WRB", "WP"]}, LOWER = {IN = ["where", "what", "why", "how"]}}},
+  ],
+]
+# "The question is whether", "the problem is that" are ordinary framing and do
+# not use a wh-word, so they never match. Guard the remaining literal senses:
+# a place or a named person as subject.
+unless = '\b(room|building|office|city|town|street|house|kitchen|garage|station|floor|shelf|drawer|folder|directory|table|column|line \d+|page \d+|section \d+) (is|was|are|were) (where|what|why|how)\b|\b(he|she|they|i|we|you) (is|was|are|were|am) (where|what|why|how)\b|\bthe ((only |first |last |remaining |real |open )?(point|question|issue|problem|reason|answer)) (is|was),? (how|why|what|where)\b|\b(is|was|are|were) where (he|she|they|i|we|you) '
+example = [
+  "The 2025 result is where most lean-file advice comes from.",
+  "The instructions file is what makes or breaks future agents in your codebase.",
+  "Caching is how we got the latency down.",
+  "The handoff is why the deploy failed.",
+  "The retry loop is what makes it slow.",
+]
+acceptable = [
+  "Most lean-file advice traces back to the 2025 result.",
+  "The instructions file decides whether future agents succeed in your codebase.",
+  "We cached the results and got the latency down.",
+  "That is why we left.",
+  "This is what began it all.",
+  "The config file is where you set the port.",
+  "Berlin is where she grew up.",
+  "The kitchen is where the party ends up.",
+  "Line 40 is where the exception is thrown.",
+  "The question is whether we ship.",
+  "The problem is that it leaks.",
+  "The reason is how the parser tokenises hyphens.",
+]
