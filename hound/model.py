@@ -36,8 +36,10 @@ class Rule:
     sentence_start: bool = False
     # spaCy layer: a DependencyMatcher pattern (list of node dicts).
     dependency: list[list[dict]] | None = None  # one or more DependencyMatcher patterns
-    # Extra regex that must NOT match the matched sentence (regex layer only).
+    # Extra regex that must NOT match the matched sentence.
     unless: str | None = None
+    # spaCy-only regex that must NOT match the dependency-match span.
+    match_unless: str | None = None
     # Document statistics layer: name of the metric function and its threshold.
     metric: str | None = None
     threshold: float | None = None

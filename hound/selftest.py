@@ -204,18 +204,19 @@ def check_regex_context(engine: Engine) -> list[str]:
         ("We built it \u2014 and shipped it \u2014 yesterday.", [("punct.em-dash-and", BITE), ("punct.em-dash", BITE)]),
         ("Installation is the easy part.", [("phrase.easy-part", BARK)]),
         ("Nobody explains the plan. Everyone agrees anyway.", [("phrase.patronizing", BITE), ("phrase.patronizing", BITE)]),
-        ("**Five things** remain.  Two options remain.", [("template.count-opener", BITE), ("template.count-opener", BITE)]),
-        ("We checked\nFive Things Incorporated.\nFive things remain.", [("template.count-opener", BITE)]),
-        ("We checked. five things remain.", [("template.count-opener", BITE)]),
-        ("Five\nthings remain.", [("template.count-opener", BITE)]),
-        ("- We checked\n  five things.\n- Two things remain.", [("template.count-opener", BITE)]),
-        ("- We checked\nfive things.\n- Two things remain.", [("template.count-opener", BITE)]),
-        ("## Five things\n\n- Five things remain.", [("template.count-opener", BITE)]),
+        ("**Five rules, one file each.** Two options, both bad.", [("template.count-opener", BITE), ("template.count-opener", BITE)]),
+        ("We checked\nFive Things Incorporated.\nFive rules, one file each.", [("template.count-opener", BITE)]),
+        ("We checked. five rules, one file each.", [("template.count-opener", BITE)]),
+        ("Five\nrules, one file each.", [("template.count-opener", BITE)]),
+        ("- We checked.\n  Five rules, one file each.\n- Two approaches, neither viable.", [("template.count-opener", BITE), ("template.count-opener", BITE)]),
+        ("- We checked.\nfive rules, one file each.\n- Two approaches, neither viable.", [("template.count-opener", BITE), ("template.count-opener", BITE)]),
+        ("## Five things\n\n- Five rules, one file each.", [("template.count-opener", BITE)]),
         ("We shipped it and checked five things.", []),
         ("`Nobody explains` and `Everyone agrees` are example phrases.", []),
         ("The line items follow Acme Inc. invoice numbering.", []),
         ("The invoice came from Acme Inc. Our north star metric is retention.", [("phrase.strategy-buzzwords", BITE)]),
-        ("We deploy at 9 a.m. Five workers restart.", [("template.count-opener", BITE)]),
+        ("We deploy at 9 a.m. Five rules, one file each.", [("template.count-opener", BITE)]),
+        ("Three options, all bad. Two approaches, neither viable.", [("template.count-opener", BITE), ("template.count-opener", BITE)]),
         ("Why this matters: retries can duplicate writes.", [("phrase.rhetorical-prompts", BITE)]),
         ("## Why this matters so much for AI", [("phrase.rhetorical-prompts", BITE)]),
     ]
@@ -228,7 +229,7 @@ def check_regex_context(engine: Engine) -> list[str]:
         if actual != expected:
             problems.append(f"{text!r}: expected {expected!r}, got {actual!r}")
         for finding in findings:
-            if finding.rule.id == "template.count-opener" and text[finding.start:finding.end] not in {"Five", "five", "Two"}:
+            if finding.rule.id == "template.count-opener" and text[finding.start:finding.end] not in {"Five", "five", "Two", "Three"}:
                 problems.append(f"count opener has incorrect source offsets in {text!r}")
 
     raw = {
@@ -242,6 +243,18 @@ def check_regex_context(engine: Engine) -> list[str]:
     else:
         problems.append("loader accepted a non-boolean sentence_start")
     return problems
+
+
+def check_spacy_context(engine: Engine) -> list[str]:
+    """Exceptions for dependency rules must not hide a separate match nearby."""
+    rule = next(rule for rule in engine.rules if rule.id == "noun.cluster-four")
+    solo = Engine([rule], engine.lang)
+    solo._nlp = engine.nlp
+    text = "The build cache eviction policy changed; use the service desk request form."
+    matches = _lint_snippet(solo, text)
+    actual = [text[finding.start : finding.end] for finding in matches]
+    expected = ["build cache eviction policy"]
+    return [] if actual == expected else [f"expected {expected!r}, got {actual!r}"]
 
 
 def main(argv: list[str], rules_dir: Path | None = None) -> int:
@@ -275,6 +288,7 @@ def main(argv: list[str], rules_dir: Path | None = None) -> int:
         report("render", check_render(engine))
         report("severity-aliases", check_severity_aliases())
         report("regex-context", check_regex_context(engine))
+        report("spacy-context", check_spacy_context(engine))
         report("corpus", check_corpus(engine))
         report("own-docs", check_own_docs(engine))
     except Exception:

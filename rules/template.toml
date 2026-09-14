@@ -308,34 +308,24 @@ most_common_in = ["gpt", "gemini"]
 [[rule]]
 id = "template.count-opener"
 severity = "bite"
-pattern = '\b(two|three|four|five|six|seven|eight|nine|ten)\b(?=\s+[a-z])'
+# A count-led fragment reads like a stock list heading. A counted subject with a
+# finite verb is ordinary active English, so require the elided-predicate list
+# shape after the comma rather than matching every count-led sentence.
+pattern = '\b(two|three|four|five|six|seven|eight|nine|ten)\b(?=\s+(?-i:[a-z][a-z-]*(?:\s+(?-i:[a-z][a-z-]*)){0,2})\s*,\s*(?-i:all|both|each|neither|one|two|three|four|five|six|seven|eight|nine|ten|cheapest|fastest|slowest)\b)'
 sentence_start = true
 unless = '\b(five frames, a mated queen|three invoices still needed|four outcomes, each with a measure)\b'
-message = "The sentence opens with a spelled-out count. Start with the subject and put the count later: 'Four files changed' becomes 'The change affects 4 files.'"
+message = "Count-led fragment (\"Three options, both bad\"). Write a sentence that states the subject and its action."
 example = [
   "Three detection layers, cheapest first:",
   "Two options, both bad.",
   "Five rules, one file each.",
-  "Five things sit next to each other and do not fit together well.",
-  "Three layers run in order, cheapest first.",
-  "Two options remain, and both are bad.",
-  "Four files changed.",
-  "Two options remain: retry or fail.",
-  "Five\nthings do not fit together well.",
-  "Five\tthings do not fit together well.",
-  "We checked. five things do not fit together well.",
-  "We deploy at 9 a.m. Five workers restart.",
-  "We checked Acme Inc. Five files changed.",
-  "We checked.  Five things do not fit together well.",
-  "We checked.\nFive things do not fit together well.",
-  "We checked!\tFive things do not fit together well.",
-  "  Five things do not fit together well.",
-  "**Five things** do not fit together well.",
-  "- Five things do not fit together well.",
-  "> Five things do not fit together well.",
-  "---\nlede: Five things do not fit together well.\n---\n",
+  "Three options, all bad.",
+  "Two approaches, neither viable.",
 ]
 acceptable = [
+  "Two teams edit the same configuration.",
+  "Three pipelines produce the same weekly figures.",
+  "Two Dimensional Filter Statistics",
   "The bridge has three pillars.",
   "The change affects 4 files.",
   "We checked five things.",
@@ -354,6 +344,24 @@ acceptable = [
   "Fivefold growth followed the release.",
   "## Five things to check",
   "`Five things` is the example text.",
+  "Five things sit next to each other and do not fit together well.",
+  "Three layers run in order, cheapest first.",
+  "Two options remain, and both are bad.",
+  "Four files changed.",
+  "Two options remain: retry or fail.",
+  "Five\nthings do not fit together well.",
+  "Five\tthings do not fit together well.",
+  "We checked. five things do not fit together well.",
+  "We deploy at 9 a.m. Five workers restart.",
+  "We checked Acme Inc. Five files changed.",
+  "We checked.  Five things do not fit together well.",
+  "We checked.\nFive things do not fit together well.",
+  "We checked!\tFive things do not fit together well.",
+  "  Five things do not fit together well.",
+  "**Five things** do not fit together well.",
+  "- Five things do not fit together well.",
+  "> Five things do not fit together well.",
+  "---\nlede: Five things do not fit together well.\n---\n",
   "5. Check the logs.",
   "5 things do not fit together well.",
   "90 days of logs are kept.",

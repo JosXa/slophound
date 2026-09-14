@@ -143,6 +143,15 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
             if not isinstance(unless, str):
                 raise RuleError(f"{where}: unless must be a regex string")
             rule.unless = unless
+        match_unless = raw.get("match_unless")
+        if match_unless is not None:
+            if not isinstance(match_unless, str):
+                raise RuleError(f"{where}: match_unless must be a regex string")
+            try:
+                re.compile(match_unless, re.I)
+            except re.error as exc:
+                raise RuleError(f"{where}: invalid match_unless regex: {exc}") from exc
+            rule.match_unless = match_unless
     elif category in DOC_CATEGORIES:
         metric = raw.get("metric")
         if not isinstance(metric, str):

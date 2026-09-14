@@ -44,6 +44,10 @@
 id = "noun.cluster-four"
 severity = "bite"
 message = "Four or more nouns stacked into one phrase (\"cache layer invalidation retry strategy\"). A reader cannot tell which noun modifies which. Unpack it with a preposition or a clause: \"the strategy for retrying cache invalidation\"."
+# "service desk request form" is the established name of a request route, not
+# improvised compression. Its exception applies only to this matched cluster;
+# another cluster in the same sentence must still report.
+match_unless = '\bservice desk request form\b'
 most_common_in = ["claude", "gpt"]
 dependency = [
   # Chain: head > n1 > n2 > n3.
@@ -86,8 +90,10 @@ example = [
   "Open the user account settings page overview.",
   "The tenant database connection pool size is fixed.",
   "The build cache eviction policy changed.",
+  "The build cache eviction policy changed; use the service desk request form.",
 ]
 acceptable = [
+  "Service desk request form",
   "Open the settings page for the user account.",
   "The connection pool for the tenant database has a fixed size.",
   "The TeamViewer Remote Management API returns JSON.",

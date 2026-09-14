@@ -92,6 +92,8 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
             tokens = [parsed[i] for i in token_ids]
             start = block.start + min(t.idx for t in tokens)
             end = block.start + max(t.idx + len(t.text) for t in tokens)
+            if rule.match_unless and re.search(rule.match_unless, doc.prose[start:end], re.I):
+                continue
             if rule.unless:
                 sent = containing_sentence(spans, start)
                 context = doc.prose[sent[0] : sent[1]] if sent else doc.prose[start:end]
