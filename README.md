@@ -26,6 +26,36 @@ docs/adr-014.md:31:1  bite   template.not-x-but-y
 1 bite, 1 bark, 0 sniffs · 1.4 findings per 100 words
 ```
 
+## What it catches
+
+A sample of the rule catalog. Each row is a real `example` sentence from a rule and the rewrite its message asks for.
+
+| Found | Rule | Fix |
+|---|---|---|
+| This isn't a cache problem. It's a consistency problem. | `template.not-x-but-y` | The cache is consistent; the reads are stale. |
+| Same benchmark, one year apart. | `template.verbless-pair` | We ran the same benchmark one year later. |
+| Same object, new name, new roof. | `template.echo-triplet` | The object is unchanged; it has a new name and a new owner. |
+| Three detection layers, cheapest first: | `template.count-opener` | Detection runs in three layers, ordered from cheapest to most expensive: |
+| Tools, docs, and processes that actually work. | `template.triad-that-actually` | Tools and docs the team uses. |
+| It's not about speed. It's about trust. Full stop. | `template.mic-drop` | Users need to trust the results more than they need speed. |
+| That buys us a week of headroom. | `verb.buys-us` | The cache gives us a week before the migration. |
+| That holds even under load. | `verb.holds` | The invariant survives 10k requests per second. |
+| Two dropdowns carry the decision. | `verb.carries` | The two dropdowns record the decision, and the free-text field explains why. |
+| The 2025 result is where most lean-file advice comes from. | `verb.copula-cleft` | Most lean-file advice traces back to the 2025 result. |
+| Both sit at the top. | `verb.sits` | Both are frontier models. |
+| The retry logic is load-bearing. | `phrase.load-bearing` | Every request depends on the retry logic. The word is banned outright, wall or no wall. |
+| The unlock here is the shape of the problem. | `phrase.engineering-slang` | The problem is a scheduling problem, so the fix is a queue. |
+| It's a surgical update, a minimal diff, and a clean fix. | `phrase.self-appraisal` | The change touches one function and adds no dependencies. |
+| Each rule has to earn its keep. | `phrase.anthropomorphic-praise` | Each rule must fire on generated text and stay silent on human text. |
+| Here's the thing: we never measured it. | `phrase.false-suspense` | We never measured it. |
+| It's worth noting that the tests are slow. | `phrase.restatement` | The tests are slow. |
+| Delve into the traces to leverage the insights. | `phrase.ai-vocabulary` | Read the traces. |
+| In conclusion, the migration is done. | `phrase.signposted-conclusion` | The migration is done. |
+| I hope this helps! Let me know if you'd like me to expand. | `phrase.assistant-pleasantry` | (delete) |
+| The tenant database connection pool size is fixed. | `noun.cluster-four` | The connection pool for the tenant database has a fixed size. |
+| A cache is fast — until it lies. | `punct.em-dash` | A cache is fast until it lies. |
+| Five paragraphs in a row opening with "The linter" | `doc.repeated-paragraph-opener` | Vary the subject, or merge the paragraphs. |
+
 Deterministic. Same input, same output, no model in the loop. Rules are plain TOML that any agent can read, test, and repair when a finding is wrong.
 
 ## Usage

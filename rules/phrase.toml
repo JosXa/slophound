@@ -70,14 +70,23 @@ acceptable = [
 ]
 most_common_in = ["claude"]
 
+# Banned outright, no structural-engineering exemption. slophound lints software
+# prose, where a wall is never the subject; every occurrence is the metaphor.
 [[rule]]
 id = "phrase.load-bearing"
 severity = "bite"
 pattern = '\bload[- ]bearing\b'
-unless = '\b(wall|beam|column|structure|structural|building|floor|joist|bridge|concrete|steel|architect)\w*'
-message = "\"Load-bearing\" as a metaphor for \"important\". Say what breaks if it is removed."
-example = ["The retry loop is load-bearing; the whole pipeline depends on it."]
-acceptable = ["The contractor confirmed the wall is load-bearing."]
+message = "\"Load-bearing\" is banned. As a metaphor for \"important\" it says nothing about what depends on the thing; say what breaks if it is removed. In a software document nothing literal is load-bearing."
+example = [
+  "The retry loop is load-bearing; the whole pipeline depends on it.",
+  "The contractor confirmed the wall is load-bearing.",
+  "Treat this assumption as load bearing.",
+]
+acceptable = [
+  "Every request depends on the retry loop; remove it and the pipeline stalls.",
+  "The wall carries the roof.",
+  "The pipeline loads the bearings table first.",
+]
 most_common_in = ["claude"]
 
 [[rule]]
