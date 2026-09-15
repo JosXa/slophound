@@ -13,7 +13,7 @@ want to catch and on the sentence you want to leave alone, then write the
 DependencyMatcher pattern against the difference. Same model and version as
 the linter itself, so what you see here is what the rule will see.
 
-    tools/parse.py "That holds even under load." "The map holds three keys."
+    tools/parse.py "That holds even under load." "The worker holds a mutex."
 """
 
 import sys

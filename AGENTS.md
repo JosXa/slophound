@@ -35,7 +35,7 @@ Deterministic only. Same input, same output, every run, on every machine.
 Detection runs in three layers, ordered from cheapest to most expensive:
 
 1. Regex for fixed phrases and sentence templates ("It's not X. It's Y.").
-2. Part-of-speech and dependency parsing for constructions that regex cannot separate from legitimate use. "The map holds three keys" passes while "that holds even under load" fires. The difference is grammatical, so the rule is expressed grammatically.
+2. Part-of-speech and dependency parsing for constructions that regex cannot separate from legitimate use. "The worker holds a mutex" passes while "that holds even under load" fires. The difference is grammatical, so the rule is expressed grammatically.
 3. Document-level statistics for rhythm and repetition: sentence-length uniformity, repeated paragraph openers, triad density, em-dash density.
 
 Established NLP libraries carry layer two. They must load quickly on demand and release cleanly when the run ends, because an agent invokes the linter ad hoc and nothing stays resident between runs.

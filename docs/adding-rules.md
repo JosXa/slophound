@@ -37,7 +37,7 @@ Cheapest layer that can separate the slop from the literal use:
 4. `verb`, `adj`, `noun` when the same words are fine in one grammatical role and slop in another. Before writing a DependencyMatcher pattern, look at the actual parse:
 
    ```sh
-   tools/parse.py "That holds even under load." "The map holds three keys."
+   tools/parse.py "That holds even under load." "The worker holds a mutex."
    ```
 
    It prints `i text lemma pos tag dep head` per token from the same model the linter uses. Write the pattern against what the parser produces for your examples, then check each `acceptable` sentence parses differently. If the parser gets your best example wrong, fall back to a `phrase` rule for that surface form instead of fighting the parser.
@@ -48,7 +48,7 @@ Cheapest layer that can separate the slop from the literal use:
 `./slophound test` runs every rule alone against its own `example` and `acceptable` lists, so a rule is exactly as good as those lists.
 
 - Each `example` is one sentence the rule must fire on. Use the sentence that motivated the rule, verbatim. Add one per alternation branch you care about; a branch without an example is a branch nobody has verified.
-- Each `acceptable` is one sentence that shares surface material with the pattern and must stay silent: the literal sense (`The contractor confirmed the wall is load-bearing`), the same words in a different grammatical role (`The map holds three keys`), the honest rewrite the message recommends. The rewrite belongs in `acceptable` so a fix suggested by the message can never itself be flagged.
+- Each `acceptable` is one sentence that shares surface material with the pattern and must stay silent: the literal sense (`The worker holds a mutex`), the same words in a different grammatical role (`The climbing holds are loose`), the honest rewrite the message recommends. The rewrite belongs in `acceptable` so a fix suggested by the message can never itself be flagged.
 - A rule with an empty `acceptable` list is rejected by the loader on purpose.
 - Prefer `unless` over a longer `pattern` for carving out literal senses. `unless` is tested against the whole containing sentence, so it can look at words far from the match. Check that `unless` does not suppress your own example: `phrase.cliche-metaphors` once listed `paint` in `unless` and silenced its own `fresh coat of paint` example.
 - Messages state the problem, quote the shape in parentheses, and give the fix in the same voice the rule enforces. The report has no second lookup, so the message carries everything.

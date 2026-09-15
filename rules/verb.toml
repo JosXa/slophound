@@ -2,7 +2,7 @@
 #
 # These rules catch verbs that language models use figuratively where a person
 # would name the concrete effect: "that buys us a week", "that holds", "the fix
-# lands", "this unlocks". A regex cannot tell "the map holds three keys" (fine)
+# lands", "this unlocks". A regex cannot tell "the worker holds a mutex" (fine)
 # from "that holds even under load" (slop); the parse can, because the slop
 # version has a pronoun subject and no object.
 #
@@ -96,8 +96,57 @@ example = [
 ]
 acceptable = [
   "That holds the lock for too long.",
-  "The map holds three keys.",
+  "The worker holds a mutex.",
   "This holds up under review.",
+]
+
+# Technical containment should use "contains" or "stores", even when "holds"
+# is factually correct. Both nouns matter: a file holding configuration is the
+# target; a cabinet holding files and a worker holding a mutex are literal uses.
+# Keep this separate from verb.holds, whose sentence-wide object exclusion
+# would suppress precisely the transitive construction this rule detects.
+[[rule]]
+id = "verb.holds-content"
+severity = "bark"
+message = "Overused containment verb (\"the file holds the configuration\"). Use 'contains' or 'stores' for data, or name the document's action: 'the field records the decision', 'the document explains the reasoning'."
+most_common_in = ["claude"]
+dependency = [
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "hold", POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { IN = ["file", "document", "page", "section", "report", "guide", "spec", "specification", "plan", "manifest", "field", "column", "row", "record", "entry", "object", "array", "list", "map", "dictionary", "set", "table", "collection", "cache", "queue", "buffer", "database", "store", "storage", "memory", "variable", "constant", "attribute", "property", "config", "configuration", "schema", "module", "class", "struct", "structure", "repository", "repo", "directory", "folder", "package", "payload", "request", "response", "body", "header", "message", "log", "registry", "index", "dataset", "state", "context", "component", "service", "system", "container", "node", "bucket", "snapshot", "fixture", "dropdown", "this", "that", "these", "those", "it", "which"] } } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["configuration", "config", "setting", "option", "default", "parameter", "value", "data", "metadata", "content", "text", "information", "detail", "record", "entry", "item", "element", "key", "token", "credential", "secret", "password", "identifier", "id", "name", "path", "url", "address", "file", "document", "object", "result", "response", "request", "message", "event", "definition", "rule", "schema", "state", "context", "history", "decision", "reasoning", "rationale", "meaning", "intent", "intention", "assumption", "argument", "explanation", "instruction", "requirement", "logic", "knowledge", "summary", "description", "example", "evidence", "mapping", "dependency"] } } },
+]
+example = [
+  "The file holds the configuration.",
+  "The map holds three keys.",
+  "The field holds the reasoning.",
+  "Two dropdowns hold the decision.",
+  "The document holds the rationale.",
+  "The cache holds recently fetched responses.",
+  "The schema holds the validation rules.",
+  "The registry holds the service definitions.",
+  "A variable held the previous result.",
+  "The module is holding all defaults.",
+  "This holds the configuration.",
+  "It holds all the settings.",
+  "These hold the settings.",
+  "The file holds the configuration while the worker holds a mutex.",
+]
+acceptable = [
+  "The file contains the configuration.",
+  "The map stores three keys.",
+  "The field records the decision.",
+  "The document explains the reasoning.",
+  "The worker holds a mutex.",
+  "That holds the lock for too long.",
+  "The cache holds a lock while updating its entries.",
+  "The engineer holds a different view.",
+  "She holds the file in her hand.",
+  "The cabinet holds the files.",
+  "The tank holds twenty litres.",
+  "The contract holds the supplier responsible.",
+  "The cache holds on to old entries.",
+  "The file contains the configuration while the worker holds a mutex.",
+  "The report quotes `the file holds the configuration` as an example.",
 ]
 
 [[rule]]
@@ -254,7 +303,7 @@ acceptable = [
 [[rule]]
 id = "verb.carries"
 severity = "bark"
-message = "An object \"carries\" something abstract (\"two dropdowns carry the decision\", \"the field carries the reasoning\", \"this carries weight\"). A thing is made to do a person's job. Say what the thing holds or what the person does: \"the two dropdowns record the decision\", \"the field explains why\", \"reviewers take this seriously\"."
+message = "An object \"carries\" something abstract (\"two dropdowns carry the decision\", \"the field carries the reasoning\", \"this carries weight\"). A thing is made to do a person's job. Say what the thing records or what the person does: \"the two dropdowns record the decision\", \"the field explains why\", \"reviewers take this seriously\"."
 most_common_in = ["claude"]
 dependency = [
   [
