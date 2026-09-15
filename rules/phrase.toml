@@ -478,6 +478,28 @@ acceptable = ["The first design was wrong: it assumed one writer.", "I'll admit 
 # Structure narration
 # ---------------------------------------------------------------------------
 
+# Explicit phrase ban requested by Joscha for repetitive report openings.
+[[rule]]
+id = "phrase.executive-summary"
+severity = "bite"
+pattern = '\bexecutive\s+summary\b'
+headings = true
+message = "Banned report label (Executive Summary). Use 'Summary', give the section a specific title, or remove the label and start with the main point. In prose, call it a summary."
+example = [
+  "Executive Summary",
+  "## Executive Summary",
+  "**EXECUTIVE SUMMARY**",
+  "Read the executive summary before the meeting.",
+  "The executive\nsummary repeats the recommendation.",
+]
+acceptable = [
+  "## Summary",
+  "## Migration recommendation",
+  "Read the summary before the meeting.",
+  "The executive approved the summary.",
+  "The `Executive Summary` label is banned.",
+]
+
 [[rule]]
 id = "phrase.opening-cliche"
 severity = "bite"
