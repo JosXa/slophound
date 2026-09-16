@@ -82,8 +82,10 @@ The repo's own Markdown must pass with zero bites. When a new rule catches a sen
 1. `./slophound test` green (every rule solo, masking checks, corpus ceilings, own docs).
 2. `./slophound README.md AGENTS.md docs/*.md` prints no findings.
 3. Commit the rule with its motivating sentence in the message body. Commits in this repo are made with `git -c commit.gpgsign=false commit`.
-4. If the rule was added to fix a false positive reported by a user, tell them which rule changed and offer the fix upstream; the report footer asks agents to do the same.
+4. If the rule corrects a false positive reported by a user, explain the change and offer to contribute it. Ask before submitting a PR.
 
 ## Repairing a false positive
 
-A false positive is a rule bug. Never edit the document to route around it, and never add suppression comments; there are none. Open the rule file the footer points at, then in order of preference: add the sentence to `acceptable` and tighten `pattern`; add an `unless` for the literal sense; demote the tier if the family is inherently ambiguous; delete the rule if human text fires it as often as generated text. Rerun `./slophound test`.
+A false positive is a rule bug. Preserve the legitimate wording and recommend a correction to the operator. After they approve preparing one, locate the rule by ID in a repository checkout. Reported paths are for inspection and may point into a package cache, which must remain unchanged.
+
+Add the sentence to `acceptable` and confirm the test fails. Tighten `pattern`, add an `unless` for the legitimate sense, or adjust the severity according to the evidence. Delete a rule if it cannot distinguish the target from acceptable writing. Rerun `./slophound test` and check the original document with the corrected checkout. Follow the operator's authorization for contribution work.

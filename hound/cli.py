@@ -109,7 +109,9 @@ def read_input(path: str) -> tuple[str, str]:
     return str(p), p.read_text(encoding="utf-8")
 
 
-def main(argv: list[str]) -> int:
+def main(argv: list[str] | None = None) -> int:
+    if argv is None:
+        argv = sys.argv[1:]
     parser = build_parser()
     args = parser.parse_args(argv)
 

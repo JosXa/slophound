@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slophound"
+version = "0.1.0"
+description = "A deterministic linter for prose written by language models."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = "MIT"
+dependencies = [
+  "spacy>=3.8,<3.9",
+  "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
+]
+
+[project.scripts]
+slophound = "hound.cli:main"
+
+# Local uvx installs must rebuild when a rule or implementation changes.
+[tool.uv]
+cache-keys = [
+  { file = "pyproject.toml" },
+  { file = "MANIFEST.in" },
+  { file = "README.md" },
+  { file = "hound/**/*.py" },
+  { file = "rules/*.py" },
+  { file = "rules/*.toml" },
+  { file = "tests/corpus/**/*.md" },
+]
+
+[tool.setuptools]
+packages = ["hound", "hound.rules", "hound.corpus", "hound.corpus.generated", "hound.corpus.human"]
+
+[tool.setuptools.package-dir]
+hound = "hound"
+"hound.rules" = "rules"
+"hound.corpus" = "tests/corpus"
+
+[tool.setuptools.package-data]
+"hound.rules" = ["*.toml"]
+"hound.corpus" = ["generated/*.md", "human/*.md"]

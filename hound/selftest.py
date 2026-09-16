@@ -25,10 +25,15 @@ from .engine import Engine
 from .loader import RULES_DIR, RuleError, load_rules
 from .masking import build_document
 from .model import BARK, BITE, DOC_CATEGORIES, SPACY_CATEGORIES, Finding, Rule
-from .report import Vocabulary, render, summary_line
+from .report import Vocabulary, footer, render, summary_line
 
-ROOT = Path(__file__).resolve().parent.parent
-CORPUS = ROOT / "tests" / "corpus"
+_PACKAGE_DIR = Path(__file__).resolve().parent
+ROOT = _PACKAGE_DIR.parent
+# Wheels install the corpus beside this module. In a source checkout it stays
+# under tests/ so it remains clearly separate from the linter implementation.
+CORPUS = _PACKAGE_DIR / "corpus"
+if not CORPUS.is_dir():
+    CORPUS = ROOT / "tests" / "corpus"
 HUMAN_WARNING_DENSITY_CEILING = 1.0  # warnings + suggestions per 100 words
 
 
@@ -87,14 +92,30 @@ def check_corpus(engine: Engine) -> list[str]:
 
 
 def check_own_docs(engine: Engine) -> list[str]:
+    # Installed distributions have no repository documentation to inspect.
+    if not (ROOT / "slophound").is_file():
+        return []
     problems: list[str] = []
-    for path in sorted(ROOT.glob("*.md")):
+    paths = sorted(ROOT.glob("*.md"))
+    paths += sorted((ROOT / "docs").rglob("*.md"))
+    paths += sorted((ROOT / "skills").rglob("*.md"))
+    for path in paths:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
         bites = [f for f in engine.lint(doc) if f.severity == BITE]
         for f in bites:
             line, col = doc.line_col(f.start)
             problems.append(f"{path.relative_to(ROOT)}:{line}:{col}: own docs hit {f.rule.id}")
     return problems
+
+
+def check_contribution_footer() -> list[str]:
+    text = footer(["/installed/hound/rules/phrase.toml"])
+    required = (
+        "ask the operator", "After approval", "repository checkout",
+        "Leave installed packages and the uvx cache unchanged",
+        "/installed/hound/rules/phrase.toml",
+    )
+    return [f"contribution footer missing {part!r}" for part in required if part not in text]
 
 
 def check_masking() -> list[str]:
@@ -286,6 +307,7 @@ def main(argv: list[str], rules_dir: Path | None = None) -> int:
         for rule in rules:
             report(rule.id, check_rule(engine, rule))
         report("render", check_render(engine))
+        report("contribution-footer", check_contribution_footer())
         report("severity-aliases", check_severity_aliases())
         report("regex-context", check_regex_context(engine))
         report("spacy-context", check_spacy_context(engine))

@@ -103,9 +103,10 @@ def summary_line(findings: list[Finding], word_count: int, vocab: Vocabulary | N
 def footer(rule_files: list[str]) -> str:
     files = "\n".join(f"  {p}" for p in rule_files)
     return (
-        "\nFix the text, then rerun. If a finding is wrong, do not work around it in the "
-        "document: a false positive is a bug in the rule. Open the rule file, tighten the "
-        "pattern or add the sentence to its `acceptable` list, run `./slophound test`, and "
-        "offer the user to upstream the change.\n"
+        "\nFix the text, then rerun. If a finding is wrong, preserve the legitimate wording. "
+        "We encourage rule corrections: ask the operator whether to prepare and contribute "
+        "a fix. After approval, reproduce it in a repository checkout, add a regression "
+        "example, and run `./slophound test`. Leave installed packages and the uvx cache "
+        "unchanged. Report unresolved findings separately. Rule files for inspection:\n"
         f"{files}\n"
     )

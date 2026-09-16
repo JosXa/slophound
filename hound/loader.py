@@ -21,7 +21,12 @@ from .model import (
     Rule,
 )
 
-RULES_DIR = Path(__file__).resolve().parent.parent / "rules"
+_PACKAGE_DIR = Path(__file__).resolve().parent
+# Installed wheels place the catalog beside this module. The repository keeps it
+# at the root so authors can edit rules without importing a Python package.
+RULES_DIR = _PACKAGE_DIR / "rules"
+if not RULES_DIR.is_dir():
+    RULES_DIR = _PACKAGE_DIR.parent / "rules"
 
 
 class RuleError(Exception):

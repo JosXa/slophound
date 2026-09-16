@@ -63,16 +63,16 @@ Exit code 0 when there are no bites, 1 when there is at least one bite, 2 when t
 
 There is no ignore file and there is no inline suppression comment. Documents are one-off deliverables; scattering linter directives through them is its own kind of slop.
 
-A false positive is a bug in a rule. The report tells the agent so, points at the rule file, and asks it to tighten the pattern or add the sentence to `acceptable`, rerun the tests, and offer the fix upstream. Each false positive makes the tool better and leaves the document alone.
+A false positive is a bug in a rule. Preserve the legitimate wording and recommend a correction to the operator. Ask before preparing repository changes or submitting a contribution. Make approved corrections in a checkout, with regression examples and passing tests. Leave installed skills and package caches unchanged. Report unresolved findings honestly.
 
 Temporary opt-outs are handled through command-line arguments for the current run only.
 
 ### Packaging
 
-Python scripts with dependencies declared inline (PEP 723) and executed through `uv`. Nothing is required on the host beyond `uv` itself. First run downloads and caches; later runs start in under a second.
+The standalone tool installs through `uvx` from Git or a local checkout. Package distributions include the rules and test corpus. The repository script retains its inline dependencies (PEP 723) for development through `uv`. Both entrypoints execute the same implementation.
 
 slophound is greenfield. It takes ideas from earlier MIT-licensed projects in the space and vendors none of their code or catalogs.
 
 ### Relationship to the humanize skill
 
-slophound consolidates the pattern catalog that previously lived in prose form across a skill, a subagent, and a slash command. Whatever is deterministically checkable lives here as rules. The skill keeps only the guidance that needs a model: voice, structure, what to add rather than remove, plus the long-form catalog as a reference for its judgment pass. The skill invokes `slophound` (a symlink on `PATH` to `./slophound` in this repo); it does not duplicate it.
+The skill in `skills/slophound/` builds on humanize. It invokes the standalone tool through `uvx` and requires the lint stage before loading the editorial reference. Deterministic checks belong in the linter, while the reference covers judgment about meaning, terminology, audience, and evidence. After editorial changes, the agent reruns the linter and reports resolved findings and remaining advisories. Agent delegation belongs to the harness.
