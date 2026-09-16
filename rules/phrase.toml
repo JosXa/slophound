@@ -33,6 +33,30 @@
 # Engineering register
 # ---------------------------------------------------------------------------
 
+# In the Agent Access Profile text, spaCy reads "text" as a verb after
+# "must not", so verb.holds-content cannot find a direct object. This surface
+# fallback requires both the field subject and the permission-text wording.
+[[rule]]
+id = "phrase.holds-permission-text"
+severity = "bark"
+pattern = '\b(boundary|field)\s+(holds?|held|(?:is|was)\s+holding)\s+the\s+may\s*/\s*must\s+not\s+text\b'
+message = "Overused containment verb for permission text. Say that the field states what the agent may and must not do, or that it contains the permission text."
+most_common_in = ["claude"]
+example = [
+  "Boundary holds the may / must not text, the Agent's permitted role and Required prevention strength dropdowns carry the decision.",
+  "The Boundary field holds the may / must not text.",
+  "The field held the may/must not text.",
+  "The field is holding the may / must not text.",
+]
+acceptable = [
+  "Boundary states what the agent may and must not do.",
+  "The field contains the may / must not text.",
+  "The field holds the May report.",
+  "The worker holds a mutex while reading the may / must not text.",
+  "The field holds a lock. The may / must not text is stored elsewhere.",
+  "The example is `Boundary holds the may / must not text`.",
+]
+
 # Explicit vocabulary preference requested by Joscha, not an AI detector claim.
 [[rule]]
 id = "phrase.provenance"

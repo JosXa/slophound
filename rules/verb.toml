@@ -19,7 +19,9 @@
 #                 LEFT_ID, "<" = parent, ">>" = descendant) and its own
 #                 RIGHT_ID / RIGHT_ATTRS. Attribute keys: LEMMA, POS, TAG, DEP,
 #                 LOWER, ORTH. Values may be strings or {IN = [...]} /
-#                 {NOT_IN = [...]}. Docs: https://spacy.io/usage/rule-based-matching#dependencymatcher
+#                 {NOT_IN = [...]}. Use {REGEX = "(?i)^...$"} when a label's
+#                 lemma retains capitalization; anchor it to the whole token.
+#                 Docs: https://spacy.io/usage/rule-based-matching#dependencymatcher
 #   unless        Optional regex, tested case-insensitively against the whole
 #                 sentence that contains the match. If it matches, the finding
 #                 is dropped. Use it to express "no object" or other things the
@@ -105,6 +107,10 @@ acceptable = [
 # target; a cabinet holding files and a worker holding a mutex are literal uses.
 # Keep this separate from verb.holds, whose sentence-wide object exclusion
 # would suppress precisely the transitive construction this rule detects.
+# Label heads such as Rules, Playbook and Draft can retain capitalization and
+# plural endings in their lemmas. Match those types without requiring authors
+# to append "database" or "field" to every name. The content object is still
+# required so physical cards, boundaries and drafts can use "hold" literally.
 [[rule]]
 id = "verb.holds-content"
 severity = "bark"
@@ -112,8 +118,8 @@ message = "Overused containment verb (\"the file holds the configuration\"). Use
 most_common_in = ["claude"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "hold", POS = "VERB" } },
-  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { IN = ["file", "document", "page", "section", "report", "guide", "spec", "specification", "plan", "manifest", "field", "column", "row", "record", "entry", "object", "array", "list", "map", "dictionary", "set", "table", "collection", "cache", "queue", "buffer", "database", "store", "storage", "memory", "variable", "constant", "attribute", "property", "config", "configuration", "schema", "module", "class", "struct", "structure", "repository", "repo", "directory", "folder", "package", "payload", "request", "response", "body", "header", "message", "log", "registry", "index", "dataset", "state", "context", "component", "service", "system", "container", "node", "bucket", "snapshot", "fixture", "dropdown", "this", "that", "these", "those", "it", "which"] } } },
-  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["configuration", "config", "setting", "option", "default", "parameter", "value", "data", "metadata", "content", "text", "information", "detail", "record", "entry", "item", "element", "key", "token", "credential", "secret", "password", "identifier", "id", "name", "path", "url", "address", "file", "document", "object", "result", "response", "request", "message", "event", "definition", "rule", "schema", "state", "context", "history", "decision", "reasoning", "rationale", "meaning", "intent", "intention", "assumption", "argument", "explanation", "instruction", "requirement", "logic", "knowledge", "summary", "description", "example", "evidence", "mapping", "dependency"] } } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { REGEX = "(?i)^(file|document|page|section|report|guide|spec|specification|plan|manifest|field|column|row|record|entry|object|array|list|map|dictionary|set|table|collection|cache|queue|buffer|database|store|storage|memory|variable|constant|attribute|property|config|configuration|schema|module|class|struct|structure|repository|repo|directory|folder|package|payload|request|response|body|header|message|log|registry|index|dataset|state|context|component|service|system|container|node|bucket|snapshot|fixture|dropdown|rules?|playbooks?|drafts?|boundar(y|ies)|cards?|this|that|these|those|it|which)$" } } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["configuration", "config", "setting", "option", "default", "parameter", "value", "data", "metadata", "content", "text", "information", "detail", "record", "entry", "row", "check", "item", "element", "key", "token", "credential", "secret", "password", "identifier", "id", "name", "path", "url", "address", "file", "document", "object", "result", "response", "request", "message", "event", "definition", "rule", "schema", "state", "context", "history", "decision", "reasoning", "rationale", "meaning", "intent", "intention", "assumption", "argument", "explanation", "instruction", "requirement", "logic", "knowledge", "summary", "description", "example", "evidence", "mapping", "dependency"] } } },
 ]
 example = [
   "The file holds the configuration.",
@@ -130,6 +136,15 @@ example = [
   "It holds all the settings.",
   "These hold the settings.",
   "The file holds the configuration while the worker holds a mutex.",
+  # From the Agent Access Profile pages: names and labels can be proper nouns.
+  "Agent Access Rules holds one row per sensitive action.",
+  "Agent Playbook holds one row per workflow.",
+  "A Draft may hold only the planned check.",
+  "The Boundary holds the text.",
+  "The card holds the decision.",
+  "The drafts hold the planned checks.",
+  "The DRAFT holds the configuration.",
+  "The rules hold the decision.",
 ]
 acceptable = [
   "The file contains the configuration.",
@@ -147,6 +162,19 @@ acceptable = [
   "The cache holds on to old entries.",
   "The file contains the configuration while the worker holds a mutex.",
   "The report quotes `the file holds the configuration` as an example.",
+  "Agent Access Rules contains one row per sensitive action.",
+  "Agent Playbook contains one row per workflow.",
+  "A Draft may contain only the planned check.",
+  "The Boundary states what the agent may and must not do.",
+  "The card records the decision.",
+  "The boundary holds the cattle inside the field.",
+  "The card holds the door open.",
+  "The draft holds the door against its frame.",
+  "The cabinet holds a row of files.",
+  "She holds the check in her hand.",
+  "The worker holds a mutex while Agent Playbook stores the workflow.",
+  "The Guard holds the file.",
+  "Agent Playbook holds a lock during updates.",
 ]
 
 [[rule]]
@@ -300,16 +328,23 @@ acceptable = [
 # headers, ids, a signal on a wire) is fine, so the object lemma is the gate,
 # not the subject: "the field carries the reasoning" and "this carries risk"
 # are the same tell whether the subject is a noun or a demonstrative.
+# The second pattern covers dropdowns, roles and prevention strengths recorded
+# in documents. Require a document subject there to avoid transport and acting.
 [[rule]]
 id = "verb.carries"
 severity = "bark"
-message = "An object \"carries\" something abstract (\"two dropdowns carry the decision\", \"the field carries the reasoning\", \"this carries weight\"). A thing is made to do a person's job. Say what the thing records or what the person does: \"the two dropdowns record the decision\", \"the field explains why\", \"reviewers take this seriously\"."
+message = "Overused verb for content or abstract meaning (\"two dropdowns carry the decision\", \"each card carries the dropdowns\", \"this carries weight\"). Say what the thing records or shows, or what the person does: \"the dropdowns record the decision\", \"the card shows the dropdowns\", \"reviewers take this seriously\"."
 most_common_in = ["claude"]
 dependency = [
   [
     { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
     { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "csubj"] }, TAG = { NOT_IN = ["PRP", "NNP", "NNPS"] } } },
-    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["decision", "weight", "meaning", "reasoning", "risk", "responsibility", "intent", "intention", "message", "signal", "story", "argument", "implication", "context", "burden", "authority", "information", "knowledge", "judgment", "judgement", "assumption", "rationale", "logic", "narrative", "insight", "nuance", "tension", "cost", "consequence", "significance", "connotation", "baggage", "expectation", "obligation", "promise", "conviction", "tone", "sentiment", "emotion", "feeling", "idea", "lesson", "wisdom", "truth", "history", "memory", "identity", "spirit", "hope", "urgency"] } } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["decision", "weight", "meaning", "reasoning", "reason", "risk", "responsibility", "intent", "intention", "message", "signal", "story", "argument", "implication", "context", "burden", "authority", "information", "knowledge", "judgment", "judgement", "assumption", "rationale", "logic", "narrative", "insight", "nuance", "tension", "cost", "consequence", "significance", "connotation", "baggage", "expectation", "obligation", "promise", "conviction", "tone", "sentiment", "emotion", "feeling", "idea", "lesson", "wisdom", "truth", "history", "memory", "identity", "spirit", "hope", "urgency"] } } },
+  ],
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { REGEX = "(?i)^(card|document|field|form|page|profile|record|row|rule|template)$" } } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["dropdown", "strength", "role"] } } },
   ],
 ]
 unless = "\\bcarr(y|ies|ied|ying) (the |a |an )?(signal|message)s? (to|from|over|across|through|between|on|into|out of|back)\\b|\\bcarr(y|ies|ied|ying) (a |the )?(risk|cost) of (\\d|[a-z]+ (percent|per cent|euros?|dollars?|ms|seconds?|minutes?))"
@@ -320,6 +355,11 @@ example = [
   "That carries weight with reviewers.",
   "The flag carries no meaning outside this module.",
   "Each name carries an assumption about ownership.",
+  "each row must carry an explicit reason or a stronger control.",
+  "Every rule carries a Required prevention strength (None, Guide, Gate, Constrain, Remove) and an Agent's permitted role (from Execute freely down to No access).",
+  "Each card carries the three dropdowns.",
+  "The field carries the agent's permitted role.",
+  "The Card carries the three dropdowns.",
 ]
 acceptable = [
   "She carried the box upstairs.",
@@ -332,6 +372,16 @@ acceptable = [
   "The wire carries the signal to the receiver.",
   "Kafka carries the message from the producer to the consumer.",
   "The two dropdowns record the decision, and the free-text field explains why.",
+  "Each row must state an explicit reason or specify a stronger control.",
+  "Every rule records a Required prevention strength and an Agent's permitted role.",
+  "Each card shows the three dropdowns.",
+  "The field records the agent's permitted role.",
+  "The request carries a signal strength measurement.",
+  "She carries the reason for her departure in a sealed envelope.",
+  "The lorry carries a dropdown tailgate.",
+  "The rule carries over to the next release.",
+  # RFC 7231, section 5.4: literal transport of credentials.
+  "Two header fields are used for carrying authentication credentials, as defined in [RFC7235].",
 ]
 
 # A copula whose complement is a whole clause: "The result is where the advice
