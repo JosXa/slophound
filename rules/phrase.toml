@@ -525,6 +525,23 @@ acceptable = [
 ]
 
 [[rule]]
+id = "phrase.worked-example"
+severity = "bite"
+pattern = '\bworked\s+example\b'
+message = "Banned teaching label (worked example). Give the example a specific title or state what it demonstrates."
+example = [
+  "Worked example",
+  "The guide includes a worked example of the retry flow.",
+  "Follow the worked example below.",
+]
+acceptable = [
+  "The example works for both inputs.",
+  "We worked through an example of the retry flow.",
+  "The guide includes an example of the retry flow.",
+  "The `worked example` label is banned.",
+]
+
+[[rule]]
 id = "phrase.opening-cliche"
 severity = "bite"
 pattern = "\\b(in the world of|in an era (where|of)|in a world where|picture this|imagine a world where|have you ever wondered|embark(ing)? on a journey|gone are the days|whether you'?re a|chances are,?|you'?re not alone|look no further|without further ado|we live in (a world|an era|a time)|before we dive in|from time immemorial|(you'?ve )?come to the right place|ready to (dive in|get started)|welcome to this|as the world (becomes|continues|moves)|in this (article|post|guide|piece),? (we|i)( will|'ll)? (explore|discuss|look at|cover|walk through|dive into)|since the dawn of (time|civili[sz]ation|computing))(?!\\w)"
