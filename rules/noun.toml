@@ -39,6 +39,13 @@
 # separate nouns joined by "compound", yet the hyphen already tells the reader
 # how to group them. The spaCy layer drops any noun.* finding whose matched
 # text contains a hyphen.
+#
+# The parser also tags an adjective in front of a noun pair as a noun
+# ("concise conversion notes" -> concise/NOUN). The spaCy layer asks the
+# lemminflect lexicon for a second opinion and drops a noun.* finding when a
+# matched word has an adjective reading and no noun reading. Words with both
+# ("primary", "light") and words the lexicon does not know keep the parser's
+# tag, so the check can only silence a finding.
 
 [[rule]]
 id = "noun.cluster-four"
@@ -136,4 +143,8 @@ acceptable = [
   "Also patience, because the lower radiator hose clamp is in a spot the engineers clearly designed while angry.",
   "It has one contributor and about 60% test coverage, all of it on the tokenizer because that's the part that breaks.",
   "Driver assignments work better by route than by donor.",
+  # "concise" is an adjective in front of a two-noun phrase. The reader groups
+  # it correctly at first sight, so a sniff here is a false positive.
+  "Deliver the editable `.pptx`, the PDF preview, and concise conversion notes describing the template used, layout choices, retained image assets, simplified interactions, and verification results.",
+  "Deliver concise conversion notes.",
 ]

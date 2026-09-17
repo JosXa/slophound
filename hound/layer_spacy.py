@@ -104,8 +104,26 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
             # for the reader. Noun-cluster rules leave those alone.
             if rule.category == "noun" and "-" in doc.prose[start:end]:
                 continue
+            if rule.category == "noun" and any(_cannot_be_noun(t.text) for t in tokens):
+                continue
             findings.append(Finding(rule, start, end))
     return _shadow_weaker(_merge_overlaps(findings))
+
+
+def _cannot_be_noun(word: str) -> bool:
+    """True when the lexicon lists the word as an adjective and never as a noun.
+
+    The small parser tags an adjective in front of a noun pair as a third noun
+    ("concise conversion notes" -> concise/NOUN). A morphological lexicon is an
+    independent second opinion: it knows "concise" and "robust" have no noun
+    reading, while "primary" or "light" do and keep the parser's call. Words
+    the lexicon has never seen return False, so this check can only silence a
+    finding, never create one.
+    """
+    from lemminflect import getAllLemmas
+
+    lemmas = getAllLemmas(word.lower())
+    return "ADJ" in lemmas and "NOUN" not in lemmas and "PROPN" not in lemmas
 
 
 def _merge_overlaps(findings: list[Finding]) -> list[Finding]:

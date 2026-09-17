@@ -11,6 +11,7 @@ requires-python = ">=3.11,<3.14"
 license = "MIT"
 dependencies = [
   "spacy>=3.8,<3.9",
+  "lemminflect>=0.2.3,<0.3",
   "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
 ]
 
