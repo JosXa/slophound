@@ -74,22 +74,38 @@ def render(doc: Document, findings: list[Finding], stream=None, vocab: Vocabular
     ordered = sorted(findings, key=lambda f: (f.start, _ORDER[f.severity], f.rule.id))
     for f in ordered:
         line, col = doc.line_col(f.start)
-        ls, le = doc.line_span(f.start)
-        source = doc.text[ls:le].rstrip("\n")
-        # Underline only within this line; multi-line matches stop at its end.
-        underline_start = f.start - ls
-        underline_end = min(f.end, le) - ls
-        underline_end = max(underline_end, underline_start + 1)
-        marker = " " * underline_start + "^" * (underline_end - underline_start)
         word = vocab.word(f.severity)
         header = (
             f"{doc.path}:{line}:{col}  {pal.severity(f.severity, word)}"
             f"{' ' * (vocab.pad - len(word))}  {pal.bold(f.rule.id)}"
         )
         stream.write(header + "\n")
-        stream.write(f"  {source.expandtabs(4)}\n")
-        stream.write(f"  {pal.dim(marker)}\n")
+        for source, marker in _source_lines(doc, f):
+            stream.write(f"  {source.expandtabs(4)}\n")
+            stream.write(f"  {pal.dim(marker)}\n")
         stream.write(f"  {f.message}\n\n")
+
+
+def _source_lines(doc: Document, f: Finding) -> list[tuple[str, str]]:
+    """Every line the match touches, each paired with its caret underline.
+
+    A parser-level match can run across a line break (a slide title without
+    final punctuation followed by its body). Showing only the first line would
+    hide part of what the rule matched, so each line gets its own underline
+    covering the part of the match that falls on it.
+    """
+    pairs: list[tuple[str, str]] = []
+    pos = f.start
+    while True:
+        ls, le = doc.line_span(pos)
+        source = doc.text[ls:le].rstrip("\n")
+        underline_start = pos - ls
+        underline_end = min(f.end, le) - ls
+        underline_end = max(underline_end, underline_start + 1)
+        pairs.append((source, " " * underline_start + "^" * (underline_end - underline_start)))
+        if f.end <= le or le >= len(doc.text):
+            return pairs
+        pos = le + 1
 
 
 def summary_line(findings: list[Finding], word_count: int, vocab: Vocabulary | None = None) -> str:

@@ -200,6 +200,35 @@ def check_render(engine: Engine) -> list[str]:
             problems.append(f"--formal output still contains {hound_word!r}")
     if findings and "error" not in formal_summary:
         problems.append(f"--formal summary should count errors: {formal_summary!r}")
+    problems += _check_render_multiline(engine)
+    return problems
+
+
+def _check_render_multiline(engine: Engine) -> list[str]:
+    # A slide title without final punctuation runs into its body on the next
+    # line, and the parser reads "project slide\nRight" as one noun cluster.
+    # The reader must see every word the finding covers, so a match that spans
+    # lines prints each line it touches with its own underline. Otherwise the
+    # report shows "project slide" and claims three nouns.
+    doc = build_document(
+        "<m>",
+        "Duplicate the project slide\nRight-click the slide marked PROJECT TEMPLATE in the sidebar.\n",
+    )
+    findings = [f for f in engine.lint(doc) if f.rule.id == "noun.cluster-three"]
+    if len(findings) != 1:
+        return [f"multiline fixture should produce one noun.cluster-three finding, got {len(findings)}"]
+    if "\n" not in doc.text[findings[0].start : findings[0].end]:
+        return ["multiline fixture no longer spans a line break; pick another sentence"]
+    buf = io.StringIO()
+    render(doc, findings, stream=buf)
+    lines = buf.getvalue().splitlines()
+    problems = []
+    if "  Duplicate the project slide" not in lines:
+        problems.append("multiline render lost the first line of the match")
+    if "  Right-click the slide marked PROJECT TEMPLATE in the sidebar." not in lines:
+        problems.append("multiline render did not print the second line of the match")
+    if sum("^" in line for line in lines) != 2:
+        problems.append("multiline render should underline both lines the match touches")
     return problems
 
 
