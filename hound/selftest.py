@@ -16,7 +16,6 @@ Markdown passes.
 from __future__ import annotations
 
 import io
-import re
 import sys
 import time
 import traceback
@@ -201,45 +200,15 @@ def check_render(engine: Engine) -> list[str]:
             problems.append(f"--formal output still contains {hound_word!r}")
     if findings and "error" not in formal_summary:
         problems.append(f"--formal summary should count errors: {formal_summary!r}")
-    problems += _check_render_multiline(engine)
+    problems += _check_grammar_findings_carry_token_marks(engine)
     return problems
 
 
-def _check_render_multiline(engine: Engine) -> list[str]:
-    # A slide title without final punctuation runs into its body on the next
-    # line, and the parser reads "project slide\nRight" as one noun cluster.
-    # The reader must see every word the finding covers, so a match that spans
-    # lines prints each line it touches with its own underline. Otherwise the
-    # report shows "project slide" and claims three nouns.
-    doc = build_document(
-        "<m>",
-        "Duplicate the project slide\nRight-click the slide marked PROJECT TEMPLATE in the sidebar.\n",
-    )
-    findings = [f for f in engine.lint(doc) if f.rule.id == "noun.cluster-three"]
-    if len(findings) != 1:
-        return [f"multiline fixture should produce one noun.cluster-three finding, got {len(findings)}"]
-    if "\n" not in doc.text[findings[0].start : findings[0].end]:
-        return ["multiline fixture no longer spans a line break; pick another sentence"]
-    buf = io.StringIO()
-    render(doc, findings, stream=buf)
-    lines = buf.getvalue().splitlines()
-    problems = []
-    if "  Duplicate the project slide" not in lines:
-        problems.append("multiline render lost the first line of the match")
-    if "  Right-click the slide marked PROJECT TEMPLATE in the sidebar." not in lines:
-        problems.append("multiline render did not print the second line of the match")
-    if sum("^" in line for line in lines) != 2:
-        problems.append("multiline render should underline both lines the match touches")
-    problems += _check_render_marks_matched_tokens(engine)
-    return problems
-
-
-def _check_render_marks_matched_tokens(engine: Engine) -> list[str]:
-    # The parser bound "AGENTS.md", "root" and "file" as one compound chain
-    # across the line break. The reader has to see exactly those three words,
-    # so the carets sit under the matched tokens only. Underlining the whole
-    # stretch between first and last token hides which words the rule counted
-    # and makes "its own" and "A" look like part of the cluster.
+def _check_grammar_findings_carry_token_marks(engine: Engine) -> list[str]:
+    # tests/test_report.py pins the report format with hand-built findings.
+    # This is the end-to-end half: the spaCy layer must hand the renderer the
+    # exact tokens it matched, across a line break, so the carets end up under
+    # "AGENTS.md", "root" and "file" and not under the words between them.
     doc = build_document(
         "<t>",
         "Give every client platform its own AGENTS.md\nA root file with purpose and rules.\n",
@@ -247,18 +216,12 @@ def _check_render_marks_matched_tokens(engine: Engine) -> list[str]:
     findings = [f for f in engine.lint(doc) if f.rule.id == "noun.cluster-three"]
     if len(findings) != 1:
         return [f"token fixture should produce one noun.cluster-three finding, got {len(findings)}"]
-    buf = io.StringIO()
-    render(doc, findings, stream=buf)
-    lines = buf.getvalue().splitlines()
-    marked: list[str] = []
-    for source, marker in zip(lines, lines[1:]):
-        if "^" not in marker or "^" in source:
-            continue
-        for m in re.finditer(r"\^+", marker):
-            marked.append(source[m.start() : m.end()])
+    if "\n" not in doc.text[findings[0].start : findings[0].end]:
+        return ["token fixture no longer spans a line break; pick another sentence"]
+    marked = [doc.text[s:e] for s, e in findings[0].marks]
     expected = ["AGENTS.md", "root", "file"]
     if marked != expected:
-        return [f"render should underline exactly the matched tokens {expected}, underlined {marked}"]
+        return [f"grammar finding should mark the matched tokens {expected}, marked {marked}"]
     return []
 
 

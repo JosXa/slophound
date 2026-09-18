@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import sys
+import unicodedata
 from collections import Counter
 
 from .masking import Document
@@ -81,8 +82,9 @@ def render(doc: Document, findings: list[Finding], stream=None, vocab: Vocabular
         )
         stream.write(header + "\n")
         for source, marker in _source_lines(doc, f):
-            stream.write(f"  {source.expandtabs(4)}\n")
-            stream.write(f"  {pal.dim(marker)}\n")
+            stream.write(f"  {source}\n")
+            if marker:
+                stream.write(f"  {pal.dim(marker)}\n")
         stream.write(f"  {f.message}\n\n")
 
 
@@ -98,23 +100,43 @@ def _source_lines(doc: Document, f: Finding) -> list[tuple[str, str]]:
     """
     pairs: list[tuple[str, str]] = []
     pos = f.start
+    first = True
     while True:
         ls, le = doc.line_span(pos)
         source = doc.text[ls:le].rstrip("\n")
-        marker = [" "] * len(source)
+        marked = [False] * (len(source) + 1)
         for ms, me in f.marked_spans():
             lo, hi = max(ms, ls) - ls, min(me, le) - ls
-            if hi <= lo:
-                continue
-            for i in range(lo, min(hi, len(marker))):
-                marker[i] = "^"
-        if "^" not in marker:
-            # An empty match at this position still needs a visible anchor.
-            marker = [" "] * (pos - ls) + ["^"]
-        pairs.append((source, "".join(marker).rstrip()))
+            for i in range(lo, min(hi, len(source))):
+                marked[i] = True
+        if first and not any(marked):
+            # An empty match still needs a visible anchor under its position.
+            marked[pos - ls] = True
+        pairs.append((source.expandtabs(4), _carets(source, marked)))
+        first = False
         if f.end <= le or le >= len(doc.text):
             return pairs
         pos = le + 1
+
+
+def _carets(source: str, marked: list[bool]) -> str:
+    """Caret line aligned to the printed source: tabs expand to four columns
+    and East Asian wide characters take two, so the carets sit under the words
+    a terminal shows rather than under character offsets."""
+    out: list[str] = []
+    column = 0
+    for i, ch in enumerate(source):
+        if ch == "\t":
+            width = 4 - column % 4
+        elif unicodedata.east_asian_width(ch) in ("W", "F"):
+            width = 2
+        else:
+            width = 1
+        out.append(("^" if marked[i] else " ") * width)
+        column += width
+    if len(marked) > len(source) and marked[len(source)]:
+        out.append("^")
+    return "".join(out).rstrip()
 
 
 def summary_line(findings: list[Finding], word_count: int, vocab: Vocabulary | None = None) -> str:
