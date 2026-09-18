@@ -91,18 +91,27 @@ def _source_lines(doc: Document, f: Finding) -> list[tuple[str, str]]:
 
     A parser-level match can run across a line break (a slide title without
     final punctuation followed by its body). Showing only the first line would
-    hide part of what the rule matched, so each line gets its own underline
-    covering the part of the match that falls on it.
+    hide part of what the rule matched, so each line the match touches is
+    printed. Carets sit under the matched words only: a dependency match binds
+    a few tokens that may sit apart, and underlining the stretch between them
+    would present unrelated words as part of the finding.
     """
     pairs: list[tuple[str, str]] = []
     pos = f.start
     while True:
         ls, le = doc.line_span(pos)
         source = doc.text[ls:le].rstrip("\n")
-        underline_start = pos - ls
-        underline_end = min(f.end, le) - ls
-        underline_end = max(underline_end, underline_start + 1)
-        pairs.append((source, " " * underline_start + "^" * (underline_end - underline_start)))
+        marker = [" "] * len(source)
+        for ms, me in f.marked_spans():
+            lo, hi = max(ms, ls) - ls, min(me, le) - ls
+            if hi <= lo:
+                continue
+            for i in range(lo, min(hi, len(marker))):
+                marker[i] = "^"
+        if "^" not in marker:
+            # An empty match at this position still needs a visible anchor.
+            marker = [" "] * (pos - ls) + ["^"]
+        pairs.append((source, "".join(marker).rstrip()))
         if f.end <= le or le >= len(doc.text):
             return pairs
         pos = le + 1

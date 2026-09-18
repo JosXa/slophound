@@ -16,6 +16,7 @@ Markdown passes.
 from __future__ import annotations
 
 import io
+import re
 import sys
 import time
 import traceback
@@ -229,7 +230,36 @@ def _check_render_multiline(engine: Engine) -> list[str]:
         problems.append("multiline render did not print the second line of the match")
     if sum("^" in line for line in lines) != 2:
         problems.append("multiline render should underline both lines the match touches")
+    problems += _check_render_marks_matched_tokens(engine)
     return problems
+
+
+def _check_render_marks_matched_tokens(engine: Engine) -> list[str]:
+    # The parser bound "AGENTS.md", "root" and "file" as one compound chain
+    # across the line break. The reader has to see exactly those three words,
+    # so the carets sit under the matched tokens only. Underlining the whole
+    # stretch between first and last token hides which words the rule counted
+    # and makes "its own" and "A" look like part of the cluster.
+    doc = build_document(
+        "<t>",
+        "Give every client platform its own AGENTS.md\nA root file with purpose and rules.\n",
+    )
+    findings = [f for f in engine.lint(doc) if f.rule.id == "noun.cluster-three"]
+    if len(findings) != 1:
+        return [f"token fixture should produce one noun.cluster-three finding, got {len(findings)}"]
+    buf = io.StringIO()
+    render(doc, findings, stream=buf)
+    lines = buf.getvalue().splitlines()
+    marked: list[str] = []
+    for source, marker in zip(lines, lines[1:]):
+        if "^" not in marker or "^" in source:
+            continue
+        for m in re.finditer(r"\^+", marker):
+            marked.append(source[m.start() : m.end()])
+    expected = ["AGENTS.md", "root", "file"]
+    if marked != expected:
+        return [f"render should underline exactly the matched tokens {expected}, underlined {marked}"]
+    return []
 
 
 def check_severity_aliases() -> list[str]:

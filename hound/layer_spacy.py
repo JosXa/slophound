@@ -106,7 +106,8 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
                 continue
             if rule.category == "noun" and any(_cannot_be_noun(t.text) for t in tokens):
                 continue
-            findings.append(Finding(rule, start, end))
+            marks = sorted((block.start + t.idx, block.start + t.idx + len(t.text)) for t in tokens)
+            findings.append(Finding(rule, start, end, marks=marks))
     return _shadow_weaker(_merge_overlaps(findings))
 
 
@@ -136,7 +137,8 @@ def _merge_overlaps(findings: list[Finding]) -> list[Finding]:
     for f in sorted(findings, key=lambda f: (f.rule.id, f.start, f.end)):
         last = merged[-1] if merged else None
         if last and last.rule.id == f.rule.id and f.start <= last.end:
-            merged[-1] = Finding(last.rule, last.start, max(last.end, f.end), last.detail)
+            marks = sorted(set(last.marks) | set(f.marks))
+            merged[-1] = Finding(last.rule, last.start, max(last.end, f.end), last.detail, marks=marks)
         else:
             merged.append(f)
     return merged

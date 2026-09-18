@@ -59,10 +59,18 @@ class Finding:
     end: int
     # Optional override for the message (doc rules include computed values).
     detail: str | None = None
+    # The exact words the rule matched, as (start, end) offsets. A parser match
+    # binds a few tokens that may sit apart ("AGENTS.md ... root file"); the
+    # report underlines those words and not the stretch between them. Empty
+    # means the whole span is the match.
+    marks: list[tuple[int, int]] = field(default_factory=list)
 
     @property
     def severity(self) -> str:
         return self.rule.severity
+
+    def marked_spans(self) -> list[tuple[int, int]]:
+        return self.marks or [(self.start, self.end)]
 
     @property
     def message(self) -> str:
