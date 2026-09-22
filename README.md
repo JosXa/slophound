@@ -2,8 +2,10 @@
   <img src="assets/logo.png" alt="slophound: a bloodhound detective holding a red-marked page at arm's length" width="220">
   <h1>slophound</h1>
   <p><strong>Agents cannot see the slop they wrote. slophound can.</strong></p>
+  <p>A deterministic core with Jev to resolve ambiguous findings.</p>
   <p>
-    <img alt="Deterministic" src="https://img.shields.io/badge/deterministic-no%20LLM%20in%20the%20loop-2d2d2d">
+    <img alt="Deterministic core" src="https://img.shields.io/badge/core-deterministic-2d2d2d">
+    <a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev"><img alt="Jev for judgment" src="https://img.shields.io/badge/Jev-judgment-1f3a5f"></a>
     <img alt="Rules in TOML" src="https://img.shields.io/badge/rules-TOML-1f3a5f">
     <img alt="Runs with uv" src="https://img.shields.io/badge/runs%20with-uv-c8102e">
     <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-2d2d2d">
@@ -11,6 +13,8 @@
 </div>
 
 A linter for prose written by language models. Feed it a document, a commit message, a PR description, a wiki page, anything with sentences in it. It returns the ones that make the text read like a machine wrote it, with line numbers and instructions for the fix. Markdown syntax is understood and masked, while plain text works the same.
+
+Regex, grammar, and document statistics find the patterns. [Jev](#jev-for-contextual-judgment) checks ambiguous findings in context: when three nouns form an established term such as "database connection pool", it can remove the finding so you can keep the term.
 
 ```
 docs/adr-014.md:12:1  bark   verb.buys-us
@@ -56,7 +60,7 @@ A sample of the rule catalog, with examples and suggested revisions.
 | A cache is fast — until it lies. | `punct.em-dash` | A cache can return results quickly even when they are incorrect. |
 | Five paragraphs in a row opening with "The linter" | `doc.repeated-paragraph-opener` | Combine repeated points and remove unnecessary repetition. |
 
-The linter produces the same findings for the same input with the same rules and parser. It uses no generative model. Rules are plain TOML that any agent can read, test, and repair when a finding is wrong.
+The deterministic core produces the same findings for the same input with the same rules and parser. Jev can remove findings after detection for the rules that ask it to, so the report and the exit code may differ between a run with a key and a run without one. Rules and Jev criteria are plain TOML that any agent can read, test, and repair when a finding is wrong.
 
 ## Usage
 
@@ -92,9 +96,13 @@ For CI logs and tools that parse linter output, `--formal` (or `SLOPHOUND_FORMAL
 
 Code blocks, inline code, URLs, link targets, tables, and HTML comments are never linted. Front matter is masked except for values the reader sees: a slide deck's `heading:`, `lede:` or `callout:`, a page's `title:` or `description:`, and list entries with `title:` and `detail:` are linted like paragraphs, while keys, one-word settings and `class:`/`style:`/`layout:` values stay hidden.
 
-## Optional Jev support
+## Jev for contextual judgment
 
-For contextual checks, add [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) and ask targeted questions about wording. Jev returns probabilities, choices, and scores. The Python wrapper in `hound.jev` accepts the text and criteria for each question.
+[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) supplies judgment where grammar alone is insufficient. It answers typed questions and generates no prose. Slophound asks it whether a flagged noun cluster is an established term in the sentence's field, so familiar terminology can pass without adding every term to a regex exception, and whether a semicolon between two clauses belongs there or stands in for the word that would have said how the clauses relate.
+
+Once a key is configured, normal linting runs Jev automatically. The `noun.cluster-three` rule removes a sniff when Jev assigns at least 0.70 probability to the complete expression being conventional in its field. This includes established terms with ordinary literal modifiers. Lower probabilities keep the finding for review. The prompt distinguishes familiar usage from a phrase whose meaning a reader could merely guess.
+
+The `punct.semicolon-splice` bark fires on every semicolon that joins two clauses without a connective, since a model that may not use em dashes reaches for the semicolon next. Jev reads the sentence and clears the bark when the halves are parallel statements a careful writer would hold side by side. When the second half explains, causes, or contrasts with the first, the bark stays and the message asks for the conjunction.
 
 Store your [TypeSafe API key](https://docs.typesafe.ai/) once, from a terminal:
 
@@ -111,7 +119,11 @@ All harnesses use the same credential lookup:
 
 On macOS and Linux, the file is `$XDG_CONFIG_HOME/slophound/config.toml`, defaulting to `~/.config/slophound/config.toml`. On Windows, it is `%APPDATA%\slophound\config.toml`. The command stores the key as plaintext and creates the file with owner-only permissions on POSIX. It preserves other settings when replacing a key. Remove `jev.api_key` and unset `TYPESAFE_API_KEY` to disable access.
 
-With no key, the wrapper returns `None`, makes no requests, and produces no warnings or errors. This also applies when the stored key is blank. It reads credentials from the environment and user config; a repository `.env` must be loaded by the caller.
+With no key, Slophound runs the deterministic core with no Jev requests, results, warnings, or errors. This also applies when the stored key is blank. Credentials come from the environment and user config. A repository `.env` must be loaded by the caller.
+
+For each eligible finding, Slophound sends the matched text, the selected words, and the sentence or sentences containing them to TypeSafe. Requests contain at most six findings from the same paragraph or list item. Masked code and URLs stay masked, and context longer than 2,000 characters keeps its finding without a request. If credentials or a request fail, the document keeps its deterministic findings. Jev only removes findings, at whatever severity the rule carries. A bark it clears no longer fails `--strict`.
+
+### Python interface
 
 Python callers can reuse a connection across batches:
 
@@ -123,18 +135,22 @@ with JevClient() as jev:
     result = jev.evaluate(
         state="Check the database connection pool.",
         questions={
-            "single_phrase": Noul(
-                instructions="Do the words 'database connection pool' form one noun phrase?"
+            "known_term": Noul(
+                instructions="Is 'database connection pool' an established term in this sentence's field?",
+                criteria={
+                    "true": "The complete expression names a recognized concept in conventional usage.",
+                    "false": "The expression is improvised or merely understandable from its parts.",
+                },
             )
         },
     )
     if result is not None:
-        print(result.nouls["single_phrase"].noul)
+        print(result.nouls["known_term"].noul)
 ```
 
 Each call sends the supplied state and questions to TypeSafe. The response includes the model, token usage, and typed answers. `noul` is a probability from 0 to 1. The [question types](https://docs.typesafe.ai/sdk/python/api/types/questions) also include `Choice` for labels and `Score` for ordered criteria. The default model is pinned to `jev-1.13.0`; select another with `JevClient(model="...")`.
 
-The client also returns `None` when no questions are supplied. It retries transient failures up to twice, with a ten-second budget for retries. Each network operation can wait up to five seconds. Request failures raise `JevError` from `hound.jev`; credential failures raise `ConfigError` from `hound.config`. Built-in lint findings and their exit codes remain deterministic, including under `--strict`.
+The client returns `None` when no key or questions are supplied. It retries transient failures up to twice, with a ten-second budget for retries. Each network operation can wait up to five seconds. Direct Python calls raise `JevError` from `hound.jev` for request failures and `ConfigError` from `hound.config` for credential failures; the linter catches these and keeps the deterministic report.
 
 ## Agent skill
 
@@ -150,13 +166,15 @@ The final report counts resolved findings and lists remaining barks and sniffs f
 
 ## How it works
 
-Detection runs in three layers, ordered from cheapest to most expensive:
+The deterministic core runs three detection layers, ordered from cheapest to most expensive:
 
 1. **Regex** for fixed phrases, sentence templates, and punctuation (`rules/phrase.toml`, `rules/template.toml`, `rules/punct.toml`). These bite.
 2. **Dependency parsing** with spaCy for constructions that regex cannot tell apart from legitimate use: "the worker holds a mutex" passes, "that holds even under load" fires (`rules/verb.toml`, `rules/adj.toml`, `rules/noun.toml`). These bark, except for noun clusters: four or more nouns bite, three only sniff.
 3. **Document statistics** for rhythm and repetition: uniform sentence length, repeated paragraph openers, triad density, bullet lists with bold labels (`rules/doc.toml`). These sniff.
 
-Every rule has its own message, at least one `example` sentence it must fire on, and at least one `acceptable` sentence it must leave alone. `./slophound test` checks all of them, plus a small corpus of human and generated text under `tests/corpus/`, plus this repository's own Markdown.
+Jev reviews eligible findings after these layers and deduplication. Its instructions, yes/no criteria, and probability threshold live with the rule in a `jev_veto` table. See [Adding rules](docs/adding-rules.md#jev-review) for the contract.
+
+Every rule has its own message, at least one `example` sentence it must fire on, and at least one `acceptable` sentence it must leave alone. `./slophound test` checks all of them against the deterministic core, plus a small corpus of human and generated text under `tests/corpus/`, plus this repository's own Markdown. These checks make no Jev calls, even when a key is configured. `uv run python -m unittest discover tests` also checks Jev integration with mock responses.
 
 ## False positives
 

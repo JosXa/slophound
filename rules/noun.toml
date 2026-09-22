@@ -46,6 +46,13 @@
 # matched word has an adjective reading and no noun reading. Words with both
 # ("primary", "light") and words the lexicon does not know keep the parser's
 # tag, so the check can only silence a finding.
+#
+# A rule may also have a [rule.jev_veto] table: instructions, criteria.true,
+# criteria.false, and threshold (P(yes), greater than 0.5 and at most 1). Jev
+# checks each matched span in its sentence automatically when a key resolves.
+# A yes at or above the threshold removes the finding. Other answers and
+# request failures keep it. Examples below test deterministic detection;
+# tests/test_jev.py tests the veto with mock responses.
 
 [[rule]]
 id = "noun.cluster-four"
@@ -148,3 +155,9 @@ acceptable = [
   "Deliver the editable `.pptx`, the PDF preview, and concise conversion notes describing the template used, layout choices, retained image assets, simplified interactions, and verification results.",
   "Deliver concise conversion notes.",
 ]
+
+[rule.jev_veto]
+instructions = "Do the selected words form a conventional, unambiguous domain expression in this sentence? Include an established term with an ordinary literal modifier. Judge actual usage, not whether the full phrase is a named concept or dictionary entry."
+threshold = 0.7
+criteria.true = "The expression has a familiar, clear meaning in its field, such as customer support team or server error logs. It is used literally with the usual relationship between its words. A line break inside the expression is irrelevant."
+criteria.false = "The combination is improvised, figurative, or a coined label whose meaning the reader must guess; or the selected words are not one noun phrase here. Familiar individual words do not make an unfamiliar combination conventional."

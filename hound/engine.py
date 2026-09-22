@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from . import layer_doc, layer_regex, layer_spacy
+from . import layer_doc, layer_jev, layer_regex, layer_spacy
 from .masking import Document
 from .model import DOC_CATEGORIES, REGEX_CATEGORIES, SEVERITIES, SPACY_CATEGORIES, Finding, Rule
 
@@ -20,6 +20,10 @@ class Engine:
         return self._nlp
 
     def lint(self, doc: Document) -> list[Finding]:
+        return layer_jev.run(doc, self.lint_deterministic(doc))
+
+    def lint_deterministic(self, doc: Document) -> list[Finding]:
+        """Run local detection alone, including when testing rule examples."""
         findings: list[Finding] = []
         regex_rules = [r for r in self.rules if r.category in REGEX_CATEGORIES]
         spacy_rules = [r for r in self.rules if r.category in SPACY_CATEGORIES]

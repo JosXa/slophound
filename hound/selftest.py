@@ -41,7 +41,7 @@ def _lint_snippet(engine: Engine, text: str) -> list[Finding]:
     # Wrap the snippet as a paragraph so doc rules see a document and phrase
     # rules see a sentence. A trailing newline keeps the block splitter happy.
     doc = build_document("<snippet>", text.rstrip("\n") + "\n")
-    return engine.lint(doc)
+    return engine.lint_deterministic(doc)
 
 
 def check_rule(engine: Engine, rule: Rule) -> list[str]:
@@ -71,12 +71,12 @@ def check_corpus(engine: Engine) -> list[str]:
         problems.append("tests/corpus/human has no files")
     for path in generated:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
-        findings = engine.lint(doc)
+        findings = engine.lint_deterministic(doc)
         if not any(f.severity == BITE for f in findings):
             problems.append(f"{path.relative_to(ROOT)}: generated text produced no bite")
     for path in human:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
-        findings = engine.lint(doc)
+        findings = engine.lint_deterministic(doc)
         bites = [f for f in findings if f.severity == BITE]
         for f in bites:
             line, col = doc.line_col(f.start)
@@ -101,7 +101,7 @@ def check_own_docs(engine: Engine) -> list[str]:
     paths += sorted((ROOT / "skills").rglob("*.md"))
     for path in paths:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
-        bites = [f for f in engine.lint(doc) if f.severity == BITE]
+        bites = [f for f in engine.lint_deterministic(doc) if f.severity == BITE]
         for f in bites:
             line, col = doc.line_col(f.start)
             problems.append(f"{path.relative_to(ROOT)}:{line}:{col}: own docs hit {f.rule.id}")
@@ -178,7 +178,7 @@ def check_masking() -> list[str]:
 
 def check_render(engine: Engine) -> list[str]:
     doc = build_document("<r>", "This isn't just fast. It's correct. Full stop.\n")
-    findings = engine.lint(doc)
+    findings = engine.lint_deterministic(doc)
     buf = io.StringIO()
     render(doc, findings, stream=buf)
     out = buf.getvalue()
@@ -213,7 +213,7 @@ def _check_grammar_findings_carry_token_marks(engine: Engine) -> list[str]:
         "<t>",
         "Give every client platform its own AGENTS.md\nA root file with purpose and rules.\n",
     )
-    findings = [f for f in engine.lint(doc) if f.rule.id == "noun.cluster-three"]
+    findings = [f for f in engine.lint_deterministic(doc) if f.rule.id == "noun.cluster-three"]
     if len(findings) != 1:
         return [f"token fixture should produce one noun.cluster-three finding, got {len(findings)}"]
     if "\n" not in doc.text[findings[0].start : findings[0].end]:

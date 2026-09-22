@@ -7,7 +7,7 @@ Python scripts run through `uv`; rules in TOML.
 ## Working rules
 
 - The pre-commit hook in `.githooks/` runs slophound on every staged Markdown file, this one included. Enable it once per clone with `git config core.hooksPath .githooks`.
-- Any AI-ism you catch in your own writing here is a candidate rule. Check the catalog; if it is missing, add it with the sentence you just wrote as the `example`.
+- Any AI-ism you catch in your own writing here is a candidate rule. Check the catalog, and if it is missing, add it with the sentence you just wrote as the `example`.
 - When adding, widening, or repairing a rule, first read [Adding rules](docs/adding-rules.md): what qualifies as a rule, how to pick tier and layer, how examples prove a rule, how to measure noise on human text, and the TOML escaping traps.
 
 ## Vision
@@ -26,7 +26,7 @@ Software and SaaS writing: ADRs, PRDs, plans, specs, README files, design docume
 
 Inputs are single documents of at most a few tens of thousands of tokens.
 
-Out of scope: medical, legal, or journalistic register handling. Code slop. Rewriting; slophound reports, the author rewrites.
+Out of scope: medical, legal, or journalistic register handling. Code slop. Rewriting, because slophound reports and the author rewrites.
 
 ### Detection
 
@@ -42,7 +42,7 @@ Established NLP libraries carry layer two. They must load quickly on demand and 
 
 No language-model scoring, perplexity detectors, or external services in the core. Those are neither deterministic nor explainable, and both properties are the point.
 
-[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the one exception, and it stays outside the core: it answers typed yes/no, choice, and score questions about a sentence and generates no text. Use it for checks that cannot be expressed deterministically (is this comparison a borrowed metaphor, is this coined label defined anywhere), or as the decider for edge cases that spaCy and the other NLP tools cannot settle (is "database connection pool" one established term or three stacked nouns). Everything that a regex, a parse, or a count can decide stays in the deterministic layers. Jev runs whenever a key is configured, is silent when none is, may only veto or downgrade findings, and has no say in the exit code.
+[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the one exception, and it stays outside the core: it answers typed yes/no, choice, and score questions about a sentence and generates no text. Use it for checks that cannot be expressed deterministically (is this comparison a borrowed metaphor, is this coined label defined anywhere), or as the decider for edge cases that spaCy and the other NLP tools cannot settle (is "database connection pool" one established term or three stacked nouns). Everything that a regex, a parse, or a count can decide stays in the deterministic layers. Jev runs whenever a key is configured and is silent when none is. It never creates a finding. It decides whether a deterministic finding stands, at any severity. A rule declares the question it wants asked in its TOML.
 
 ### Rules
 
@@ -63,7 +63,7 @@ Exit code 0 when there are no bites, 1 when there is at least one bite, 2 when t
 
 ### False positives
 
-There is no ignore file and there is no inline suppression comment. Documents are one-off deliverables; scattering linter directives through them is its own kind of slop.
+There is no ignore file and there is no inline suppression comment. Documents are one-off deliverables, and scattering linter directives through them is its own kind of slop.
 
 A false positive is a bug in a rule. Preserve the legitimate wording and recommend a correction to the operator. Ask before preparing repository changes or submitting a contribution. Make approved corrections in a checkout, with regression examples and passing tests. Leave installed skills and package caches unchanged. Report unresolved findings honestly.
 

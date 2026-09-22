@@ -1,4 +1,4 @@
-"""Optional typed judgments through Jev, independent of deterministic findings.
+"""Typed judgments through Jev, independent of deterministic findings.
 
 Use JevClient as a context manager to reuse its connection across batches.
 An unset key returns None without importing the SDK or opening a connection.

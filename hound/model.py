@@ -21,6 +21,14 @@ SPACY_CATEGORIES = ("verb", "adj", "noun")
 DOC_CATEGORIES = ("doc",)
 
 
+@dataclass(frozen=True)
+class JevVeto:
+    instructions: str
+    true: str
+    false: str
+    threshold: float
+
+
 @dataclass
 class Rule:
     id: str
@@ -49,6 +57,8 @@ class Rule:
     most_common_in: list[str] = field(default_factory=list)
     # Whether the rule may fire inside Markdown headings (phrase rules only).
     headings: bool = False
+    # A high-confidence yes can remove a sniff after deterministic detection.
+    jev_veto: JevVeto | None = None
 
 
 @dataclass

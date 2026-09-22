@@ -36,7 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Severities: bite (fixed phrase or template, must reach zero), bark (grammar-inferred), "
             "sniff (document rhythm). Exit codes: 0 no bites, 1 bites found, 2 tool failure."
-            " Use 'auth set-key' to store a key for optional Jev support."
+            " Use 'auth set-key' to let Jev review ambiguous findings automatically."
         ),
     )
     p.add_argument("paths", nargs="*", help="Markdown or text files; '-' reads stdin. 'test' runs the self-tests.")

@@ -18,6 +18,7 @@ from .model import (
     SEVERITIES,
     SEVERITY_ALIASES,
     SPACY_CATEGORIES,
+    JevVeto,
     Rule,
 )
 
@@ -168,4 +169,20 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         rule.threshold = float(threshold)
         rule.min_sentences = int(raw.get("min_sentences", 0))
         rule.min_paragraphs = int(raw.get("min_paragraphs", 0))
+    if "jev_veto" in raw:
+        rule.jev_veto = _build_jev_veto(raw["jev_veto"], where)
     return rule
+
+
+def _build_jev_veto(raw: dict, where: str) -> JevVeto:
+    if not isinstance(raw, dict) or set(raw) != {"instructions", "criteria", "threshold"}:
+        raise RuleError(f"{where}: jev_veto needs instructions, criteria, and threshold")
+    criteria = raw["criteria"]
+    if not isinstance(criteria, dict) or set(criteria) != {"true", "false"}:
+        raise RuleError(f"{where}: jev_veto.criteria needs true and false descriptions")
+    if any(not isinstance(s, str) or not s.strip() for s in (raw["instructions"], criteria["true"], criteria["false"])):
+        raise RuleError(f"{where}: jev_veto instructions and criteria must be nonempty strings")
+    threshold = raw["threshold"]
+    if isinstance(threshold, bool) or not isinstance(threshold, (int, float)) or not 0.5 < threshold <= 1:
+        raise RuleError(f"{where}: jev_veto.threshold must be greater than 0.5 and at most 1")
+    return JevVeto(raw["instructions"], criteria["true"], criteria["false"], float(threshold))

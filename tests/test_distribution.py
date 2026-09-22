@@ -180,6 +180,40 @@ class DistributionSmokeTest(unittest.TestCase):
         config = self.config_directory / "slophound" / "config.toml"
         self.assertIn("distribution-test-key", config.read_text(encoding="utf-8"))
 
+        # Verify the wheel includes the veto layer and TOML criteria, and uses
+        # the stored credential during normal linting. Never contact the API.
+        probe = self.outside_repository / "jev_probe.py"
+        probe.write_text(
+            "import json\n"
+            "from unittest.mock import patch\n"
+            "import httpx2\n"
+            "from typesafe_sdk import TypeSafeClient\n"
+            "from hound.engine import Engine\n"
+            "from hound.loader import load_rules\n"
+            "from hound.masking import build_document\n"
+            "calls = []\n"
+            "def handle(request):\n"
+            "    payload = json.loads(request.content)\n"
+            "    calls.append(payload)\n"
+            "    return httpx2.Response(200, json={\n"
+            "        'model': 'jev-1.13.0', 'usage': {'input_tokens': 1, 'output_tokens': 0},\n"
+            "        'answers': {key: {'type': 'noul', 'noul': 0.99} for key in payload['questions']}})\n"
+            "with patch('typesafe_sdk.TypeSafeClient', side_effect=lambda **kw:\n"
+            "        TypeSafeClient(transport=httpx2.MockTransport(handle), **kw)):\n"
+            "    engine = Engine(load_rules())\n"
+            "    doc = build_document('draft.md', 'Check the database connection pool.')\n"
+            "    assert len(engine.lint_deterministic(doc)) == 1\n"
+            "    assert engine.lint(doc) == []\n"
+            "assert len(calls) == 1\n"
+            "print('Jev term review passed')\n",
+            encoding="utf-8",
+        )
+        output = self._run_command(
+            ["uv", "run", "--no-project", "--python", "3.13", "--with", str(self.wheel), "python", str(probe)],
+            cwd=self.outside_repository, expected_returncode=0,
+        )
+        self.assertIn("Jev term review passed", output)
+
     def test_local_rule_edits_invalidate_uvx_cache(self) -> None:
         command = ["uvx", "--python", "3.13", "--from", str(self.source),
                    "slophound", "--only", "phrase.load-bearing", "-"]
