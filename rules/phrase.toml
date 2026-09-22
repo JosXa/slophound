@@ -1118,3 +1118,25 @@ acceptable = [
   "First, acknowledge the alert, then inspect the lock ordering.",
 ]
 most_common_in = ["gpt", "gemini", "qwen"]
+
+# "the metrics that matter" says the author has ranked things without showing
+# the ranking. "No matter what" and "the matter" are different words and do not
+# match the pattern.
+[[rule]]
+id = "phrase.that-matters"
+severity = "bite"
+pattern = '\b(that|which|who) (actually |really |truly )?matters?( most)?\b(?! (to|for) \w)'
+message = "\"<things> that matter\" asserts a ranking without giving it. Name the things and say why they outrank the rest, or drop the qualifier."
+example = [
+  "Focus on the metrics that matter.",
+  "It is the only part that matters.",
+  "Ship the features that really matter most.",
+  "We kept the people who matter.",
+]
+acceptable = [
+  "Focus on p99 latency and error rate; the other metrics did not change in the incident.",
+  "No matter what happens, keep the lock.",
+  "The matter was closed after the review.",
+  "The timeout is the setting that matters to the on-call engineer.",
+]
+most_common_in = ["gpt", "claude", "gemini"]

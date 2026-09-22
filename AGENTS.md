@@ -40,7 +40,9 @@ Detection runs in three layers, ordered from cheapest to most expensive:
 
 Established NLP libraries carry layer two. They must load quickly on demand and release cleanly when the run ends, because an agent invokes the linter ad hoc and nothing stays resident between runs.
 
-No language-model scoring, perplexity detectors, or external services in the core. Those are neither deterministic nor explainable, and both properties are the point. If an LLM ever joins the mix, it runs as a separate layer and has no say in the exit code.
+No language-model scoring, perplexity detectors, or external services in the core. Those are neither deterministic nor explainable, and both properties are the point.
+
+[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the one exception, and it stays outside the core: it answers typed yes/no, choice, and score questions about a sentence and generates no text. Use it for checks that cannot be expressed deterministically (is this comparison a borrowed metaphor, is this coined label defined anywhere), or as the decider for edge cases that spaCy and the other NLP tools cannot settle (is "database connection pool" one established term or three stacked nouns). Everything that a regex, a parse, or a count can decide stays in the deterministic layers. Jev runs whenever a key is configured, is silent when none is, may only veto or downgrade findings, and has no say in the exit code.
 
 ### Rules
 

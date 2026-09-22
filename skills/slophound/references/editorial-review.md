@@ -51,7 +51,7 @@ Before: No action is needed.
 After: Retries succeeded and the queue is empty, so no manual replay is needed.
 ```
 
-Keep uncertainty that matters: if the failure cannot yet be reproduced, do not claim a confirmed cause. Reassurance needs the condition or evidence that justifies it.
+Keep uncertainty the reader needs: if the failure cannot yet be reproduced, do not claim a confirmed cause. Reassurance needs the condition or evidence that justifies it.
 
 ## Repetition of meaning and structure
 
