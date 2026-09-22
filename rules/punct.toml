@@ -5,7 +5,8 @@
 # normalised). They care about the literal glyph, so \u escapes name the
 # character being caught.
 #
-# Same fields as rules/phrase.toml.
+# Same fields as rules/phrase.toml, plus the optional [rule.jev_veto] table
+# documented in rules/noun.toml.
 
 [[rule]]
 id = "punct.em-dash"
@@ -57,6 +58,27 @@ headings = true
 message = "Middle dot, bullet, or arrow used as inline decoration. Use a comma, a list, or a plain word."
 example = ["Fast \u00b7 Simple \u00b7 Correct", "Request \u2192 Queue \u2192 Worker"]
 acceptable = ["Fast, simple, and correct.", "The request goes to the queue, then to a worker."]
+
+# Two independent clauses glued with a semicolon. Models reach for this the
+# moment em dashes are banned: same pause, same dodge of the word that would
+# say how the halves relate. The regex only sees the shape (word; lowercase
+# word, no connective after it); Jev reads the sentence and clears the ones a
+# careful writer would have kept. Excluded up front: HTML entities, a
+# connective after the semicolon, and a second half starting with a capital.
+[[rule]]
+id = "punct.semicolon-splice"
+severity = "bark"
+pattern = '''(?<!&)\b[a-z]+[)"'\]]*; +(?!(?:and|but|or|nor|so|yet|then|however|otherwise|therefore|thus|hence|instead|meanwhile|rather|e\.g|i\.e)\b)(?=(?-i:[a-z]))'''
+message = "Semicolon splice. This is the em dash you were told not to use, wearing a hat. The two halves relate somehow, and you know how, so say it: \"because\", \"but\", \"so\", \"and\". If they do not relate, a period. A semicolon earns its place only between clauses that mirror each other."
+example = ["The cache is fast; it lies under load.", "Half the developers stay silent; they stopped caring long ago.", "The path is documented; what remains is choosing it."]
+acceptable = ["The cache is fast, but it lies under load.", "The cache is fast; but it lies under load.", "We ship on Monday; Tuesday is the retrospective.", "Fish &amp; chips and &#160; tea.", "Speakers: Ada Lovelace, London; Alan Turing, Manchester."]
+most_common_in = ["claude", "gpt", "gemini"]
+
+[rule.jev_veto]
+instructions = "Look at the semicolon in `matched_text` and the two halves of the sentence it joins. Is the semicolon the right punctuation here, so that the sentence reads best with it? Judge the relation between the halves, not grammar."
+threshold = 0.6
+criteria.true = "Keep the semicolon. The halves are parallel or contrasting statements of equal weight that the reader is meant to hold side by side ('The humorous story is told gravely; the comic story is shouted.'), or the semicolon separates list items that themselves contain commas."
+criteria.false = "The semicolon stands in for a missing word. The second half gives the cause, consequence, contrast, qualification, or punchline of the first, so 'because', 'so', 'but', 'and', or 'while' would state the relation the semicolon leaves implicit, or the second half is a separate thought that should be its own sentence."
 
 [[rule]]
 id = "punct.bold-label-restates"

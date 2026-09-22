@@ -2,7 +2,7 @@
 
 Review the document after the lint stage. This reference retains the judgment checks from humanize, with examples and acceptable uses. Fixed phrase inventories and mechanical patterns remain in the linter. A clean lint result does not establish that a claim is supported, a metaphor is useful, or a paragraph adds information.
 
-Apply each check to the document. The examples illustrate possible revisions, with invented details where useful. Preserve established facts in the actual document; use available evidence when adding specifics. Keep exact quotations and code intact. These examples do not override a linter finding; handle false positives through the skill's approval flow.
+Apply each check to the document. The examples illustrate possible revisions, with invented details where useful. Preserve established facts in the actual document; use available evidence when adding specifics. Keep exact quotations and code intact. These examples do not override a linter finding. Handle false positives through the skill's approval flow.
 
 ## Audience
 
@@ -24,7 +24,7 @@ Keep an importance claim when the dependency or consequence is stated: an index 
 
 ## Evidence, diagnosis, and completion
 
-Check what supports each conclusion. A diagnosis needs a mechanism, observations, or a verification plan. Completion claims need the test scope and observed result. Check attributed claims against a named source; one source cannot establish a consensus.
+Check what supports each conclusion. A diagnosis needs a mechanism, observations, or a verification plan. Completion claims need the test scope and observed result. Check attributed claims against a named source. One source cannot establish a consensus.
 
 ```text
 Before: This is probably a race condition.
@@ -111,7 +111,7 @@ Before: The 2025 result is where most advice comes from.
 After: Most advice is based on the 2025 result.
 ```
 
-Keep passive voice when the actor is unknown or irrelevant, as in a statement that a token was revoked at a recorded time. A copula followed by a where/what/how clause is a separate construction; revise it when a direct statement is clearer. Neither construction proves that a model wrote the sentence.
+Keep passive voice when the actor is unknown or irrelevant, as in a statement that a token was revoked at a recorded time. A copula followed by a where/what/how clause is a separate construction. Revise it when a direct statement is clearer. Neither construction proves that a model wrote the sentence.
 
 ## Analogies, metaphors, and ranges
 
@@ -129,7 +129,7 @@ Keep a comparison when it reduces the explanation needed, and keep a range when 
 
 ## Sentence flow and emphasis
 
-Read connected sentences together. Join fragments when their relationship is the useful information. Split a sentence when its nested conditions require backtracking. Vary sentence length according to the explanation; forced short sentences can be as distracting as dense ones.
+Read connected sentences together. Join fragments when their relationship is the useful information. Split a sentence when its nested conditions require backtracking. Vary sentence length according to the explanation, because forced short sentences can be as distracting as dense ones.
 
 ```text
 Before: The job fails. The worker retries. The lock remains. Nobody releases it.
@@ -139,7 +139,7 @@ Before: The function, when the input, which may be missing during startup, is ab
 After: The function returns zero when the input is absent. This can happen during startup.
 ```
 
-Replace an adverb with the relevant condition, comparison, or measured result when available. Keep literal manner and useful uncertainty. A short warning or command may be appropriate; avoid forcing every paragraph into the same cadence.
+Replace an adverb with the relevant condition, comparison, or measured result when available. Keep literal manner and useful uncertainty. A short warning or command may be appropriate, but avoid forcing every paragraph into the same cadence.
 
 ## Formatting and report size
 

@@ -39,4 +39,4 @@ image.
 
 ## Regenerating
 
-Ask for five candidates per round and compare them side by side; the hit rate for pose plus expression plus framing all landing at once is roughly one in five. Save keepers with a numbered descriptive name so the round can be discussed by file name.
+Ask for five candidates per round and compare them side by side, because the hit rate for pose plus expression plus framing all landing at once is roughly one in five. Save keepers with a numbered descriptive name so the round can be discussed by file name.
