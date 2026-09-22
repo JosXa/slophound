@@ -92,6 +92,50 @@ For CI logs and tools that parse linter output, `--formal` (or `SLOPHOUND_FORMAL
 
 Code blocks, inline code, URLs, link targets, tables, and HTML comments are never linted. Front matter is masked except for values the reader sees: a slide deck's `heading:`, `lede:` or `callout:`, a page's `title:` or `description:`, and list entries with `title:` and `detail:` are linted like paragraphs, while keys, one-word settings and `class:`/`style:`/`layout:` values stay hidden.
 
+## Optional Jev support
+
+For contextual checks, add [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) and ask targeted questions about wording. Jev returns probabilities, choices, and scores. The Python wrapper in `hound.jev` accepts the text and criteria for each question.
+
+Store your [TypeSafe API key](https://docs.typesafe.ai/) once, from a terminal:
+
+```sh
+uvx --python 3.13 --from 'git+ssh://git@github.com/JosXa/slophound.git' slophound auth set-key
+```
+
+The prompt hides your input. Piped stdin also works, so a secret manager can supply the key. Keep the value out of command arguments and chat messages. In a checkout, use `./slophound auth set-key`.
+
+All harnesses use the same credential lookup:
+
+1. Check `TYPESAFE_API_KEY` in the environment first. An empty value counts as unset.
+2. Otherwise, read `api_key` from the `[jev]` table in the user config file.
+
+On macOS and Linux, the file is `$XDG_CONFIG_HOME/slophound/config.toml`, defaulting to `~/.config/slophound/config.toml`. On Windows, it is `%APPDATA%\slophound\config.toml`. The command stores the key as plaintext and creates the file with owner-only permissions on POSIX. It preserves other settings when replacing a key. Remove `jev.api_key` and unset `TYPESAFE_API_KEY` to disable access.
+
+With no key, the wrapper returns `None`, makes no requests, and produces no warnings or errors. This also applies when the stored key is blank. It reads credentials from the environment and user config; a repository `.env` must be loaded by the caller.
+
+Python callers can reuse a connection across batches:
+
+```python
+from hound.jev import JevClient
+from typesafe_sdk import Noul
+
+with JevClient() as jev:
+    result = jev.evaluate(
+        state="Check the database connection pool.",
+        questions={
+            "single_phrase": Noul(
+                instructions="Do the words 'database connection pool' form one noun phrase?"
+            )
+        },
+    )
+    if result is not None:
+        print(result.nouls["single_phrase"].noul)
+```
+
+Each call sends the supplied state and questions to TypeSafe. The response includes the model, token usage, and typed answers. `noul` is a probability from 0 to 1. The [question types](https://docs.typesafe.ai/sdk/python/api/types/questions) also include `Choice` for labels and `Score` for ordered criteria. The default model is pinned to `jev-1.13.0`; select another with `JevClient(model="...")`.
+
+The client also returns `None` when no questions are supplied. It retries transient failures up to twice, with a ten-second budget for retries. Each network operation can wait up to five seconds. Request failures raise `JevError` from `hound.jev`; credential failures raise `ConfigError` from `hound.config`. Built-in lint findings and their exit codes remain deterministic, including under `--strict`.
+
 ## Agent skill
 
 The [slophound skill](skills/slophound/SKILL.md) runs the standalone linter through `uvx`, then guides an editorial review based on the humanize skill.

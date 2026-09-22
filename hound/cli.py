@@ -3,6 +3,7 @@
     slophound FILE [FILE...]      lint files (Markdown or plain text)
     slophound -                   lint stdin
     slophound test                run the rule self-tests and the corpus checks
+    slophound auth set-key        store a Jev key from a hidden prompt or stdin
 
 Exit codes: 0 no bites, 1 at least one bite (or bark with --strict),
 2 the tool itself failed (bad rule file, missing model, unreadable input).
@@ -35,6 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Severities: bite (fixed phrase or template, must reach zero), bark (grammar-inferred), "
             "sniff (document rhythm). Exit codes: 0 no bites, 1 bites found, 2 tool failure."
+            " Use 'auth set-key' to store a key for optional Jev support."
         ),
     )
     p.add_argument("paths", nargs="*", help="Markdown or text files; '-' reads stdin. 'test' runs the self-tests.")
@@ -112,6 +114,8 @@ def read_input(path: str) -> tuple[str, str]:
 def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
+    if argv and argv[0] == "auth":
+        return auth_main(argv[1:])
     parser = build_parser()
     args = parser.parse_args(argv)
 
@@ -166,3 +170,34 @@ def main(argv: list[str] | None = None) -> int:
 
     failing = {BITE, BARK} if args.strict else {BITE}
     return EXIT_FINDINGS if any(f.severity in failing for f in all_findings) else EXIT_CLEAN
+
+
+def auth_main(argv: list[str]) -> int:
+    import getpass
+    import warnings
+
+    from .config import ConfigError, save_jev_key
+
+    parser = argparse.ArgumentParser(prog="slophound auth", description="Store a Jev key for all harnesses.")
+    commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("set-key", help="read a key from a hidden prompt or piped stdin")
+    parser.parse_args(argv)
+    try:
+        if sys.stdin.isatty():
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", getpass.GetPassWarning)
+                key = getpass.getpass("TypeSafe API key: ")
+        else:
+            key = sys.stdin.read()
+        path = save_jev_key(key)
+    except (getpass.GetPassWarning, EOFError, KeyboardInterrupt):
+        print("slophound: could not read a hidden key; pipe it on stdin instead.", file=sys.stderr)
+        return EXIT_FAILURE
+    except (OSError, UnicodeError):
+        print("slophound: could not read the API key.", file=sys.stderr)
+        return EXIT_FAILURE
+    except ConfigError as exc:
+        print(f"slophound: {exc}", file=sys.stderr)
+        return EXIT_FAILURE
+    print(f"Saved Jev key to {path}")
+    return EXIT_CLEAN

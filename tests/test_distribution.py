@@ -7,6 +7,7 @@ cached by uv but are never installed as a global tool.
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import tarfile
@@ -22,7 +23,8 @@ def _ignore_build_artifacts(_directory: str, names: list[str]) -> set[str]:
     return {
         name
         for name in names
-        if name in {".git", "build", "dist", "__pycache__"}
+        if name in {".git", ".tmp", ".venv", "mise", "uv.lock", "build", "dist", "__pycache__"}
+        or name.startswith(".env")
         or name.endswith((".egg-info", ".pyc"))
     }
 
@@ -36,6 +38,7 @@ class DistributionSmokeTest(unittest.TestCase):
         cls.source = cls.temporary_root / "source"
         cls.outside_repository = cls.temporary_root / "outside"
         cls.wheel_directory = cls.temporary_root / "wheel"
+        cls.config_directory = cls.temporary_root / "config"
         shutil.copytree(REPOSITORY, cls.source, ignore=_ignore_build_artifacts)
         cls.outside_repository.mkdir()
 
@@ -80,6 +83,8 @@ class DistributionSmokeTest(unittest.TestCase):
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            env={**os.environ, "TYPESAFE_API_KEY": "", "XDG_CONFIG_HOME": str(cls.config_directory),
+                 "APPDATA": str(cls.config_directory)},
             timeout=180,
         )
         output = completed.stdout
@@ -156,6 +161,24 @@ class DistributionSmokeTest(unittest.TestCase):
 
         selftest_output = self._uvx("test", expected_returncode=0)
         self.assertRegex(selftest_output, r"\d+ passed, 0 failed")
+
+        # Exercise the installed Python wrapper outside the checkout. An unset
+        # key returns no result and does not even import the network SDK.
+        module_output = self._run_command(
+            ["uv", "run", "--no-project", "--python", "3.13", "--with", str(self.wheel), "python", "-c",
+             "import sys; from hound.jev import JevClient; "
+             "client = JevClient(); assert not client.enabled; "
+             "assert client.evaluate(state='text', questions={'check': {'type': 'noul', 'instructions': 'One phrase?'}}) is None; "
+             "assert 'typesafe_sdk' not in sys.modules; client.close(); print('Optional wrapper passed')"],
+            cwd=self.outside_repository, expected_returncode=0,
+        )
+        self.assertIn("Optional wrapper passed", module_output)
+
+        # Auth must store the key outside the project, without echoing it.
+        auth_output = self._uvx("auth", "set-key", expected_returncode=0, input_text="distribution-test-key\n")
+        self.assertNotIn("distribution-test-key", auth_output)
+        config = self.config_directory / "slophound" / "config.toml"
+        self.assertIn("distribution-test-key", config.read_text(encoding="utf-8"))
 
     def test_local_rule_edits_invalidate_uvx_cache(self) -> None:
         command = ["uvx", "--python", "3.13", "--from", str(self.source),

@@ -4,6 +4,8 @@
 # dependencies = [
 #   "spacy>=3.8,<3.9",
 #   "lemminflect>=0.2.3,<0.3",
+#   "typesafe-sdk>=0.7.1,<0.8",
+#   "tomlkit>=0.15,<0.16",
 #   "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
 # ]
 # ///

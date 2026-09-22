@@ -10,3 +10,4 @@ recursive-include rules *.py *.toml
 recursive-include tests/corpus *.py *.md
 include tests/test_distribution.py
 include tests/test_report.py
+include tests/test_jev.py
