@@ -527,16 +527,20 @@ acceptable = [
 [[rule]]
 id = "phrase.worked-example"
 severity = "bite"
-pattern = '\bworked\s+example\b'
+pattern = '\bworked\s+(?:(?!(?:through|on|out|up|with|from|for|in|into|an?|the|this|that|these|those|its|our|their|his|her|my|your)\b)[\w-]+\s+){0,2}examples?\b'
 message = "Banned teaching label (worked example). Give the example a specific title or state what it demonstrates."
 example = [
   "Worked example",
   "The guide includes a worked example of the retry flow.",
   "Follow the worked example below.",
+  "The program has a template, a worked P2 example, and a Legend.",
+  "The appendix collects three worked end-to-end examples.",
 ]
 acceptable = [
   "The example works for both inputs.",
   "We worked through an example of the retry flow.",
+  "We worked on the P2 example yesterday.",
+  "She worked out an example for the retry flow.",
   "The guide includes an example of the retry flow.",
   "The `worked example` label is banned.",
 ]
