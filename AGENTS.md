@@ -57,7 +57,7 @@ Every rule has:
 
 ### Output
 
-Human-readable, modelled on eslint, rustc, and Bun: file, line, column, severity, rule id, the offending line with the match marked, the full rule message. Lines wider than the terminal (or 100 columns when output is piped) are cut to a window around the match so the carets stay under the matched words. A summary line closes the report with counts per severity and a density figure (findings per hundred words). Density is informational.
+Human-readable, modelled on eslint, rustc, and Bun: file, line, column, severity, rule id, the offending line with the match marked, the full rule message. Lines wider than the terminal (`COLUMNS` when set, 100 columns when no terminal is attached) are cut to a window around the match so the carets stay under the matched words. A summary line closes the report with counts per severity and a density figure (findings per hundred words). Density is informational.
 
 Exit code 0 when there are no bites, 1 when there is at least one bite, 2 when the tool itself failed. Barks and sniffs never change the exit code.
 

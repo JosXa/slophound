@@ -76,13 +76,22 @@ class Palette:
 
 
 def terminal_width(stream) -> int:
-    """Width to fit source lines into: the terminal's when the report goes to
-    one, a fixed width otherwise so piped output is the same on every machine."""
-    try:
-        if stream.isatty():
-            return os.get_terminal_size(stream.fileno()).columns
-    except (AttributeError, OSError, ValueError):
-        pass
+    """Width to fit source lines into.
+
+    `COLUMNS` wins when set. Otherwise the terminal's width, found through any
+    standard stream attached to it: a person piping the report through grep
+    still reads it in that terminal. With no terminal at all, as in agent
+    shells and CI, a fixed width keeps the output the same on every machine.
+    """
+    columns = os.environ.get("COLUMNS", "")
+    if columns.isdigit() and int(columns) > 0:
+        return int(columns)
+    for candidate in (stream, sys.stderr, sys.stdin):
+        try:
+            if candidate.isatty():
+                return os.get_terminal_size(candidate.fileno()).columns
+        except (AttributeError, OSError, ValueError):
+            continue
     return DEFAULT_WIDTH
 
 
