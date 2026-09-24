@@ -219,6 +219,53 @@ class CaretAlignment(unittest.TestCase):
         self.assertIn("  - Check the database connection pool.\n              ^^^^^^^^ ^^^^^^^^^^ ^^^^\n", out)
 
 
+class LongLines(unittest.TestCase):
+    # A soft-wrapped paragraph is one long source line. Printed whole, the
+    # terminal wraps it and the caret line at different places, and the carets
+    # land under unrelated words. Long lines are cut to a window around the
+    # marks instead.
+
+    FILLER = "Clients send requests to the gateway, and the gateway forwards them. "
+
+    def _render_width(self, text: str, finding: Finding, width: int) -> str:
+        doc = build_document("draft.md", text)
+        buf = io.StringIO()
+        render(doc, [finding], stream=buf, vocab=Vocabulary(formal=False), width=width)
+        return buf.getvalue()
+
+    def test_marks_in_the_middle_of_a_long_line_get_a_window_with_ellipses(self) -> None:
+        text = self.FILLER * 3 + "Check the database connection pool. " + self.FILLER * 3 + "\n"
+        marks = [_span(text, "database"), _span(text, "connection"), _span(text, "pool")]
+        finding = Finding(_rule("noun.cluster-three", SNIFF), marks[0][0], marks[-1][1], marks=marks)
+        out = self._render_width(text, finding, 62)
+        source, carets = out.splitlines()[1:3]
+        self.assertEqual("  …them. Check the database connection pool. Clients send…", source)
+        self.assertEqual("                   ^^^^^^^^ ^^^^^^^^^^ ^^^^", carets)
+
+    def test_every_printed_line_fits_the_width(self) -> None:
+        text = self.FILLER * 5 + "The retry logic is load-bearing. " + self.FILLER * 5 + "\n"
+        finding = Finding(_rule("phrase.load-bearing", BITE), *_span(text, "load-bearing"))
+        for width in (40, 60, 100, 160):
+            out = self._render_width(text, finding, width)
+            source, carets = out.splitlines()[1:3]
+            self.assertLessEqual(len(source), width, source)
+            self.assertLessEqual(len(carets), width, carets)
+            self.assertEqual("load-bearing", source[carets.index("^") : carets.rindex("^") + 1])
+
+    def test_match_at_line_start_keeps_the_start_and_cuts_the_end(self) -> None:
+        text = "Load-bearing retries. " + self.FILLER * 4 + "\n"
+        finding = Finding(_rule("phrase.load-bearing", BITE), *_span(text, "Load-bearing"))
+        out = self._render_width(text, finding, 42)
+        source, carets = out.splitlines()[1:3]
+        self.assertEqual("  Load-bearing retries. Clients send…", source)
+        self.assertEqual("  ^^^^^^^^^^^^", carets)
+
+    def test_short_lines_are_printed_whole(self) -> None:
+        text = "The retry logic is load-bearing.\n"
+        finding = Finding(_rule("phrase.load-bearing", BITE), *_span(text, "load-bearing"))
+        self.assertIn("  The retry logic is load-bearing.\n", self._render_width(text, finding, 40))
+
+
 class ReportShape(unittest.TestCase):
     def _three_findings(self) -> str:
         text = "The retry logic is load-bearing.\nThat buys us a week.\nCheck the database connection pool.\n"

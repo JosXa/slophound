@@ -18,6 +18,13 @@ from .model import BARK, BITE, FORMAL_NAMES, SEVERITIES, SNIFF, Finding
 
 _ORDER = {s: i for i, s in enumerate(SEVERITIES)}
 _COLORS = {BITE: "31", BARK: "33", SNIFF: "36"}
+_INDENT = "  "
+_ELLIPSIS = "…"
+# Width used when no terminal is attached. Narrow enough for tool panes in
+# agent harnesses, where a wider line would wrap and push the carets away from
+# the words they mark.
+DEFAULT_WIDTH = 100
+MIN_WIDTH = 40
 
 
 class Vocabulary:
@@ -68,10 +75,28 @@ class Palette:
         return self._wrap("1", text)
 
 
-def render(doc: Document, findings: list[Finding], stream=None, vocab: Vocabulary | None = None) -> None:
+def terminal_width(stream) -> int:
+    """Width to fit source lines into: the terminal's when the report goes to
+    one, a fixed width otherwise so piped output is the same on every machine."""
+    try:
+        if stream.isatty():
+            return os.get_terminal_size(stream.fileno()).columns
+    except (AttributeError, OSError, ValueError):
+        pass
+    return DEFAULT_WIDTH
+
+
+def render(
+    doc: Document,
+    findings: list[Finding],
+    stream=None,
+    vocab: Vocabulary | None = None,
+    width: int | None = None,
+) -> None:
     stream = stream or sys.stdout
     vocab = vocab or Vocabulary(formal_requested())
     pal = Palette(_use_color(stream))
+    budget = max(MIN_WIDTH, (width or terminal_width(stream)) - len(_INDENT))
     ordered = sorted(findings, key=lambda f: (f.start, _ORDER[f.severity], f.rule.id))
     for f in ordered:
         line, col = doc.line_col(f.start)
@@ -81,14 +106,14 @@ def render(doc: Document, findings: list[Finding], stream=None, vocab: Vocabular
             f"{' ' * (vocab.pad - len(word))}  {pal.bold(f.rule.id)}"
         )
         stream.write(header + "\n")
-        for source, marker in _source_lines(doc, f):
-            stream.write(f"  {source}\n")
+        for source, marker in _source_lines(doc, f, budget):
+            stream.write(f"{_INDENT}{source}\n")
             if marker:
-                stream.write(f"  {pal.dim(marker)}\n")
-        stream.write(f"  {f.message}\n\n")
+                stream.write(f"{_INDENT}{pal.dim(marker)}\n")
+        stream.write(f"{_INDENT}{f.message}\n\n")
 
 
-def _source_lines(doc: Document, f: Finding) -> list[tuple[str, str]]:
+def _source_lines(doc: Document, f: Finding, budget: int) -> list[tuple[str, str]]:
     """Every line the match touches, each paired with its caret underline.
 
     A parser-level match can run across a line break (a slide title without
@@ -112,31 +137,101 @@ def _source_lines(doc: Document, f: Finding) -> list[tuple[str, str]]:
         if first and not any(marked):
             # An empty match still needs a visible anchor under its position.
             marked[pos - ls] = True
-        pairs.append((source.expandtabs(4), _carets(source, marked)))
+        pairs.append(_fit(_cells(source, marked), budget))
         first = False
         if f.end <= le or le >= len(doc.text):
             return pairs
         pos = le + 1
 
 
-def _carets(source: str, marked: list[bool]) -> str:
-    """Caret line aligned to the printed source: tabs expand to four columns
-    and East Asian wide characters take two, so the carets sit under the words
-    a terminal shows rather than under character offsets."""
-    out: list[str] = []
+def _cells(source: str, marked: list[bool]) -> list[tuple[str, bool]]:
+    """The source as printed cells, each with its marked flag. Tabs expand to
+    four columns and East Asian wide characters take two, so the carets sit
+    under the words a terminal shows rather than under character offsets."""
+    cells: list[tuple[str, bool]] = []
     column = 0
     for i, ch in enumerate(source):
         if ch == "\t":
-            width = 4 - column % 4
-        elif unicodedata.east_asian_width(ch) in ("W", "F"):
-            width = 2
+            text = " " * (4 - column % 4)
         else:
-            width = 1
-        out.append(("^" if marked[i] else " ") * width)
-        column += width
+            text = ch
+        cells.append((text, marked[i]))
+        column += _width(text)
     if len(marked) > len(source) and marked[len(source)]:
-        out.append("^")
-    return "".join(out).rstrip()
+        cells.append(("", True))
+    return cells
+
+
+def _width(text: str) -> int:
+    if not text:
+        return 1  # the end-of-line anchor
+    if len(text) == 1 and unicodedata.east_asian_width(text) in ("W", "F"):
+        return 2
+    return len(text)
+
+
+def _fit(cells: list[tuple[str, bool]], budget: int) -> tuple[str, str]:
+    """Source line and caret line, cut to `budget` columns around the marks.
+
+    A line longer than the terminal wraps, and the caret line wraps at a
+    different place, so the carets land under unrelated words. Long lines are
+    cut to a window around the marked words instead, with an ellipsis on each
+    cut side.
+    """
+    widths = [_width(text) for text, _ in cells]
+    total = sum(widths)
+    if total <= budget:
+        return _join(cells, widths, 0, total)
+    starts = [0]
+    for w in widths:
+        starts.append(starts[-1] + w)
+    marked = [starts[i] for i, (_, m) in enumerate(cells) if m]
+    first = marked[0] if marked else 0
+    last = max((starts[i + 1] for i, (_, m) in enumerate(cells) if m), default=first)
+    # Center the marked stretch; when it is wider than the window, start at it.
+    # Keep one column before it free for the ellipsis.
+    lo = max(0, first - max(1, (budget - (last - first)) // 2))
+    hi = min(total, lo + budget)
+    lo = max(0, hi - budget) if hi - lo < budget else lo
+    if lo > 0:
+        lo = _snap(cells, starts, lo + 1, min(first, lo + 16), forward=True)
+    if hi < total:
+        hi = _snap(cells, starts, hi - 1, max(last, hi - 16), forward=False)
+    source, carets = _join(cells, widths, lo, hi)
+    if lo > 0:
+        source = _ELLIPSIS + source
+        carets = " " + carets if carets else ""
+    if hi < total:
+        source += _ELLIPSIS
+    return source, carets
+
+
+def _snap(cells: list[tuple[str, bool]], starts: list[int], cut: int, limit: int, forward: bool) -> int:
+    """Move a cut column to the nearest word boundary between `cut` and
+    `limit`, so the window does not open or close inside a word."""
+    columns = range(cut, limit + 1) if forward else range(cut, limit - 1, -1)
+    for column in columns:
+        i = next((k for k, s in enumerate(starts) if s == column), None)
+        if i is None or i >= len(cells):
+            continue
+        if forward and i > 0 and cells[i - 1][0].isspace() and not cells[i][0].isspace():
+            return column
+        if not forward and cells[i][0].isspace() and i > 0 and not cells[i - 1][0].isspace():
+            return column
+    return cut
+
+
+def _join(cells: list[tuple[str, bool]], widths: list[int], lo: int, hi: int) -> tuple[str, str]:
+    """Cells that lie fully inside columns [lo, hi), printed and underlined."""
+    source: list[str] = []
+    carets: list[str] = []
+    column = 0
+    for (text, mark), w in zip(cells, widths):
+        if column >= lo and column + w <= hi:
+            source.append(text)
+            carets.append(("^" if mark else " ") * w)
+        column += w
+    return "".join(source), "".join(carets).rstrip()
 
 
 def summary_line(findings: list[Finding], word_count: int, vocab: Vocabulary | None = None) -> str:
