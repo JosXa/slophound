@@ -38,20 +38,19 @@ class CadenceTests(unittest.TestCase):
                 self.assertTrue(parallel_assertions(parts, list(self.nlp.pipe(parts))))
                 self.assertEqual([], self.lint(text))
 
-    def test_three_different_predicates_across_sentences_and_locations(self):
-        text = "# Status\n\n" + "\n\n".join((ORIGINAL, CLAUDE, GPT))
+    def test_two_different_predicates_across_sentences_and_locations(self):
+        text = "# Status\n\n" + "\n\n".join((ORIGINAL, CLAUDE))
         finding, = self.lint(text)
         self.assertEqual("sniff", finding.severity)
         self.assertEqual(ORIGINAL, text[finding.start:finding.end])
-        self.assertIn("3:1, 5:1, 7:1", finding.message)
+        self.assertIn("3:1, 5:1", finding.message)
 
     def test_window_boundary_and_dilution(self):
-        self.assertEqual([], self.lint(" ".join((ORIGINAL, CLAUDE))))
-        inside = " ".join([ORIGINAL, CLAUDE] + [FILLER] * 7 + [GPT])
-        outside = " ".join([ORIGINAL, CLAUDE] + [FILLER] * 8 + [GPT])
+        inside = " ".join([ORIGINAL] + [FILLER] * 48 + [CLAUDE])
+        outside = " ".join([ORIGINAL] + [FILLER] * 49 + [CLAUDE])
         self.assertEqual(1, len(self.lint(inside)))
         self.assertEqual([], self.lint(outside))
-        self.assertEqual(1, len(self.lint(" ".join([FILLER] * 30 + [ORIGINAL, CLAUDE, GPT]))))
+        self.assertEqual(1, len(self.lint(" ".join([FILLER] * 60 + [ORIGINAL, CLAUDE]))))
 
     def test_repeated_counterexamples_stay_silent(self):
         cases = [
@@ -67,14 +66,18 @@ class CadenceTests(unittest.TestCase):
         ]
         for text in cases:
             with self.subTest(text=text):
-                self.assertEqual([], self.lint(" ".join([text] * 3)))
+                self.assertEqual([], self.lint(" ".join([text] * 2)))
 
     def test_masked_examples_do_not_count(self):
         text = "\n".join((ORIGINAL, CLAUDE, GPT))
-        for masked in (f"```text\n{text}\n```", f"<!-- {text} -->", f'"{text}"'):
+        for masked in (f"```text\n{text}\n```", f"<!-- {text} -->", f"`{ORIGINAL}`\n\n`{CLAUDE}`"):
             with self.subTest(masked=masked):
                 self.assertEqual([], self.lint(masked))
-        self.assertEqual([], self.lint(ORIGINAL + "\n\n```text\n" + CLAUDE + "\n" + GPT + "\n```"))
+        self.assertEqual([], self.lint(ORIGINAL + "\n\n```text\n" + CLAUDE + "\n```"))
+        quoted = "\n".join(f"> {sentence}" for sentence in (ORIGINAL, CLAUDE))
+        engine = Engine([self.rule])
+        engine._nlp = self.nlp
+        self.assertEqual([], engine.lint_deterministic(build_document("quoted.md", quoted, skip_quotes=True)))
 
     def test_parser_stays_lazy_without_recurrence(self):
         engine = Engine([self.rule])

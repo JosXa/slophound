@@ -9,9 +9,9 @@
   "modern_claude_provenance": "The README row was independently verified. Other modern assistant excerpts retain the incomplete revision/truncation audit described in RESULTS.md.",
   "doc.parallel-clause-repeats": {
     "severity": "sniff",
-    "threshold": "Three qualifying sentences in any ten consecutive prose sentences",
+    "threshold": "At the time of this evaluation, three qualifying sentences in any ten consecutive prose sentences",
     "findings": 0,
-    "interpretation": "This conservative initial cutoff is not calibrated for recall. Tests combine real generated sentences into synthetic documents to exercise recurrence. Two-clause comparisons and subordinate clauses are excluded."
+    "interpretation": "This conservative initial cutoff was replaced by a second match within fifty consecutive prose sentences at the user's request. The zero-finding count was measured only at the earlier cutoff. Tests combine real generated sentences into synthetic documents to exercise recurrence. Two-clause comparisons and subordinate clauses are excluded."
   },
   "template.appended-backreference": {
     "severity": "bark",

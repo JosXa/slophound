@@ -320,7 +320,7 @@ def em_dash_density(doc: Document):
 
 @metric("parallel_clause_repeats", parsed=True)
 def parallel_clause_repeats(doc: Document, get_nlp):
-    """Most parallel triples in any ten consecutive prose sentences."""
+    """Most parallel triples in any fifty consecutive prose sentences."""
     from .cadence import clause_parts, parallel_assertions
 
     spans = _sentences(doc)
@@ -329,8 +329,8 @@ def parallel_clause_repeats(doc: Document, get_nlp):
         parts = clause_parts(doc.prose[start:end])
         if parts:
             candidates.append((index, parts))
-    # One or two balanced sentences are allowed. Do not load a parser for them.
-    if len(candidates) < 3:
+    # One balanced sentence is allowed. Do not load a parser for it.
+    if len(candidates) < 2:
         return 0, None, ""
     parsed = iter(get_nlp().pipe(
         [part for _, parts in candidates for part in parts], batch_size=32,
@@ -342,13 +342,13 @@ def parallel_clause_repeats(doc: Document, get_nlp):
             hits.append(index)
     best = []
     for position, index in enumerate(hits):
-        window = [hit for hit in hits[position:position + 10] if hit < index + 10]
+        window = [hit for hit in hits[position:position + 50] if hit < index + 50]
         if len(window) > len(best):
             best = window
     locations = ", ".join(f"{doc.line_col(spans[i][0])[0]}:{doc.line_col(spans[i][0])[1]}" for i in best)
     span = spans[best[0]] if best else None
     return len(best), span, (
-        f"{len(best)} parallel three-clause sentences within a ten-sentence window; "
+        f"{len(best)} parallel three-clause sentences within a fifty-sentence window; "
         f"line:column locations: {locations}"
     )
 

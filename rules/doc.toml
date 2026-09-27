@@ -22,7 +22,7 @@
 #                                               start with the same word
 #                     triad_density             "X, Y, and Z" lists per 100 words
 #                     parallel_clause_repeats   parallel three-clause sentences
-#                                               in any ten prose sentences;
+#                                               in any fifty prose sentences;
 #                                               parses candidates on demand
 #                     bold_label_bullets        bullets shaped "- **Label:** text"
 #                     connective_openers        paragraphs opening with However,
@@ -137,24 +137,22 @@ The service is fast and, since March, cheap. It handles retries and timeouts; du
 id = "doc.parallel-clause-repeats"
 severity = "sniff"
 metric = "parallel_clause_repeats"
-threshold = 3
-min_sentences = 3
-# Initial conservative setting: three occurrences in ten prose sentences.
-# Research established examples and counterexamples, not an optimal cutoff.
+# One occurrence per fifty consecutive prose sentences is allowed; a second
+# within that window makes the repeated rhythm worth reviewing.
 # The first two examples combine verbatim sentences from AGENTS.md and
 # Ghostbuster (wp/claude/477, wp/gpt/715, essay/claude/772); they are fixtures,
 # not claims that those sentences occurred together in a source document.
-message = "Several nearby sentences repeat the same three-clause rhythm: two subjects with the same predicate, then a third assertion. Keep parallel wording where it clarifies a comparison, but rewrite some of these sentences to vary the structure. Review the listed locations together."
+threshold = 2
+min_sentences = 2
+message = "Several sentences repeat the same three-clause rhythm: two subjects with the same predicate, then a third assertion. Keep parallel wording where it clarifies a comparison, but rewrite some of these sentences to vary the structure. Review the listed locations together."
 example = [
 '''
 Red means fix it, green means done, and the same text produces the same findings on every run.
 Conversations felt forced, laughter felt less frequent, and intimacy felt routine.
-Days turn into nights, nights turn into days, and you lose track of your own existence.
 ''',
 '''
 Conversations felt forced, laughter felt less frequent, and intimacy felt routine.
 The rational part loves truth and knowledge, the spirited part loves honor and victory, and the appetitive part loves bodily pleasures and material goods.
-The cache saves time, the queue saves work, and the service stays available when a worker restarts.
 ''',
 ]
 acceptable = [
