@@ -38,7 +38,7 @@ Detection runs in three layers, ordered from cheapest to most expensive:
 2. Part-of-speech and dependency parsing for constructions that regex cannot separate from legitimate use. "The worker holds a mutex" passes while "that holds even under load" fires. The difference is grammatical, so the rule is expressed grammatically.
 3. Document-level statistics for rhythm and repetition: sentence-length uniformity, repeated paragraph openers, triad density, em-dash density.
 
-Established NLP libraries carry layer two. They must load quickly on demand and release cleanly when the run ends, because an agent invokes the linter ad hoc and nothing stays resident between runs.
+Layer two uses established NLP libraries. They must load quickly on demand and release cleanly when the run ends, because an agent invokes the linter ad hoc and nothing stays resident between runs.
 
 The core must produce deterministic, explainable findings. It excludes language-model scoring, perplexity detectors, and external services.
 
@@ -46,7 +46,7 @@ The core must produce deterministic, explainable findings. It excludes language-
 
 ### Rules
 
-Rules live in TOML, split across files by the detection layer that executes them. Each file carries enough comments at the top that an agent can add or repair a rule without reading any other documentation.
+Rules live in TOML, split across files by the detection layer that executes them. Each file contains enough comments at the top that an agent can add or repair a rule without reading any other documentation.
 
 Every rule has:
 

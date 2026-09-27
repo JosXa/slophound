@@ -13,9 +13,55 @@ id = "punct.em-dash"
 severity = "bite"
 pattern = '\s?\u2014(?!\s*and\b)\s?|\s\u2013\s|\s--\s'
 headings = true
-message = "Em dash. Use a period, comma, colon, semicolon, parentheses, or \"because\", \"but\", \"so\". Split the thought if it needs splitting."
+message = """Em dash. Rewrite the sentence to state how its parts relate. Do not substitute a semicolon, spaced en dash, or double hyphen. \
+Choose a connective that preserves the meaning, without inventing a cause, contrast, condition, or timing. \
+Do not insert a comma mechanically before every connective. Examples by relationship: \
+Reason: "The request failed because the token expired." "Given that the replica is behind, read from the primary." \
+Consequence: "The token expired, so the client signed in again." "The replica is behind, which means its results may be stale." \
+Contrast: "The cache is fast, but its results can be stale." "The CLI prints errors, while the API returns them." \
+"The old endpoint accepts XML, whereas the new one accepts JSON." \
+Concession: "Although the cache is warm, the first query is slow." "The request succeeded even though the replica was offline." \
+Simultaneous action: "The worker checks the next file while the upload runs." "The index rebuilds at the same time as the backup runs." \
+Condition: "Retry if the server returns 503." "Keep the connection open unless the client disconnects." \
+Sequence: "After the upload finishes, delete the temporary file." "Check the signature before you extract the archive." \
+Addition: "The command checks syntax and reports unused imports." \
+Explanation: "The request needs one header, namely Authorization." \
+Detail: "The cache, which refreshes every minute, serves these reads." \
+Sometimes no connective is needed: "Counts signposts per 100 prose words, excluding short documents." \
+"The cache, once warm, serves most reads." "It failed twice." \
+Use separate sentences for separate instructions: "Save the file. Open the settings page." \
+Use commas or parentheses for an aside and a colon for an explanation or list only when the syntax calls for it. \
+Preserve an existing connective, removing the dash and adjusting spacing. Do not replace every dash with the same construction."""
 example = ["The cache\u2014once warm\u2014serves most reads.", "It failed \u2013 twice.", "It failed -- twice.", "We shipped\u2014andromeda is the release name.", "We shipped\u2014but the test failed."]
-acceptable = ["The cache, once warm, serves most reads.", "Pages 12\u201314 cover the setup.", "Use --verbose for more output.", "We built it \u2014 and shipped it.", "We built it\u2014and shipped it.", "We built it \u2014\nAND shipped it."]
+acceptable = [
+  "The cache, once warm, serves most reads.",
+  "Pages 12\u201314 cover the setup.",
+  "Use --verbose for more output.",
+  "We built it \u2014 and shipped it.",
+  "We built it\u2014and shipped it.",
+  "We built it \u2014\nAND shipped it.",
+  "The request failed because the token expired.",
+  "Given that the replica is behind, read from the primary.",
+  "The token expired, so the client signed in again.",
+  "The replica is behind, which means its results may be stale.",
+  "The cache is fast, but its results can be stale.",
+  "The CLI prints errors, while the API returns them.",
+  "The old endpoint accepts XML, whereas the new one accepts JSON.",
+  "Although the cache is warm, the first query is slow.",
+  "The request succeeded even though the replica was offline.",
+  "The worker checks the next file while the upload runs.",
+  "The index rebuilds at the same time as the backup runs.",
+  "Retry if the server returns 503.",
+  "Keep the connection open unless the client disconnects.",
+  "After the upload finishes, delete the temporary file.",
+  "Check the signature before you extract the archive.",
+  "The command checks syntax and reports unused imports.",
+  "The request needs one header, namely Authorization.",
+  "The cache, which refreshes every minute, serves these reads.",
+  "Counts signposts per 100 prose words, excluding short documents.",
+  "It failed twice.",
+  "Save the file. Open the settings page.",
+]
 most_common_in = ["gpt", "claude", "gemini"]
 
 [[rule]]
@@ -23,7 +69,7 @@ id = "punct.em-dash-and"
 severity = "bite"
 pattern = '\u2014\s*and\b'
 headings = true
-message = "Drop the em dash before 'and' entirely. Keep 'and' and a single space between the joined words; do not replace the dash with other punctuation."
+message = "Drop the em dash before 'and' entirely. Keep 'and' and a single space between the joined words. Do not replace the dash with a semicolon or other punctuation. For example, write \"We built it and shipped it.\""
 example = ["We built it \u2014 and shipped it.", "We built it\u2014and shipped it.", "We built it \u2014\tand shipped it.", "We built it \u2014\nAND shipped it."]
 acceptable = ["We built it and shipped it.", "We built it \u2014 but have not shipped it.", "We shipped\u2014andromeda is the release name.", "It failed \u2013 and retried.", "It failed -- and retried."]
 
@@ -69,9 +115,9 @@ acceptable = ["Fast, simple, and correct.", "The request goes to the queue, then
 id = "punct.semicolon-splice"
 severity = "bark"
 pattern = '''(?<!&)\b[a-z]+[)"'\]]*; +(?!(?:and|but|or|nor|so|yet|then|however|otherwise|therefore|thus|hence|instead|meanwhile|rather|e\.g|i\.e)\b)(?=(?-i:[a-z]))'''
-message = "Semicolon splice. This is the em dash you were told not to use, wearing a hat. The two halves relate somehow, and you know how, so say it: \"because\", \"but\", \"so\", \"and\". If they do not relate, a period. A semicolon earns its place only between clauses that mirror each other."
+message = "Semicolon joining clauses whose relationship could be stated directly. Replacing an em dash with a semicolon does not explain that relationship. Use 'because' or 'given that' for a reason, 'so' for a consequence, 'but' or 'whereas' for a contrast, 'although' for a concession, 'while' or 'at the same time as' for simultaneous action, 'if' for a condition, or 'and' for an addition. Choose only a relationship supported by the text. For example, write \"The cache is fast, but its results can be stale.\" Use a period for a separate thought. Keep a semicolon when it deliberately balances parallel clauses or separates list items containing commas."
 example = ["The cache is fast; it lies under load.", "Half the developers stay silent; they stopped caring long ago.", "The path is documented; what remains is choosing it."]
-acceptable = ["The cache is fast, but it lies under load.", "The cache is fast; but it lies under load.", "We ship on Monday; Tuesday is the retrospective.", "Fish &amp; chips and &#160; tea.", "Speakers: Ada Lovelace, London; Alan Turing, Manchester."]
+acceptable = ["The cache is fast, but it lies under load.", "The cache is fast, but its results can be stale.", "The cache is fast; but it lies under load.", "We ship on Monday; Tuesday is the retrospective.", "Fish &amp; chips and &#160; tea.", "Speakers: Ada Lovelace, London; Alan Turing, Manchester."]
 most_common_in = ["claude", "gpt", "gemini"]
 
 [rule.jev_veto]

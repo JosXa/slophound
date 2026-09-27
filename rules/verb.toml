@@ -328,12 +328,15 @@ acceptable = [
 # headers, ids, a signal on a wire) is fine, so the object lemma is the gate,
 # not the subject: "the field carries the reasoning" and "this carries risk"
 # are the same tell whether the subject is a noun or a demonstrative.
-# The second pattern covers dropdowns, roles and prevention strengths recorded
+# The second pattern covers comments, dropdowns, roles and prevention strengths
 # in documents. Require a document subject there to avoid transport and acting.
+# Library subjects also cover software layers without flagging physical layers
+# on substrates. In "layer two", spaCy makes "two" the object and "layer" its
+# compound, so numbered layers need a separate pattern.
 [[rule]]
 id = "verb.carries"
 severity = "bark"
-message = "Overused verb for content or abstract meaning (\"two dropdowns carry the decision\", \"each card carries the dropdowns\", \"this carries weight\"). Say what the thing records or shows, or what the person does: \"the dropdowns record the decision\", \"the card shows the dropdowns\", \"reviewers take this seriously\"."
+message = "Overused verb for content or abstract meaning (\"two dropdowns carry the decision\", \"each card carries the dropdowns\", \"this carries weight\"). Say what the thing records or shows, or what the person does: \"the dropdowns record the decision\", \"the card shows the dropdowns\", \"reviewers take this seriously\". For libraries that \"carry\" a software layer, say which libraries the layer uses."
 most_common_in = ["claude"]
 dependency = [
   [
@@ -343,8 +346,19 @@ dependency = [
   ],
   [
     { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
-    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { REGEX = "(?i)^(card|document|field|form|page|profile|record|row|rule|template)$" } } },
-    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["dropdown", "strength", "role"] } } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { REGEX = "(?i)^(card|document|field|file|form|page|profile|record|row|rule|template)$" } } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["comment", "dropdown", "strength", "role"] } } },
+  ],
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = "library" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = "layer" } },
+  ],
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = "library" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", POS = "NUM" } },
+    { LEFT_ID = "obj", REL_OP = ">", RIGHT_ID = "layer", RIGHT_ATTRS = { DEP = "compound", LEMMA = "layer" } },
   ],
 ]
 unless = "\\bcarr(y|ies|ied|ying) (the |a |an )?(signal|message)s? (to|from|over|across|through|between|on|into|out of|back)\\b|\\bcarr(y|ies|ied|ying) (a |the )?(risk|cost) of (\\d|[a-z]+ (percent|per cent|euros?|dollars?|ms|seconds?|minutes?))"
@@ -360,6 +374,9 @@ example = [
   "Each card carries the three dropdowns.",
   "The field carries the agent's permitted role.",
   "The Card carries the three dropdowns.",
+  "Established NLP libraries carry layer two.",
+  "The libraries carry the parsing layer.",
+  "Each file carries enough comments at the top that an agent can add or repair a rule without reading any other documentation.",
 ]
 acceptable = [
   "She carried the box upstairs.",
@@ -380,6 +397,11 @@ acceptable = [
   "She carries the reason for her departure in a sealed envelope.",
   "The lorry carries a dropdown tailgate.",
   "The rule carries over to the next release.",
+  "Layer two uses established NLP libraries.",
+  "The substrate carries a protective layer.",
+  "The libraries carry books on parsing.",
+  "Each file contains enough comments at the top that an agent can add or repair a rule without reading any other documentation.",
+  "She carries a file of comments to the meeting.",
   # RFC 7231, section 5.4: literal transport of credentials.
   "Two header fields are used for carrying authentication credentials, as defined in [RFC7235].",
 ]
