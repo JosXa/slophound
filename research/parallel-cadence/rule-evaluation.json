@@ -1,0 +1,47 @@
+{
+  "date": "2026-09-27",
+  "selection": "The same selected texts as RESULTS.md: 200–5,000 masked prose words, at most 1,000 texts per source/model group.",
+  "texts": 9238,
+  "source_revisions": {
+    "ghostbuster": "86ebd72590556a81622986fab736ab9227a948af",
+    "rust_rfcs": "16f3bc024bdef9db7502ffbefeb602c37cee20bf"
+  },
+  "modern_claude_provenance": "The README row was independently verified. Other modern assistant excerpts retain the incomplete revision/truncation audit described in RESULTS.md.",
+  "doc.parallel-clause-repeats": {
+    "severity": "sniff",
+    "threshold": "Three qualifying sentences in any ten consecutive prose sentences",
+    "findings": 0,
+    "interpretation": "This conservative initial cutoff is not calibrated for recall. Tests combine real generated sentences into synthetic documents to exercise recurrence. Two-clause comparisons and subordinate clauses are excluded."
+  },
+  "template.appended-backreference": {
+    "severity": "bark",
+    "findings": 16,
+    "by_group": {
+      "ghostbuster/essay/claude": 1,
+      "ghostbuster/essay/gpt": 4,
+      "ghostbuster/essay/human": 4,
+      "ghostbuster/reuter/gpt": 6,
+      "rust/historical": 1
+    },
+    "review": "All 16 excerpts were read. These are requests to reconsider a sentence structure, not grammar errors or authorship classifications. The nominal-definition branch recognizes an appended 'and it' clause; it does not resolve the pronoun's referent and also includes nonreferential uses of 'it'. The warning describes the surface structure and presents forward generation as a possible explanation.",
+    "discarded_design": "The broader copular-introduction pattern produced 190 findings, including unrelated plural subjects, embedded clauses, and conditional clauses. The final nominal-definition branch requires an article, a singular copula, and no intervening clause punctuation.",
+    "technical_match": {
+      "source": "https://github.com/rust-lang/rfcs/blob/16f3bc024bdef9db7502ffbefeb602c37cee20bf/text/2845-supertrait-item-shadowing.md#L254",
+      "text": "Using `self.foo()` is an error today, and it is reasonable to expect it to be, since it is not clear which trait it refers to.",
+      "interpretation": "Nonreferential 'it'; an advisory about the appended assertion, not evidence of an incorrect pronoun or machine authorship."
+    }
+  },
+  "checks": {
+    "focused_regression_tests": "7 passed",
+    "isolated_unit_and_distribution_tests": "66 passed on the staged changes, excluding concurrent work",
+    "slophound_test": "161 passed, 0 failed after noun-parser corrections; the original CORPORA.md wording remains unchanged",
+    "required_docs_lint": "README.md, AGENTS.md, and docs/*.md: exit 0",
+    "diff_check": "passed"
+  },
+  "retained_document_advisories": [
+    {"path": "CORPORA.md", "line": 18, "rule": "doc.repeated-paragraph-opener", "reason": "Repeated Dataset and source-navigation labels are intentional."},
+    {"path": "CORPORA.md", "line": 116, "rule": "noun.cluster-three", "text": "These collections record work in software repositories.", "reason": "The parser mistakes the finite verb record for a noun; the legitimate sentence is preserved."},
+    {"path": "research/parallel-cadence/RESULTS.md", "line": 31, "rule": "noun.cluster-three", "text": "The counts measure candidates, not confirmed writing defects.", "reason": "The parser mistakes the finite verb measure for a noun; the legitimate sentence is preserved."},
+    {"path": "research/parallel-cadence/RESULTS.md", "line": 56, "rule": "doc.repeated-paragraph-opener", "reason": "Repeated Claude, creative source labels are intentional."}
+  ]
+}

@@ -16,7 +16,7 @@ Python scripts run through `uv`; rules in TOML.
 
 Agents cannot see the slop they wrote. The same model that produced `this buys us a week of headroom` will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist spends reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
 
-A deterministic linter removes the judgement call. Red means fix it, green means done, and the same text produces the same findings on every run. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. We don't preclude eventually adding an LLM to the mix, but for now it remains a deterministic set of NLP tools that report typical AI-isms.
+A deterministic linter removes the judgement call. It produces the same findings for the same text on every run. Red findings need a fix. A green report means the checks passed. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. We don't preclude eventually adding an LLM to the mix, but for now it remains a deterministic set of NLP tools that report typical AI-isms.
 
 The goal is text that people do not mind reading. Whether a machine wrote it is nobody's business.
 
@@ -40,9 +40,9 @@ Detection runs in three layers, ordered from cheapest to most expensive:
 
 Established NLP libraries carry layer two. They must load quickly on demand and release cleanly when the run ends, because an agent invokes the linter ad hoc and nothing stays resident between runs.
 
-No language-model scoring, perplexity detectors, or external services in the core. Those are neither deterministic nor explainable, and both properties are the point.
+The core must produce deterministic, explainable findings. It excludes language-model scoring, perplexity detectors, and external services.
 
-[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the one exception, and it stays outside the core: it answers typed yes/no, choice, and score questions about a sentence and generates no text. Use it for checks that cannot be expressed deterministically (is this comparison a borrowed metaphor, is this coined label defined anywhere), or as the decider for edge cases that spaCy and the other NLP tools cannot settle (is "database connection pool" one established term or three stacked nouns). Everything that a regex, a parse, or a count can decide stays in the deterministic layers. Jev runs whenever a key is configured and is silent when none is. It never creates a finding. It decides whether a deterministic finding stands, at any severity. A rule declares the question it wants asked in its TOML.
+[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the sole exception and runs outside the core: it answers typed yes/no, choice, and score questions about a sentence and generates no text. Use it for checks that cannot be expressed deterministically (is this comparison a borrowed metaphor, is this coined label defined anywhere), or as the decider for edge cases that spaCy and the other NLP tools cannot settle (is "database connection pool" one established term or three stacked nouns). Everything that a regex, a parse, or a count can decide stays in the deterministic layers. Jev runs whenever a key is configured and is silent when none is. It never creates a finding. It decides whether a deterministic finding stands, at any severity. A rule declares the question it wants asked in its TOML.
 
 ### Rules
 

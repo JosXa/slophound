@@ -21,6 +21,9 @@
 #                                               sentences in one paragraph that
 #                                               start with the same word
 #                     triad_density             "X, Y, and Z" lists per 100 words
+#                     parallel_clause_repeats   parallel three-clause sentences
+#                                               in any ten prose sentences;
+#                                               parses candidates on demand
 #                     bold_label_bullets        bullets shaped "- **Label:** text"
 #                     connective_openers        paragraphs opening with However,
 #                                               Moreover, Ultimately, ...
@@ -127,6 +130,41 @@ The service is fast, reliable, and cheap. It handles retries, timeouts, and dupl
 acceptable = [
 '''
 The service is fast and, since March, cheap. It handles retries and timeouts; duplicates are the caller's problem for now. Operators get a dashboard and a pager. The team sleeps better, which was the point.
+''',
+]
+
+[[rule]]
+id = "doc.parallel-clause-repeats"
+severity = "sniff"
+metric = "parallel_clause_repeats"
+threshold = 3
+min_sentences = 3
+# Initial conservative setting: three occurrences in ten prose sentences.
+# Research established examples and counterexamples, not an optimal cutoff.
+# The first two examples combine verbatim sentences from AGENTS.md and
+# Ghostbuster (wp/claude/477, wp/gpt/715, essay/claude/772); they are fixtures,
+# not claims that those sentences occurred together in a source document.
+message = "Several nearby sentences repeat the same three-clause rhythm: two subjects with the same predicate, then a third assertion. Keep parallel wording where it clarifies a comparison, but rewrite some of these sentences to vary the structure. Review the listed locations together."
+example = [
+'''
+Red means fix it, green means done, and the same text produces the same findings on every run.
+Conversations felt forced, laughter felt less frequent, and intimacy felt routine.
+Days turn into nights, nights turn into days, and you lose track of your own existence.
+''',
+'''
+Conversations felt forced, laughter felt less frequent, and intimacy felt routine.
+The rational part loves truth and knowledge, the spirited part loves honor and victory, and the appetitive part loves bodily pleasures and material goods.
+The cache saves time, the queue saves work, and the service stays available when a worker restarts.
+''',
+]
+acceptable = [
+"Red means fix it, green means done, and the same text produces the same findings on every run.",
+"Conversations felt forced, laughter felt less frequent, and intimacy felt routine.",
+"Her daughter needed medicine, and Jill needed a miracle.",
+"The rate for October was 14.9 million, and the rate for November 1995 was 14.8 million.",
+"Venison is a phrase that relates to deer meat, which is a type of red meat.",
+'''
+The cache saves time by keeping recent records nearby. Workers read queued jobs after the scheduler assigns them. The service can survive a worker restart without losing pending work.
 ''',
 ]
 

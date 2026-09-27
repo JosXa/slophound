@@ -182,7 +182,7 @@ There is no ignore file and no inline suppression comment. Keep legitimate wordi
 
 ## Contributing
 
-Changes and ideas are welcome. See [Contributing](CONTRIBUTING.md) for the review process.
+Changes and ideas are welcome. See [Contributing](CONTRIBUTING.md) for the review process and [Corpora](CORPORA.md) for datasets to investigate rules and measure false positives.
 
 Enable the pre-commit hook once per clone so your own Markdown gets linted:
 

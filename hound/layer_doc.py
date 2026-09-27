@@ -3,8 +3,8 @@
 Each rule names a metric and a threshold. A metric receives the document and
 returns a value plus the span the finding should point at. The rule fires when
 `value >= threshold` (or `value <= threshold` for metrics registered as
-"lower is worse"). Rules also carry minimum sentence or paragraph counts so a
-three-line note is never judged on rhythm.
+"lower is worse"). Rules can require minimum sentence or paragraph counts
+before measuring rhythm.
 """
 
 from __future__ import annotations
@@ -18,14 +18,14 @@ from .masking import Document
 from .model import Finding, Rule
 from .sentences import split_block, words
 
-# metric name -> (function, fires_when_at_least)
-MetricFn = Callable[[Document], tuple[float, tuple[int, int] | None, str]]
-METRICS: dict[str, tuple[MetricFn, bool]] = {}
+# metric name -> (function, fires_when_at_least, accepts_lazy_parser)
+MetricFn = Callable[..., tuple[float, tuple[int, int] | None, str]]
+METRICS: dict[str, tuple[MetricFn, bool, bool]] = {}
 
 
-def metric(name: str, at_least: bool = True):
+def metric(name: str, at_least: bool = True, parsed: bool = False):
     def deco(fn: MetricFn):
-        METRICS[name] = (fn, at_least)
+        METRICS[name] = (fn, at_least, parsed)
         return fn
 
     return deco
@@ -318,7 +318,42 @@ def em_dash_density(doc: Document):
     return n / n_words * 100, None, f"{n} em dashes in {n_words} words"
 
 
-def run(doc: Document, rules: list[Rule]) -> list[Finding]:
+@metric("parallel_clause_repeats", parsed=True)
+def parallel_clause_repeats(doc: Document, get_nlp):
+    """Most parallel triples in any ten consecutive prose sentences."""
+    from .cadence import clause_parts, parallel_assertions
+
+    spans = _sentences(doc)
+    candidates = []
+    for index, (start, end) in enumerate(spans):
+        parts = clause_parts(doc.prose[start:end])
+        if parts:
+            candidates.append((index, parts))
+    # One or two balanced sentences are allowed. Do not load a parser for them.
+    if len(candidates) < 3:
+        return 0, None, ""
+    parsed = iter(get_nlp().pipe(
+        [part for _, parts in candidates for part in parts], batch_size=32,
+    ))
+    hits = []
+    for index, parts in candidates:
+        clauses = [next(parsed) for _ in parts]
+        if parallel_assertions(parts, clauses):
+            hits.append(index)
+    best = []
+    for position, index in enumerate(hits):
+        window = [hit for hit in hits[position:position + 10] if hit < index + 10]
+        if len(window) > len(best):
+            best = window
+    locations = ", ".join(f"{doc.line_col(spans[i][0])[0]}:{doc.line_col(spans[i][0])[1]}" for i in best)
+    span = spans[best[0]] if best else None
+    return len(best), span, (
+        f"{len(best)} parallel three-clause sentences within a ten-sentence window; "
+        f"line:column locations: {locations}"
+    )
+
+
+def run(doc: Document, rules: list[Rule], get_nlp) -> list[Finding]:
     findings: list[Finding] = []
     n_sentences = len(_sentences(doc))
     n_paragraphs = len(_paragraphs(doc))
@@ -327,8 +362,8 @@ def run(doc: Document, rules: list[Rule]) -> list[Finding]:
             raise ValueError(f"{rule.id}: unknown metric {rule.metric!r}; known: {sorted(METRICS)}")
         if n_sentences < rule.min_sentences or n_paragraphs < rule.min_paragraphs:
             continue
-        fn, at_least = METRICS[rule.metric]
-        value, span, detail = fn(doc)
+        fn, at_least, parsed = METRICS[rule.metric]
+        value, span, detail = fn(doc, get_nlp) if parsed else fn(doc)
         fires = value >= rule.threshold if at_least else value <= rule.threshold
         if not fires:
             continue

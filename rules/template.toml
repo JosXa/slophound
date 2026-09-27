@@ -53,6 +53,47 @@ acceptable = ["No retries were needed during the test window, which surprised th
 most_common_in = ["claude"]
 
 [[rule]]
+id = "template.appended-backreference"
+severity = "bark"
+sentence_start = true
+# Two named items followed by a collective reference, or a nominal definition
+# ("Jev is the one exception") resumed with "and it". A general "X is ... and
+# it" pattern also matched unrelated referents in the corpus, so this branch
+# requires an article after the copula and no intervening clause punctuation.
+# Shared predicates ("runs ... and is silent ...") are outside this pattern.
+pattern = '\S[^.!?;]{0,240}\b(?:and|or|nor)\b[^.!?;]{1,120},\s+and\s+(?:both|these|those|all\s+(?:of\s+)?(?:these|those|them))\b|\[?(?!(?:i|we|you|he|she|it|they|there|this|that|if|when|since|although|because)\b)[a-z][\w\x27-]*(?:\s+[a-z][\w\x27-]*){0,5}\s+(?:is|was)\s+(?:a|an|the)\s+[^,.:;!?]{1,120},\s+and\s+it\b'
+message = "The sentence introduces material, then appends an 'and these/both/it ...' clause. This may reflect generating forward and adding a thought without revising the opening. Give the whole sentence another pass: lead with the relationship between the named things, or share the subject instead of repeating it as a pronoun."
+example = [
+  "Those are neither deterministic nor explainable, and both properties are the point.",
+  "The results are deterministic and explainable, and both properties are required by the API contract.",
+  "The API offers retries and timeouts, and these features can be configured separately.",
+  "We inspected the reader and writer, and those components share a lock.",
+  "We support JSON and YAML, and all of these formats use the same schema.",
+  "Clients can choose JSON or YAML, and both formats use the same schema.",
+  "We support JSON and YAML, and all those formats use the same schema.",
+  "We checked the reader and writer, and all of them passed.",
+  "Jev is the one exception, and it stays outside the core: it answers typed questions.",
+  "The worker is the primary consumer, and it can accept new jobs.",
+  "The worker was a primary consumer, and it handled every queued job.",
+  "The cache is an optional component, and it stores recent results.",
+  "The results are deterministic and explainable,\nand both properties are required by the API contract.",
+]
+acceptable = [
+  "The API contract requires deterministic and explainable results.",
+  "Retries and timeouts can be configured separately.",
+  "Jev is the sole exception and runs outside the core.",
+  "Jev runs whenever a key is configured and is silent when none is.",
+  "The rate for October was 14.9 million, and the rate for November 1995 was 14.8 million.",
+  "Her daughter needed medicine, and Jill needed a miracle.",
+  "The reader and writer share a lock. Both components release it before waiting.",
+  "These features can be configured separately.",
+  "It is cold, and it is raining.",
+  "The sun was going to set in about thirty minutes or so, and they never missed a sunset together.",
+  "If an identifier is from a less-common script group, and it is entirely confusable with the majority script in use, reject it.",
+  "The API offers retries and timeouts, and the CLI displays their settings.",
+]
+
+[[rule]]
 id = "template.stacked-anaphora"
 severity = "bite"
 pattern = "(^|(?<=[.!?] ))(no|not|every|it's|it is|they|we|you) [^.!?\\n]{1,40}\\. \\2 [^.!?\\n]{1,40}\\. \\2 \\b"

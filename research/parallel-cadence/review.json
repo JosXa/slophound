@@ -1,0 +1,37 @@
+{
+  "purpose": "Manual construction review of all 28 surface_short_short_long candidates. Labels describe syntax, not prose quality.",
+  "source_revisions": {
+    "ghostbuster": "86ebd72590556a81622986fab736ab9227a948af",
+    "rust": "16f3bc024bdef9db7502ffbefeb602c37cee20bf"
+  },
+  "candidates": [
+    {"id": "essay/claude/654.txt", "start": 2453, "classification": "noun_list", "note": "Repeats DNA, not a predicate."},
+    {"id": "essay/gpt/622.txt", "start": 1588, "classification": "parenthetical_list", "note": "Repeats health inside a parenthetical example."},
+    {"id": "essay/gpt/745.txt", "start": 4712, "classification": "noun_list", "note": "Three noun phrases share a later predicate."},
+    {"id": "essay/gpt/588.txt", "start": 2814, "classification": "gerund_list", "note": "Repeats digital, not a predicate."},
+    {"id": "essay/gpt/920.txt", "start": 3255, "classification": "repeated_passive_auxiliary", "note": "Converted and transformed differ; is and into repeat."},
+    {"id": "essay/gpt/956.txt", "start": 2986, "classification": "noun_list", "note": "Repeats healthcare."},
+    {"id": "essay/gpt/309.txt", "start": 4158, "classification": "noun_list", "note": "Repeats tests."},
+    {"id": "wp/claude/862.txt", "start": 1143, "classification": "repeated_predicate_long_tail", "note": "Possessive have repeats. Parser mistakes have scaled for an auxiliary and verb."},
+    {"id": "wp/claude/240.txt", "start": 390, "classification": "repeated_be_long_tail", "note": "Were in bed and were done establish the same cadence despite a passive parse of the latter."},
+    {"id": "wp/gpt/297.txt", "start": 2845, "classification": "elliptical_progression", "note": "Turned is omitted from the second piece."},
+    {"id": "wp/gpt/715.txt", "start": 2830, "classification": "repeated_predicate_long_tail", "note": "Turn repeats with different subjects."},
+    {"id": "wp/gpt/747.txt", "start": 51, "classification": "three_different_predicates", "note": "Frozen scene; mid repeats as a word fragment, not a verb."},
+    {"id": "wp/gpt/714.txt", "start": 1427, "classification": "repeated_be_long_tail", "note": "Were repeats before adjectives."},
+    {"id": "wp/gpt/889.txt", "start": 3258, "classification": "repeated_predicate_long_tail", "note": "Turned repeats in a progression."},
+    {"id": "wp/gpt/147.txt", "start": 3439, "classification": "elliptical_progression", "note": "Turned is omitted from later pieces."},
+    {"id": "wp/gpt/863.txt", "start": 655, "classification": "repeated_be_long_tail", "note": "Were repeats across all three clauses."},
+    {"id": "wp/gpt/947.txt", "start": 2318, "classification": "repeated_passive_auxiliary", "note": "Cast and released differ; were repeats."},
+    {"id": "wp/gpt/515.txt", "start": 2752, "classification": "relative_clause_progression", "note": "Which introduces a relative clause, not an independent second assertion."},
+    {"id": "wp/gpt/421.txt", "start": 77, "classification": "repeated_be_long_tail", "note": "Isn't repeats; tokenizer contraction handling prevents parsed confirmation."},
+    {"id": "wp/gpt/708.txt", "start": 2706, "classification": "repeated_be_long_tail", "note": "Were real and were at risk use comparable predication."},
+    {"id": "wp/human/797.txt", "start": 781, "classification": "related_meaning_different_predicates", "note": "The surface match is about. Caring and care are inflections of the same lemma but occupy different constructions."},
+    {"id": "wp/human/876.txt", "start": 3267, "classification": "elliptical_progression", "note": "Stretched is omitted from the second piece."},
+    {"id": "wp/human/624.txt", "start": 298, "classification": "repeated_be_long_tail", "note": "Human counterexample to treating the shape as an authorship signal."},
+    {"id": "wp/human/12.txt", "start": 1243, "classification": "shared_subject_different_predicates", "note": "Handed, told, watched; me is the repeated surface word."},
+    {"id": "text/0560-integer-overflow.md", "start": 16504, "classification": "subordinate_condition_and_passive", "note": "Where they are not introduces a condition; the later are is passive."},
+    {"id": "reuter/gpt/LydiaZajc/18.txt", "start": 2322, "classification": "shared_referent_auxiliary_sequence", "note": "Banks and they have the same referent; are alternates between copula and progressive auxiliary."},
+    {"id": "reuter/gpt/JoeOrtiz/20.txt", "start": 562, "classification": "shared_subject_auxiliary_sequence", "note": "Later pieces omit the subject and alternate copular and passive uses of are."},
+    {"id": "reuter/gpt/BenjaminKangLim/9.txt", "start": 2087, "classification": "subordinate_comparison", "note": "Relationship is the repeated noun; final piece has no separate subject."}
+  ]
+}

@@ -33,7 +33,7 @@ class Engine:
         if spacy_rules:
             findings.extend(layer_spacy.run(doc, spacy_rules, self.nlp))
         if doc_rules:
-            findings.extend(layer_doc.run(doc, doc_rules))
+            findings.extend(layer_doc.run(doc, doc_rules, lambda: self.nlp))
         return _dedupe(findings)
 
 
