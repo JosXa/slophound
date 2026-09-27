@@ -20,6 +20,8 @@
 #                  the prose view; a wrapped line alone is not a sentence start.
 #   message        Full explanation plus the fix. The reader never needs to look
 #                  anything else up.
+#   repeat_message Optional short reminder for later findings of the same rule
+#                  in one CLI run, including findings in subsequent files.
 #   example        One or more sentences the rule MUST fire on.
 #   acceptable     One or more sentences the rule MUST NOT fire on. Required: a
 #                  rule that cannot name a legitimate near miss is a blacklist.

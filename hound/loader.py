@@ -81,6 +81,11 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
     message = raw.get("message")
     if not isinstance(message, str) or not message.strip():
         raise RuleError(f"{where}: message is required")
+    repeat_message = raw.get("repeat_message")
+    if "repeat_message" in raw:
+        if not isinstance(repeat_message, str) or not repeat_message.strip():
+            raise RuleError(f"{where}: repeat_message must be a nonempty string")
+        repeat_message = repeat_message.strip()
 
     try:
         example = _as_list(raw.get("example", []))
@@ -98,6 +103,7 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         category=category,
         severity=severity,
         message=message.strip(),
+        repeat_message=repeat_message,
         example=example,
         acceptable=acceptable,
         source_file=path,

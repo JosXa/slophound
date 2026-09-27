@@ -23,6 +23,7 @@ from pathlib import Path
 from unittest import mock
 
 from hound.masking import build_document
+from hound.loader import RuleError, _build_rule, load_rules
 from hound.model import BARK, BITE, SNIFF, Finding, Rule
 from hound.report import Vocabulary, render
 
@@ -109,6 +110,65 @@ class SingleLineFindings(unittest.TestCase):
             "  Message.\n"
             "\n",
         )
+
+
+class RepeatedGuidance(unittest.TestCase):
+    def test_first_in_source_order_gets_full_message(self) -> None:
+        text = "One.\nTwo.\n"
+        rule = _rule("punct.test", BITE, "Full guidance with examples.")
+        rule.repeat_message = "Short reminder."
+        first = Finding(rule, 0, 3)
+        second = Finding(rule, 5, 8)
+        expected = (
+            "draft.md:1:1  bite   punct.test\n"
+            "  One.\n"
+            "  ^^^\n"
+            "  Full guidance with examples.\n\n"
+            "draft.md:2:1  bite   punct.test\n"
+            "  Two.\n"
+            "  ^^^\n"
+            "  Short reminder.\n\n"
+        )
+        self.assertEqual(_render(text, second, first), expected)
+        self.assertEqual(_render(text, second, first), expected)
+
+    def test_rules_without_reminders_and_finding_details_stay_complete(self) -> None:
+        text = "One.\nTwo.\n"
+        rule = _rule("doc.test", SNIFF)
+        findings = [Finding(rule, 0, 3), Finding(rule, 5, 8)]
+        self.assertEqual(_render(text, *findings).count("  Message.\n"), 2)
+        rule.repeat_message = "Short reminder."
+        findings[1].detail = "Measured value for this finding."
+        out = _render(text, *findings)
+        self.assertIn("  Message.\n", out)
+        self.assertIn("  Measured value for this finding.\n", out)
+        self.assertNotIn("Short reminder.", out)
+
+    def test_cli_prints_em_dash_examples_once_across_files_and_resets_next_run(self) -> None:
+        from hound.cli import main
+
+        rule = next(r for r in load_rules() if r.id == "punct.em-dash")
+        inputs = {
+            "first.md": "We built it \u2014 and shipped it.\n\nIt failed\u2014twice.\nIt stopped\u2014again.\n",
+            "second.md": "It failed\u2014again.\n",
+        }
+        for _ in range(2):
+            buf = io.StringIO()
+            with mock.patch("hound.cli.read_input", side_effect=lambda p: (p, inputs[p])), mock.patch("sys.stdout", buf):
+                code = main(["--only", "punct.em-dash,punct.em-dash-and", "--no-footer", *inputs])
+            out = buf.getvalue()
+            self.assertEqual(code, 1)
+            self.assertEqual(out.count(rule.message), 1)
+            self.assertEqual(out.count(rule.repeat_message), 2)
+            self.assertIn("first.md:3:10  bite   punct.em-dash\n", out)
+            self.assertIn("second.md:1:10  bite   punct.em-dash\n", out)
+            self.assertIn("4 bites, 0 barks, 0 sniffs", out)
+
+    def test_loader_rejects_invalid_repeat_message(self) -> None:
+        raw = dict(id="punct.test", severity=BITE, message="Message.", pattern="x", example=["x"], acceptable=["y"])
+        for value in (None, "", "   ", 1, ["Reminder."]):
+            with self.subTest(value=value), self.assertRaisesRegex(RuleError, "repeat_message"):
+                _build_rule({**raw, "repeat_message": value}, "punct", Path("rules/test.toml"))
 
 
 class FindingsAcrossLineBreaks(unittest.TestCase):

@@ -143,12 +143,13 @@ def main(argv: list[str] | None = None) -> int:
     all_findings: list[Finding] = []
     total_words = 0
     rule_files: dict[str, None] = {}
+    seen_rules: set[str] = set()
     try:
         for path in args.paths:
             name, text = read_input(path)
             doc = build_document(name, text, skip_quotes=args.skip_quotes)
             findings = engine.lint(doc)
-            render(doc, findings, vocab=vocab)
+            render(doc, findings, vocab=vocab, seen_rules=seen_rules)
             all_findings.extend(findings)
             total_words += doc.word_count()
             for f in findings:

@@ -101,7 +101,12 @@ def render(
     stream=None,
     vocab: Vocabulary | None = None,
     width: int | None = None,
+    seen_rules: set[str] | None = None,
 ) -> None:
+    # The CLI shares this set across files so examples appear once per run.
+    # Standalone renders start a fresh report unless the caller shares a set.
+    if seen_rules is None:
+        seen_rules = set()
     stream = stream or sys.stdout
     vocab = vocab or Vocabulary(formal_requested())
     pal = Palette(_use_color(stream))
@@ -119,7 +124,12 @@ def render(
             stream.write(f"{_INDENT}{source}\n")
             if marker:
                 stream.write(f"{_INDENT}{pal.dim(marker)}\n")
-        stream.write(f"{_INDENT}{f.message}\n\n")
+        message = f.message
+        if not f.detail:
+            if f.rule.id in seen_rules and f.rule.repeat_message:
+                message = f.rule.repeat_message
+            seen_rules.add(f.rule.id)
+        stream.write(f"{_INDENT}{message}\n\n")
 
 
 def _source_lines(doc: Document, f: Finding, budget: int) -> list[tuple[str, str]]:

@@ -327,7 +327,7 @@ class AutomaticTermChecks(IsolatedConfig):
         factory.assert_not_called()
         self.assertEqual((1, ""), (code, err))
         self.assertIn("bark   punct.semicolon-splice", out)
-        self.assertIn("wearing a hat", out)
+        self.assertIn("Replacing an em dash with a semicolon does not explain that relationship.", out)
         save_jev_key(KEY)
         requests = self.responses(lambda key: 0.95)
         code, out, err = self.cli(*args, stdin=text)

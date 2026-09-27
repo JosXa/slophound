@@ -59,6 +59,8 @@ class Rule:
     headings: bool = False
     # A high-confidence yes can remove a sniff after deterministic detection.
     jev_veto: JevVeto | None = None
+    # Short reminder after the full message has appeared in the current report.
+    repeat_message: str | None = None
 
 
 @dataclass

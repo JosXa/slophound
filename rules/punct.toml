@@ -32,6 +32,7 @@ Sometimes no connective is needed: "Counts signposts per 100 prose words, exclud
 Use separate sentences for separate instructions: "Save the file. Open the settings page." \
 Use commas or parentheses for an aside and a colon for an explanation or list only when the syntax calls for it. \
 Preserve an existing connective, removing the dash and adjusting spacing. Do not replace every dash with the same construction."""
+repeat_message = "Em dash. State the relationship with a suitable connective or split the sentence. Preserve the meaning. Do not substitute a semicolon. See the examples at the first punct.em-dash finding in this report."
 example = ["The cache\u2014once warm\u2014serves most reads.", "It failed \u2013 twice.", "It failed -- twice.", "We shipped\u2014andromeda is the release name.", "We shipped\u2014but the test failed."]
 acceptable = [
   "The cache, once warm, serves most reads.",
