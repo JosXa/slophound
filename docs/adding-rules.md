@@ -9,8 +9,8 @@ Contract: a rule ships only when `./slophound test` is green, the repo's own doc
 A rule usually catches a construction a model produces where a person would have written something plainer. Use origin, source, or history instead of `provenance`, as appropriate. Existing code and quotation masking still applies.
 
 - Bare words are blacklists. `robust`, `never`, `sits`, `actually`, `framework` appear in human technical prose at the same rate as in generated prose. Gate a word with the company it keeps: `the shape of the problem`, `sits at the intersection of`, `buys us`. If the only pattern you can write is one word, you have a vocabulary preference and not a rule.
-- Register is not slop. Passive voice, formal vocabulary (`commence`, `sufficient`), and long sentences were measured on the human corpus and on generated text, and both fired at the same rate. Those rules were deleted. If a candidate would flag good human writing as often as generated writing, drop it.
-- One occurrence has to be wrong on its own for a phrase or template rule. If a construction is fine once and tiresome at three, it is a document statistic (`doc.*`), and the rule is a threshold on a metric in `hound/layer_doc.py`.
+- Register is not slop. Tests of passive voice, formal vocabulary (`commence`, `sufficient`), and long sentences flagged human and generated prose at the same rate. Those rules were deleted. If a candidate would flag good human writing as often as generated writing, drop it.
+- One occurrence has to be wrong on its own for a phrase or template rule. If a construction is fine once but tiresome when repeated, it is a document statistic (`doc.*`), and the rule is a threshold on a metric in `hound/layer_doc.py`.
 - The example must come from somewhere. The best source is a sentence a model wrote, ideally one you or the user just caught. Upstream catalogs (unsloppify, unslop, antislop lists) are candidates to probe, never lists to paste: most of them are fiction register or bare words.
 
 ## Which tier
