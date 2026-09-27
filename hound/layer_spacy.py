@@ -104,27 +104,43 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
             # for the reader. Noun-cluster rules leave those alone.
             if rule.category == "noun" and "-" in doc.prose[start:end]:
                 continue
-            if rule.category == "noun" and any(_cannot_be_noun(t.text) for t in tokens):
+            # Include intervening tokens: a smaller matcher pattern can omit
+            # the mis-tagged verb while still joining nouns on either side.
+            if rule.category == "noun" and any(
+                _cannot_be_noun(t.text) for t in parsed[min(token_ids):max(token_ids) + 1]
+            ):
                 continue
+            if rule.category == "noun" and any(t.lower_.endswith("ing") for t in tokens):
+                # Surrounding lists can make the small model read a participle
+                # and its object as compound nouns. If the isolated span has
+                # that verbal reading, the noun-cluster finding is uncertain.
+                isolated = nlp(doc.prose[start:end])
+                if any(
+                    t.pos_ == "VERB" and t.tag_ == "VBG"
+                    and any(child.dep_ == "dobj" for child in t.children)
+                    for t in isolated
+                ):
+                    continue
             marks = sorted((block.start + t.idx, block.start + t.idx + len(t.text)) for t in tokens)
             findings.append(Finding(rule, start, end, marks=marks))
     return _shadow_weaker(_merge_overlaps(findings))
 
 
 def _cannot_be_noun(word: str) -> bool:
-    """True when the lexicon lists the word as an adjective and never as a noun.
+    """True for a known adjective or verb with no noun reading.
 
     The small parser tags an adjective in front of a noun pair as a third noun
-    ("concise conversion notes" -> concise/NOUN). A morphological lexicon is an
-    independent second opinion: it knows "concise" and "robust" have no noun
-    reading, while "primary" or "light" do and keep the parser's call. Words
+    ("concise conversion notes" -> concise/NOUN), or a finite verb as a
+    compound ("documentation weaken attribution"). A morphological lexicon
+    knows "concise" and "weaken" have no noun reading, while "primary" or
+    "build" do and keep the parser's call. Words
     the lexicon has never seen return False, so this check can only silence a
     finding, never create one.
     """
     from lemminflect import getAllLemmas
 
     lemmas = getAllLemmas(word.lower())
-    return "ADJ" in lemmas and "NOUN" not in lemmas and "PROPN" not in lemmas
+    return bool({"ADJ", "VERB"} & lemmas.keys()) and not {"NOUN", "PROPN"} & lemmas.keys()
 
 
 def _merge_overlaps(findings: list[Finding]) -> list[Finding]:

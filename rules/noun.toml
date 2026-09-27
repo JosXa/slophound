@@ -43,9 +43,14 @@
 # The parser also tags an adjective in front of a noun pair as a noun
 # ("concise conversion notes" -> concise/NOUN). The spaCy layer asks the
 # lemminflect lexicon for a second opinion and drops a noun.* finding when a
-# matched word has an adjective reading and no noun reading. Words with both
+# word inside the matched span has an adjective or verb reading and no noun
+# reading. Words with both
 # ("primary", "light") and words the lexicon does not know keep the parser's
 # tag, so the check can only silence a finding.
+# A potential participle is also checked in the isolated matched span. If it
+# parses as a verb with an object, the noun-cluster reading is uncertain and
+# the finding is dropped. Noun uses such as "machine learning model deployment"
+# still count. These checks apply to the match, not the whole sentence.
 #
 # A rule may also have a [rule.jev_veto] table: instructions, criteria.true,
 # criteria.false, and threshold (P(yes), greater than 0.5 and at most 1). Jev
@@ -105,6 +110,7 @@ example = [
   "The tenant database connection pool size is fixed.",
   "The build cache eviction policy changed.",
   "The build cache eviction policy changed; use the service desk request form.",
+  "The machine learning model deployment failed.",
 ]
 acceptable = [
   "Service desk request form",
@@ -113,6 +119,8 @@ acceptable = [
   "The TeamViewer Remote Management API returns JSON.",
   "The pull request description was empty.",
   "Set the request timeout value.",
+  "CSV releases contain text, a binary label, and source information encoding domain, generation method, and model.",
+  "Deduplicate against HC3 and other components before combining corpora. Scraped responses and incomplete component documentation weaken attribution. The card declares MIT, with source terms requiring separate review for redistribution.",
 ]
 
 [[rule]]
@@ -154,6 +162,8 @@ acceptable = [
   # it correctly at first sight, so a sniff here is a false positive.
   "Deliver the editable `.pptx`, the PDF preview, and concise conversion notes describing the template used, layout choices, retained image assets, simplified interactions, and verification results.",
   "Deliver concise conversion notes.",
+  "CSV releases contain text, a binary label, and source information encoding domain, generation method, and model.",
+  "Deduplicate against HC3 and other components before combining corpora. Scraped responses and incomplete component documentation weaken attribution. The card declares MIT, with source terms requiring separate review for redistribution.",
 ]
 
 [rule.jev_veto]
