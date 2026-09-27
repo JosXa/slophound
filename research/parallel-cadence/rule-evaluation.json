@@ -23,12 +23,18 @@
       "ghostbuster/reuter/gpt": 6,
       "rust/historical": 1
     },
-    "review": "All 16 excerpts were read. These are requests to reconsider a sentence structure, not grammar errors or authorship classifications. The nominal-definition branch recognizes an appended 'and it' clause; it does not resolve the pronoun's referent and also includes nonreferential uses of 'it'. The warning describes the surface structure and presents forward generation as a possible explanation.",
-    "discarded_design": "The broader copular-introduction pattern produced 190 findings, including unrelated plural subjects, embedded clauses, and conditional clauses. The final nominal-definition branch requires an article, a singular copula, and no intervening clause punctuation.",
+    "review": "Historical result from the broader rule before the false-positive correction. All 16 excerpts were read. Several are useful follow-up claims, not sentences that warrant a bark. The nominal-definition branch did not resolve the pronoun's referent and also included nonreferential uses of 'it'.",
+    "discarded_design": "An earlier copular-introduction pattern produced 190 findings, including unrelated plural subjects, embedded clauses, and conditional clauses. The later nominal-definition pattern produced these 16 findings and was also replaced after review.",
+    "revised_rule": {
+      "selection": "The same 200–5,000-word, hash-selected Ghostbuster and historical Rust texts as the earlier evaluation; the 105 modern Claude texts were unavailable for this rerun.",
+      "texts": 9133,
+      "findings": 0,
+      "interpretation": "The narrower pattern preserves useful follow-up claims in the reviewed human and generated examples. Zero matches in this sample is not evidence of recall for the motivating sentence, which is retained as a positive rule example. The rule now targets two qualities followed by a summary of their importance, or an explicit 'one exception, and it' afterthought."
+    },
     "technical_match": {
       "source": "https://github.com/rust-lang/rfcs/blob/16f3bc024bdef9db7502ffbefeb602c37cee20bf/text/2845-supertrait-item-shadowing.md#L254",
       "text": "Using `self.foo()` is an error today, and it is reasonable to expect it to be, since it is not clear which trait it refers to.",
-      "interpretation": "Nonreferential 'it'; an advisory about the appended assertion, not evidence of an incorrect pronoun or machine authorship."
+      "interpretation": "This nonreferential 'it' matched the earlier rule and stays silent under the revised pattern."
     }
   },
   "checks": {

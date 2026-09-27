@@ -56,26 +56,17 @@ most_common_in = ["claude"]
 id = "template.appended-backreference"
 severity = "bark"
 sentence_start = true
-# Two named items followed by a collective reference, or a nominal definition
-# ("Jev is the one exception") resumed with "and it". A general "X is ... and
-# it" pattern also matched unrelated referents in the corpus, so this branch
-# requires an article after the copula and no intervening clause punctuation.
-# Shared predicates ("runs ... and is silent ...") are outside this pattern.
-pattern = '[^\s.!?;][^.!?;]{0,240}\b(?:and|or|nor)\b[^.!?;]{1,120},\s+and\s+(?:both|these|those|all\s+(?:of\s+)?(?:these|those|them))\b|\[?(?!(?:i|we|you|he|she|it|they|there|this|that|if|when|since|although|because)\b)[a-z][\w\x27-]*(?:\s+[a-z][\w\x27-]*){0,5}\s+(?:is|was)\s+(?:a|an|the)\s+[^,.:;!?]{1,120},\s+and\s+it\b'
-message = "The sentence introduces material, then appends an 'and these/both/it ...' clause. This may reflect generating forward and adding a thought without revising the opening. Give the whole sentence another pass: lead with the relationship between the named things, or share the subject instead of repeating it as a pronoun."
+# Restrict the collective branch to two qualities followed by a claim about
+# their importance; "both men made statements" adds information about people.
+# The singular branch covers the observed "one exception, and it" afterthought,
+# rather than all nominal definitions followed by a pronoun. Shared predicates
+# ("runs ... and is silent ...") are outside this pattern.
+pattern = '[^\s.!?;][^.!?;\n]{0,100}\b(?:is|are|was|were)[ \t]+(?:neither[ \t]+)?[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,2}[ \t]+(?:and|or|nor)[ \t]+[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,2},[ \t\n]+and[ \t]+(?:both|these|those)[ \t]+(?:properties|qualities|attributes|traits)[ \t]+(?:are|were)[ \t]+(?:the[ \t]+point\b|(?:required|important|essential|necessary|critical)\b)|\[?[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,5}[ \t]+(?:is|was)[ \t]+the[ \t]+(?:one|sole|only)[ \t]+exception,[ \t\n]+and[ \t]+it\b'
+message = "The sentence names qualities or an exception, then revisits them in an appended 'and both properties ...' or 'and it ...' clause. This may happen when a draft continues forward without revising its opening. Give the whole sentence another pass around the claim you want to make; replacing the pronoun alone will not fix the structure."
 example = [
   "Those are neither deterministic nor explainable, and both properties are the point.",
   "The results are deterministic and explainable, and both properties are required by the API contract.",
-  "The API offers retries and timeouts, and these features can be configured separately.",
-  "We inspected the reader and writer, and those components share a lock.",
-  "We support JSON and YAML, and all of these formats use the same schema.",
-  "Clients can choose JSON or YAML, and both formats use the same schema.",
-  "We support JSON and YAML, and all those formats use the same schema.",
-  "We checked the reader and writer, and all of them passed.",
   "Jev is the one exception, and it stays outside the core: it answers typed questions.",
-  "The worker is the primary consumer, and it can accept new jobs.",
-  "The worker was a primary consumer, and it handled every queued job.",
-  "The cache is an optional component, and it stores recent results.",
   "The results are deterministic and explainable,\nand both properties are required by the API contract.",
 ]
 acceptable = [
@@ -91,6 +82,23 @@ acceptable = [
   "The sun was going to set in about thirty minutes or so, and they never missed a sunset together.",
   "If an identifier is from a less-common script group, and it is entirely confusable with the majority script in use, reject it.",
   "The API offers retries and timeouts, and the CLI displays their settings.",
+  "The results are deterministic and explainable, and both properties are measured separately.",
+  "The API offers retries and timeouts, and these features can be configured separately.",
+  "We inspected the reader and writer, and those components share a lock.",
+  "We support JSON and YAML, and all of these formats use the same schema.",
+  "Clients can choose JSON or YAML, and both formats use the same schema.",
+  "We support JSON and YAML, and all those formats use the same schema.",
+  "We checked the reader and writer, and all of them passed.",
+  "The worker is the primary consumer, and it can accept new jobs.",
+  "The worker was a primary consumer, and it handled every queued job.",
+  "The cache is an optional component, and it stores recent results.",
+  # Ghostbuster originals: essay/gpt/241, reuter/gpt/KouroshKarimkhany/16,
+  # reuter/gpt/TheresePoletti/16, essay/human/736 and essay/human/683.
+  "Vaccination is the most effective method of prevention, and it is highly recommended for all horses, especially those that come into contact with other horses frequently.",
+  "The Power Macintosh is a high-end desktop computer designed for professionals, and it is known for its powerful performance and sleek design.",
+  "The debate between Gates and Ellison has been heated at times, and both men have made statements that reflect their strongly held beliefs about the future of computing.",
+  "The former process is called differentiation, and the latter is known as integration, and both play an essential role in organizational structure.",
+  "Kindness, attentiveness, and support are what our world needs, and these features can bring wellbeing to the population.",
 ]
 
 [[rule]]
