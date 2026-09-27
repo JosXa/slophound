@@ -95,6 +95,11 @@ class CadenceTests(unittest.TestCase):
         self.assertEqual(1, len(self.lint(image, self.reference)))
         self.assertEqual([], self.lint('`' + self.reference.example[0] + '`', self.reference))
 
+    def test_backreference_after_another_paragraph(self):
+        text = "The first paragraph ends here.\n\n" + self.reference.example[0]
+        finding, = self.lint(text, self.reference)
+        self.assertEqual(text.index("Those"), finding.start)
+
 
 if __name__ == "__main__":
     unittest.main()

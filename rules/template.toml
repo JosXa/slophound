@@ -61,7 +61,7 @@ sentence_start = true
 # it" pattern also matched unrelated referents in the corpus, so this branch
 # requires an article after the copula and no intervening clause punctuation.
 # Shared predicates ("runs ... and is silent ...") are outside this pattern.
-pattern = '\S[^.!?;]{0,240}\b(?:and|or|nor)\b[^.!?;]{1,120},\s+and\s+(?:both|these|those|all\s+(?:of\s+)?(?:these|those|them))\b|\[?(?!(?:i|we|you|he|she|it|they|there|this|that|if|when|since|although|because)\b)[a-z][\w\x27-]*(?:\s+[a-z][\w\x27-]*){0,5}\s+(?:is|was)\s+(?:a|an|the)\s+[^,.:;!?]{1,120},\s+and\s+it\b'
+pattern = '[^\s.!?;][^.!?;]{0,240}\b(?:and|or|nor)\b[^.!?;]{1,120},\s+and\s+(?:both|these|those|all\s+(?:of\s+)?(?:these|those|them))\b|\[?(?!(?:i|we|you|he|she|it|they|there|this|that|if|when|since|although|because)\b)[a-z][\w\x27-]*(?:\s+[a-z][\w\x27-]*){0,5}\s+(?:is|was)\s+(?:a|an|the)\s+[^,.:;!?]{1,120},\s+and\s+it\b'
 message = "The sentence introduces material, then appends an 'and these/both/it ...' clause. This may reflect generating forward and adding a thought without revising the opening. Give the whole sentence another pass: lead with the relationship between the named things, or share the subject instead of repeating it as a pronoun."
 example = [
   "Those are neither deterministic nor explainable, and both properties are the point.",
