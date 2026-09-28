@@ -61,15 +61,33 @@ sentence_start = true
 # The singular branch covers the observed "one exception, and it" afterthought,
 # rather than all nominal definitions followed by a pronoun. Shared predicates
 # ("runs ... and is silent ...") are outside this pattern.
-pattern = '[^\s.!?;][^.!?;\n]{0,100}\b(?:is|are|was|were)[ \t]+(?:neither[ \t]+)?[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,2}[ \t]+(?:and|or|nor)[ \t]+[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,2},[ \t\n]+and[ \t]+(?:both|these|those)[ \t]+(?:properties|qualities|attributes|traits)[ \t]+(?:are|were)[ \t]+(?:the[ \t]+point\b|(?:required|important|essential|necessary|critical)\b)|\[?[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,5}[ \t]+(?:is|was)[ \t]+the[ \t]+(?:one|sole|only)[ \t]+exception,[ \t\n]+and[ \t]+it\b'
-message = "The sentence names qualities or an exception, then revisits them in an appended 'and both properties ...' or 'and it ...' clause. This may happen when a draft continues forward without revising its opening. Give the whole sentence another pass around the claim you want to make; replacing the pronoun alone will not fix the structure."
+# The verdict branch covers a situation followed by ", and that is the <short
+# noun phrase>." ending the sentence. The phrase is capped at three words after
+# an optional possessive, so continuations ("the way it should be", "the case
+# with target features") and "and that is what/why" stay silent. The span
+# excludes double quotes: the only corpus hit was a human quoting a speaker
+# (Reuters: results are "not definitive ..., and that is the bottom line.").
+pattern = '[^\s.!?;][^.!?;\n]{0,100}\b(?:is|are|was|were)[ \t]+(?:neither[ \t]+)?[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,2}[ \t]+(?:and|or|nor)[ \t]+[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,2},[ \t\n]+and[ \t]+(?:both|these|those)[ \t]+(?:properties|qualities|attributes|traits)[ \t]+(?:are|were)[ \t]+(?:the[ \t]+point\b|(?:required|important|essential|necessary|critical)\b)|\[?[a-z][\w-]*(?:[ \t]+[a-z][\w-]*){0,5}[ \t]+(?:is|was)[ \t]+the[ \t]+(?:one|sole|only)[ \t]+exception,[ \t\n]+and[ \t]+it\b|[^\s.!?;"][^.!?;\n"]{1,240},[ \t\n]+and[ \t]+(?:that|this)(?:[ \t]+(?:is|was)|\x27s)[ \t]+the[ \t]+(?:[\w-]+\x27s[ \t]+)?(?:[a-z][\w-]*[ \t]+){0,2}[a-z][\w-]*(?=[.!?])'
+message = "The sentence names qualities, an exception, or a situation, then revisits them in an appended 'and both properties ...', 'and it ...', or 'and that is the ...' clause. This may happen when a draft continues forward without revising its opening. Give the whole sentence another pass around the claim you want to make, for example by leading with the verdict ('The main risk is that ...'); replacing the pronoun alone will not fix the structure."
 example = [
   "Those are neither deterministic nor explainable, and both properties are the point.",
   "The results are deterministic and explainable, and both properties are required by the API contract.",
   "Jev is the one exception, and it stays outside the core: it answers typed questions.",
   "The results are deterministic and explainable,\nand both properties are required by the API contract.",
+  "Without it, nobody sees throttling or the capacity growth that auto-inflate causes, and that is the ADR's main operational risk.",
+  "Nobody owns the retry budget, and this is the real problem.",
+  "The cache warms on first read, and that's the bottleneck.",
 ]
 acceptable = [
+  "The ADR's main operational risk is that nobody sees throttling or the capacity growth that auto-inflate causes.",
+  # Rust RFC 1721 and a WritingPrompts human story: the phrase continues past three words.
+  "Values may be defined multiple times, and this is the case with target features.",
+  "The crowd cheers for me now, and that's the way it should be.",
+  "Customers want banking and shopping in one place, and that is what the bank will provide.",
+  "We take that trust seriously, and that is why we audit every release.",
+  "The cache misses on every cold start, and that is the reason for the retry.",
+  "The worker drains the queue, and that job is the slowest.",
+  "Refsum said the results are \"not definitive, but it is another indication, and that is the bottom line.\"",
   "The API contract requires deterministic and explainable results.",
   "Retries and timeouts can be configured separately.",
   "Jev is the sole exception and runs outside the core.",
