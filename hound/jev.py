@@ -6,7 +6,6 @@ An unset key returns None without importing the SDK or opening a connection.
 
 from __future__ import annotations
 
-import threading
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
@@ -27,8 +26,6 @@ class JevClient:
         self.model = model
         self._key = read_jev_key()
         self._client: TypeSafeClient | None = None
-        # Batches are sent from worker threads; create the HTTP client once.
-        self._lock = threading.Lock()
 
     @property
     def enabled(self) -> bool:
@@ -42,17 +39,15 @@ class JevClient:
         from typesafe_sdk import RetryPolicy, TypeSafeAPIError, TypeSafeClient, TypeSafeError
 
         try:
-            with self._lock:
-                if self._client is None:
-                    self._client = TypeSafeClient(
-                        api_key=self._key,
-                        model=self.model,
-                        base_url="https://api.typesafe.ai",
-                        timeout=5.0,
-                        retry=RetryPolicy(max_retries=2, timeout=10.0),
-                    )
-                client = self._client
-            return client.system_one(state=state, questions=questions)
+            if self._client is None:
+                self._client = TypeSafeClient(
+                    api_key=self._key,
+                    model=self.model,
+                    base_url="https://api.typesafe.ai",
+                    timeout=5.0,
+                    retry=RetryPolicy(max_retries=2, timeout=10.0),
+                )
+            return self._client.system_one(state=state, questions=questions)
         except TypeSafeAPIError as exc:
             raise JevError(f"Jev request failed (HTTP {exc.status}).") from None
         except TypeSafeError:

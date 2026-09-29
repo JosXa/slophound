@@ -239,20 +239,10 @@ class JevCalls(IsolatedConfig):
         self.assertNotIn(KEY, str(error.exception))
 
 
-def _without_required_review(rules):
-    return [r for r in rules if not (r.jev_veto and r.jev_veto.required)]
-
-
 class AutomaticTermChecks(IsolatedConfig):
-    # These tests count questions per request, so the per-sentence candidates
-    # of template.figure-of-speech stay out. FigureOfSpeechReview covers them.
     @classmethod
     def setUpClass(cls) -> None:
-        cls.engine = Engine(_without_required_review(load_rules()))
-
-    def setUp(self) -> None:
-        super().setUp()
-        self.enterContext(patch("hound.cli.load_rules", side_effect=lambda *a, **k: _without_required_review(load_rules(*a, **k))))
+        cls.engine = Engine(load_rules())
 
     def responses(self, probability=0.99):
         requests = []
@@ -372,8 +362,6 @@ class AutomaticTermChecks(IsolatedConfig):
         save_jev_key(KEY)
         requests = self.responses()
         self.assertEqual([f for f in baseline if f.rule.id != "noun.cluster-three"], self.engine.lint(doc))
-        # Batches are sent concurrently, so order the requests by their findings.
-        requests.sort(key=lambda r: min(int(k.removeprefix("finding_")) for k in r["questions"]))
         self.assertEqual([6, 2, 1], [len(r["state"]["items"]) for r in requests])
         ids = [f"finding_{i}" for i, f in enumerate(baseline) if f.rule.id == "noun.cluster-three"]
         self.assertEqual(ids, [key for r in requests for key in r["questions"]])
@@ -474,73 +462,6 @@ class AutomaticTermChecks(IsolatedConfig):
             factory.assert_not_called()
 
 
-class FigureOfSpeechReview(IsolatedConfig):
-    RULE = "template.figure-of-speech"
-    ARGS = ("--only", "template.figure-of-speech", "--no-footer", "-")
-    TEXT = "The adapter is the glue between the two services.\nThe firewall blocks port 22.\n"
-
-    def responses(self, literal):
-        requests = []
-
-        def handle(request):
-            payload = json.loads(request.content)
-            requests.append(payload)
-            answers = {key: {"type": "noul", "noul": literal(payload, key)} for key in payload["questions"]}
-            return httpx2.Response(200, json={**RESPONSE, "answers": answers})
-
-        self.transport(handle)
-        return requests
-
-    @staticmethod
-    def by_sentence(scores):
-        def literal(payload, key):
-            index = int(key.removeprefix("finding_"))
-            items = payload["state"]["items"]
-            sentence = items[min(index, len(items) - 1)]["sentence"]
-            return next(score for text, score in scores.items() if text in sentence)
-        return literal
-
-    def test_required_review_is_silent_without_key(self) -> None:
-        with patch("typesafe_sdk.TypeSafeClient") as factory:
-            code, out, err = self.cli(*self.ARGS, stdin=self.TEXT)
-        factory.assert_not_called()
-        self.assertEqual((0, ""), (code, err))
-        self.assertNotIn(self.RULE, out)
-
-    def test_jev_keeps_only_sentences_it_judges_figurative(self) -> None:
-        save_jev_key(KEY)
-        requests = self.responses(self.by_sentence({"glue": 0.07, "firewall": 0.95}))
-        code, out, err = self.cli(*self.ARGS, stdin=self.TEXT)
-        self.assertEqual((0, ""), (code, err))
-        self.assertEqual(1, out.count(f"sniff  {self.RULE}"))
-        self.assertIn("The adapter is the glue between the two services.", out)
-        self.assertNotIn("firewall", out)
-        items = requests[0]["state"]["items"]
-        self.assertEqual(["The adapter is the glue between the two services.", "The firewall blocks port 22."],
-                         [item["sentence"] for item in items])
-
-    def test_failed_or_missing_review_reports_nothing(self) -> None:
-        save_jev_key(KEY)
-        self.transport(lambda _: httpx2.Response(401, json={"error": KEY}))
-        code, out, err = self.cli(*self.ARGS, stdin=self.TEXT)
-        self.assertEqual((0, ""), (code, err))
-        self.assertNotIn(self.RULE, out)
-        self.transport(lambda _: httpx2.Response(200, json={**RESPONSE, "answers": {}}))
-        self.assertNotIn(self.RULE, self.cli(*self.ARGS, stdin=self.TEXT)[1])
-
-    def test_candidate_does_not_hide_findings_inside_its_sentence(self) -> None:
-        text = "Check the database connection pool before the release.\n"
-        with patch("typesafe_sdk.TypeSafeClient"):
-            _, out, _ = self.cli("--only", f"{self.RULE},noun.cluster-three", "--no-footer", "-", stdin=text)
-        self.assertIn("noun.cluster-three", out)
-        self.assertNotIn(self.RULE, out)
-
-    def test_short_sentences_and_headings_are_not_candidates(self) -> None:
-        engine = Engine([r for r in load_rules() if r.id == self.RULE])
-        doc = build_document("draft.md", "# The glue layer between services\n\nIt failed. Run it.\n")
-        self.assertEqual([], engine.lint_deterministic(doc))
-
-
 class VetoRuleValidation(unittest.TestCase):
     def test_invalid_veto_specs_fail_at_load_time(self) -> None:
         raw = {
@@ -555,15 +476,9 @@ class VetoRuleValidation(unittest.TestCase):
             with self.subTest(threshold=value), self.assertRaises(RuleError):
                 _build_rule(bad, "phrase", Path("<test>"))
         for value in ({}, [], {"instructions": ""}, {**raw["jev_veto"], "criteria": {"true": "yes"}},
-                      {**raw["jev_veto"], "instructions": " "}, {**raw["jev_veto"], "typo": True},
-                      {**raw["jev_veto"], "required": "yes"}):
+                      {**raw["jev_veto"], "instructions": " "}, {**raw["jev_veto"], "typo": True}):
             with self.subTest(veto=value), self.assertRaises(RuleError):
                 _build_rule({**raw, "jev_veto": value}, "phrase", Path("<test>"))
-        self.assertFalse(_build_rule(raw, "phrase", Path("<test>")).jev_veto.required)
-        self.assertTrue(_build_rule({**raw, "jev_veto": {**raw["jev_veto"], "required": True}}, "phrase", Path("<test>")).jev_veto.required)
-        for scope in ("clause", 1):
-            with self.subTest(scope=scope), self.assertRaises(RuleError):
-                _build_rule({**raw, "scope": scope}, "phrase", Path("<test>"))
         for severity in ("bite", "bark", "error", "warning"):
             with self.subTest(severity=severity):
                 self.assertIsNotNone(_build_rule({**raw, "severity": severity}, "phrase", Path("<test>")).jev_veto)

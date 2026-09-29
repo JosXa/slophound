@@ -37,12 +37,6 @@ if not CORPUS.is_dir():
 HUMAN_WARNING_DENSITY_CEILING = 1.0  # warnings + suggestions per 100 words
 
 
-def _reported_without_jev(findings: list[Finding]) -> list[Finding]:
-    # Candidates of a required Jev review are never shown without Jev, so the
-    # corpus ceilings and the own-docs check measure only what a user sees.
-    return [f for f in findings if not (f.rule.jev_veto is not None and f.rule.jev_veto.required)]
-
-
 def _lint_snippet(engine: Engine, text: str) -> list[Finding]:
     # Wrap the snippet as a paragraph so doc rules see a document and phrase
     # rules see a sentence. A trailing newline keeps the block splitter happy.
@@ -77,12 +71,12 @@ def check_corpus(engine: Engine) -> list[str]:
         problems.append("tests/corpus/human has no files")
     for path in generated:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
-        findings = _reported_without_jev(engine.lint_deterministic(doc))
+        findings = engine.lint_deterministic(doc)
         if not any(f.severity == BITE for f in findings):
             problems.append(f"{path.relative_to(ROOT)}: generated text produced no bite")
     for path in human:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
-        findings = _reported_without_jev(engine.lint_deterministic(doc))
+        findings = engine.lint_deterministic(doc)
         bites = [f for f in findings if f.severity == BITE]
         for f in bites:
             line, col = doc.line_col(f.start)

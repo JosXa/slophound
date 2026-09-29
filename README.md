@@ -98,13 +98,11 @@ Code blocks, inline code, URLs, link targets, tables, and HTML comments are neve
 
 ## Jev for contextual judgment
 
-[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) supplies judgment where grammar alone is insufficient. It answers typed questions and generates no prose. Slophound asks it three questions. Is a flagged noun cluster an established term in the sentence's field? Then familiar terminology passes without a regex exception for every term. Does a semicolon between two clauses belong there, or is a connective missing? Is every word in a sentence literal?
+[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) supplies judgment where grammar alone is insufficient. It answers typed questions and generates no prose. Slophound asks it whether a flagged noun cluster is an established term in the sentence's field, so familiar terminology can pass without adding every term to a regex exception, and whether a semicolon between two clauses belongs there or stands in for the word that would have said how the clauses relate.
 
 Once a key is configured, normal linting runs Jev automatically. The `noun.cluster-three` rule removes a sniff when Jev assigns at least 0.70 probability to the complete expression being conventional in its field. This includes established terms with ordinary literal modifiers. Lower probabilities keep the finding for review. The prompt distinguishes familiar usage from a phrase whose meaning a reader could merely guess.
 
-The `punct.semicolon-splice` bark fires on every semicolon that joins two clauses without a connective. Models that may not use em dashes often use a semicolon instead. Jev removes the bark when the two clauses are parallel statements of equal weight. When the second clause explains, causes, or contrasts with the first, the bark remains and the message asks for the connective. When the second clause only adds a fact, the message asks for a rewrite and does not suggest 'and'.
-
-The `template.figure-of-speech` sniff selects every prose sentence and asks Jev whether each word is literal. A sentence with a metaphor, an idiom, or personification ("the adapter is the glue", "this paves the way") remains as a sniff. Established technical terms such as memory leak or bottleneck, and the names a document gives its own categories, count as literal. The rule depends completely on Jev: without a key, or when a request fails, it reports nothing.
+The `punct.semicolon-splice` bark fires on every semicolon that joins two clauses without a connective, since a model that may not use em dashes reaches for the semicolon next. Jev reads the sentence and clears the bark when the halves are parallel statements a careful writer would hold side by side. When the second half explains, causes, or contrasts with the first, the bark stays and the message asks for the connective. When the second half only adds a fact, the message asks for a rewrite instead of an 'and'.
 
 Store your [TypeSafe API key](https://docs.typesafe.ai/) once, from a terminal:
 
@@ -123,7 +121,7 @@ On macOS and Linux, the file is `$XDG_CONFIG_HOME/slophound/config.toml`, defaul
 
 With no key, Slophound runs the deterministic core with no Jev requests, results, warnings, or errors. This also applies when the stored key is blank. Credentials come from the environment and user config. A repository `.env` must be loaded by the caller.
 
-For each eligible finding, Slophound sends the matched text, the selected words, and the sentence or sentences containing them to TypeSafe. Requests contain at most six findings from the same paragraph or list item. Masked code and URLs stay masked, and context longer than 2,000 characters keeps its finding without a request. Slophound sends up to four requests at the same time. If credentials or a request fail, the document keeps its deterministic findings, except the candidates of `template.figure-of-speech`. Jev only removes findings, at the severity that the rule declares. A bark that Jev removes no longer fails `--strict`.
+For each eligible finding, Slophound sends the matched text, the selected words, and the sentence or sentences containing them to TypeSafe. Requests contain at most six findings from the same paragraph or list item. Masked code and URLs stay masked, and context longer than 2,000 characters keeps its finding without a request. If credentials or a request fail, the document keeps its deterministic findings. Jev only removes findings, at whatever severity the rule carries. A bark it clears no longer fails `--strict`.
 
 ### Python interface
 

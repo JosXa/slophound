@@ -65,9 +65,7 @@ criteria.true = "The complete expression names a recognized concept in conventio
 criteria.false = "The expression is improvised or merely understandable from its parts."
 ```
 
-The table belongs to the preceding `[[rule]]`. Put it after that rule's other fields. All fields shown are required. The threshold is P(yes), must be greater than 0.5 and at most 1, and includes equality. Unknown fields are rejected.
-
-Add `required = true` when the deterministic match is only a candidate that must not be reported alone. `template.figure-of-speech` uses it: its pattern selects every sentence with `scope = "sentence"`, and only Jev can tell a metaphor from a literal statement. A required rule reports a finding only when Jev answered below the threshold. Without a key, after a failed request, or with a missing answer, it reports nothing. The corpus ceilings and the own-docs check ignore its candidates, because no user sees them without Jev. Each candidate costs a question, so keep the candidate set as small as the check allows.
+The table belongs to the preceding `[[rule]]`; put it after that rule's other fields. All fields shown are required. The threshold is P(yes), must be greater than 0.5 and at most 1, and includes equality. Unknown fields are rejected.
 
 Each question gets one finding's `sentence`, `matched_text`, and `tokens` from the masked prose. Small batches stay within a document block, with a question referring to its own item. Write criteria about the complete expression in that context. A yes removes the finding only at or above the threshold. Uncertain, missing, or invalid answers keep it. A request failure keeps the document's deterministic findings.
 
