@@ -452,3 +452,65 @@ acceptable = [
   "The problem is that it leaks.",
   "The reason is how the parser tokenises hyphens.",
 ]
+
+# Asyndetic parataxis with a comma: two independent clauses, each with its own
+# subject and finite verb, joined by a bare comma ("The brief sets the rules,
+# attendees decide the rest"). The comma hides the relation that a connective
+# would state. The semicolon form is punct.semicolon-splice. The small parser
+# attaches the first clause to the second as ccomp, or the second to the first
+# as conj. Clauses opened by if/when/because parse as advcl and never match.
+# Reported speech ("It works, I think", "The service is down, he said") keeps
+# its comma, so reporting verbs are excluded on either side. A connective right
+# after the comma ("…, and the queue drains") is removed by match_unless.
+[[rule]]
+id = "verb.comma-splice"
+severity = "bark"
+message = "Comma splice: two complete clauses joined by a bare comma, with no word that says how they relate (\"The brief sets the rules, attendees make every other choice\"). Name the relation: 'while' or 'whereas' for a division or contrast, 'but' for a contrast, 'so' for a consequence, 'because' for a reason, 'and' for an addition. Choose only a relation the text supports. For example, write \"The brief sets the rules, while attendees make every other choice.\" If the clauses are separate thoughts, use a period."
+most_common_in = ["gpt", "claude"]
+# The comma and the second clause must be siblings with the comma first, so a
+# comma elsewhere in the sentence cannot complete the match.
+dependency = [
+  [
+    { RIGHT_ID = "second", RIGHT_ATTRS = { POS = { IN = ["VERB", "AUX"] }, LEMMA = { NOT_IN = ["say", "think", "guess", "suppose", "believe", "hope", "add", "note", "explain", "argue", "reply", "ask", "know", "mean", "see", "admit", "agree", "claim", "tell", "write", "reckon", "bet", "recall", "wonder", "promise", "warn", "include"] } } },
+    { LEFT_ID = "second", REL_OP = ">", RIGHT_ID = "first", RIGHT_ATTRS = { DEP = "ccomp", POS = { IN = ["VERB", "AUX"] }, LEMMA = { NOT_IN = ["say", "think", "guess", "suppose", "believe", "hope", "add", "note", "explain", "argue", "reply", "ask", "know", "mean", "see", "admit", "agree", "claim", "tell", "write", "reckon", "bet", "recall", "wonder", "promise", "warn", "include"] } } },
+    { LEFT_ID = "first", REL_OP = ">", RIGHT_ID = "subj1", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass", "expl"] } } },
+    { LEFT_ID = "first", REL_OP = "$++", RIGHT_ID = "comma", RIGHT_ATTRS = { DEP = "punct", ORTH = "," } },
+    { LEFT_ID = "comma", REL_OP = "$++", RIGHT_ID = "subj2", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass", "expl"] } } },
+  ],
+  [
+    { RIGHT_ID = "first", RIGHT_ATTRS = { POS = { IN = ["VERB", "AUX"] }, LEMMA = { NOT_IN = ["say", "think", "guess", "suppose", "believe", "hope", "add", "note", "explain", "argue", "reply", "ask", "know", "mean", "see", "admit", "agree", "claim", "tell", "write", "reckon", "bet", "recall", "wonder", "promise", "warn", "include"] } } },
+    { LEFT_ID = "first", REL_OP = ">", RIGHT_ID = "subj1", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass", "expl"] } } },
+    { LEFT_ID = "first", REL_OP = ">", RIGHT_ID = "comma", RIGHT_ATTRS = { DEP = "punct", ORTH = "," } },
+    { LEFT_ID = "comma", REL_OP = "$++", RIGHT_ID = "second", RIGHT_ATTRS = { DEP = "conj", POS = { IN = ["VERB", "AUX"] } } },
+    { LEFT_ID = "second", REL_OP = ">", RIGHT_ID = "subj2", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass", "expl"] } } },
+  ],
+]
+match_unless = ',\s*the (more|less|fewer|better|worse|faster|slower)\b|,\s*(and|but|or|nor|not|so|yet|for|then|because|while|whereas|although|though|since|unless|until|if|when|once|as|which|who|where|with|without|including)\b|[;:(]'
+# Lists of clauses ("a claim is supported, a metaphor is useful, or a term is
+# defined"), absolute phrases ("this one included"), and balanced pairs that
+# repeat the subject noun ("the humorous story is American, the comic story is
+# English") are not splices. A sentence that opens with a subordinator or a
+# preposition usually has an introductory phrase that the parser mistakes for
+# the first clause ("If you don't push audio, Gemini sits idle").
+unless = '^\W*(if|when|whenever|once|after|before|since|because|although|though|while|unless|until|as|in|of|for|during|with|without|given|by|on|at|from|to|since|now|right now|here|so)\b|\b(\w{3,})\s[^,.;]*,\s+(?:the|a|an|this|that|our|their)\s+(?:\w+\s+)?\2\b|,\s+(and|or)\s|, (this|that|these|those) (one|ones)? ?(included|excepted|aside)\b'
+example = [
+  "The build brief sets the rules, attendees make every other design choice themselves.",
+  "The cache is fast, it lies under load.",
+  "The docs are sparse, the code is the spec.",
+  "The primary takes writes, the replica serves reads.",
+]
+acceptable = [
+  "The build brief sets the rules, while attendees make every other design choice themselves.",
+  "The worker restarts, and the queue drains.",
+  "When the queue drains, the worker restarts.",
+  "If it fails, we retry.",
+  "In languages such as C#, reference counting is automatic.",
+  "This event fires for beta modules, not if the user has a licence.",
+  "We tested it, found the bug, and fixed it.",
+  "It works, I think.",
+  "The service is down, he said.",
+  "The worker, which holds a mutex, restarts.",
+  "The cache is fast, but it lies under load.",
+  "The humorous story is American, the comic story is English.",
+  "The DOM also gets slower, the more nodes are in it.",
+]

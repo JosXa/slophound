@@ -2,7 +2,7 @@
 
 Review the document after the lint stage. This reference retains the judgment checks from humanize, with examples and acceptable uses. Fixed phrase inventories and mechanical patterns remain in the linter. A clean lint result does not establish that a claim is supported, a metaphor is useful, or a paragraph adds information.
 
-Apply each check to the document. The examples illustrate possible revisions, with invented details where useful. Preserve established facts in the actual document; use available evidence when adding specifics. Keep exact quotations and code intact. These examples do not override a linter finding. Handle false positives through the skill's approval flow.
+Apply each check to the document. The examples illustrate possible revisions, with invented details where useful. Preserve established facts in the actual document, and use available evidence when adding specifics. Keep exact quotations and code intact. These examples do not override a linter finding. Handle false positives through the skill's approval flow.
 
 ## Audience
 
@@ -20,7 +20,7 @@ Before: The new index makes the service more maintainable.
 After: The new index removes the separate lookup table and its update job.
 ```
 
-Keep an importance claim when the dependency or consequence is stated: an index may be essential because every query needs it. A trailing clause may explain a measured consequence; it should not merely award praise to the preceding fact.
+Keep an importance claim when the dependency or consequence is stated: an index may be essential because every query needs it. A trailing clause may explain a measured consequence, but it should not merely award praise to the preceding fact.
 
 ## Evidence, diagnosis, and completion
 
