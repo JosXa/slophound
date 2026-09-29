@@ -1,6 +1,6 @@
 # Adding rules
 
-Scope: adding, widening, or repairing a rule in `rules/*.toml`. Field syntax per layer is documented at the top of each rule file; this guide covers the judgement around a rule: whether it belongs, which tier it gets, how to write examples that prove it, how to measure the noise it adds, and the escaping traps that have already cost time.
+Scope: adding, widening, or repairing a rule in `rules/*.toml`. Field syntax per layer is documented at the top of each rule file, while this guide covers the judgement around a rule: whether it belongs, which tier it gets, how to write examples that prove it, how to measure the noise it adds, and the escaping traps that have already cost time.
 
 Contract: a rule ships only when `./slophound test` is green, the repo's own documents still pass, and the rule has fired on at least one real generated sentence and stayed silent on at least one real human sentence that looks similar.
 

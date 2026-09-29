@@ -117,15 +117,15 @@ id = "punct.semicolon-splice"
 severity = "bark"
 pattern = '''(?<!&)\b[a-z]+[)"'\]]*; +(?!(?:and|but|or|nor|so|yet|then|however|otherwise|therefore|thus|hence|instead|meanwhile|rather|e\.g|i\.e)\b)(?=(?-i:[a-z]))'''
 message = "Semicolon joining clauses whose relationship could be stated directly. Replacing an em dash with a semicolon does not explain that relationship. Use 'because' or 'given that' for a reason, 'so' for a consequence, 'but' or 'whereas' for a contrast, 'although' for a concession, 'while' or 'at the same time as' for simultaneous action, 'if' for a condition, or 'and' for an addition. Choose only a relationship supported by the text. For example, write \"The cache is fast, but its results can be stale.\" Use a period for a separate thought. Keep a semicolon when it deliberately balances parallel clauses or separates list items containing commas."
-example = ["The cache is fast; it lies under load.", "Half the developers stay silent; they stopped caring long ago.", "The path is documented; what remains is choosing it."]
+example = ["The cache is fast; it lies under load.", "Half the developers stay silent; they stopped caring long ago.", "The path is documented; what remains is choosing it.", "The build brief sets the rules; attendees make every other design choice themselves."]
 acceptable = ["The cache is fast, but it lies under load.", "The cache is fast, but its results can be stale.", "The cache is fast; but it lies under load.", "We ship on Monday; Tuesday is the retrospective.", "Fish &amp; chips and &#160; tea.", "Speakers: Ada Lovelace, London; Alan Turing, Manchester."]
 most_common_in = ["claude", "gpt", "gemini"]
 
 [rule.jev_veto]
 instructions = "Look at the semicolon in `matched_text` and the two halves of the sentence it joins. Is the semicolon the right punctuation here, so that the sentence reads best with it? Judge the relation between the halves, not grammar."
 threshold = 0.6
-criteria.true = "Keep the semicolon. The halves are parallel or contrasting statements of equal weight that the reader is meant to hold side by side ('The humorous story is told gravely; the comic story is shouted.'), or the semicolon separates list items that themselves contain commas."
-criteria.false = "The semicolon stands in for a missing word. The second half gives the cause, consequence, contrast, qualification, or punchline of the first, so 'because', 'so', 'but', 'and', or 'while' would state the relation the semicolon leaves implicit, or the second half is a separate thought that should be its own sentence."
+criteria.true = "Keep the semicolon. The halves are grammatically parallel statements that mirror each other word for word in structure, so the reader holds them side by side as a balanced pair ('The humorous story is told gravely; the comic story is shouted.'), or the semicolon separates list items that themselves contain commas."
+criteria.false = "The semicolon stands in for a missing connective. The second half gives the cause, consequence, contrast, concession, qualification, remainder, or punchline of the first, so a connective such as 'because', 'so', 'but', 'while', 'whereas', 'although', or 'and' would state the relation the semicolon leaves implicit. This includes a division of labor where the second half covers what the first leaves over ('the spec fixes the API; each team picks its own storage'). It also includes a separate thought that should be its own sentence."
 
 [[rule]]
 id = "punct.bold-label-restates"
