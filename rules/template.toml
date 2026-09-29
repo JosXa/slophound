@@ -5,7 +5,8 @@
 # The regex therefore spans variable content; keep every wildcard bounded
 # (`[^.!?\n]{1,80}`) so a match never swallows a whole paragraph.
 #
-# Same fields as rules/phrase.toml. Templates never run inside headings.
+# Same fields as rules/phrase.toml, plus the optional [rule.jev_veto] table
+# documented in rules/noun.toml. Templates never run inside headings.
 # Rules run on the prose view: typographic quotes are already straight, so
 # only `'` needs handling in patterns.
 
@@ -563,3 +564,35 @@ acceptable = [
   "One more thing, the deploy is scheduled for Friday.",
   "Less code, more tests.",
 ]
+
+# Figures of speech: metaphor, idiom, and personification in place of a plain
+# statement ("the adapter is the glue", "this paves the way", "the numbers
+# speak"). No regex or parse can tell "the build is green" or "memory leak"
+# (dead metaphors that are now technical terms) from "does the heavy lifting",
+# so the pattern only selects each prose sentence as a candidate and Jev
+# decides. The review is required: without a key, or when the request fails,
+# the rule reports nothing. The threshold was measured on sentence pairs and
+# on pre-2022 engineering docs against model output: every figure scored at
+# most 0.45 for "literal", and the sentences between 0.50 and 0.55 were
+# literal.
+[[rule]]
+id = "template.figure-of-speech"
+severity = "sniff"
+scope = "sentence"
+# Any sentence with two words and at least 12 characters is a candidate.
+pattern = '''^(?=.{12})\S+\s+\S'''
+message = "The sentence uses a figure of speech: a metaphor, an idiom, or personification. Find the words that are not literal and state plainly what happens or what the thing does. For example, \"The migration paves the way for sharding\" becomes \"After the migration, we can shard the orders table.\" Keep established technical terms such as memory leak, thread, or bottleneck."
+example = [
+  "The adapter is the glue between the two services.",
+  "The migration paves the way for sharding.",
+  "Stop letting agents cosplay as you.",
+]
+acceptable = ["It failed.", "Run it."]
+most_common_in = ["claude", "gpt"]
+
+[rule.jev_veto]
+instructions = "Is every word in the sentence used in its literal sense or as an established technical term?"
+threshold = 0.51
+required = true
+criteria.true = "Yes. Every word has its literal meaning, or is a standard technical term whose original image is no longer noticed ('thread', 'memory leak', 'bottleneck', 'handshake', 'branch', 'spin up a container', 'the build is green'), or a word that the text uses as the name of a defined category, level, state, or feature of the product it describes ('a bite requires a correction', 'the rule barks', 'a sniff'). Words in quotation marks that the sentence cites as an example, a name, or a term count as literal, because the sentence mentions them and does not use them."
+criteria.false = "No. A word or phrase is a figure of speech that the writer chose instead of a plain statement: a metaphor, an idiom, or personification ('does the heavy lifting', 'paves the way', 'the north star', 'the numbers speak', 'the adapter is the glue', 'carries the logic')."

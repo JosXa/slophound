@@ -37,6 +37,14 @@ def run(doc: Document, rules: list[Rule]) -> list[Finding]:
         text = doc.masked if rule.category == "punct" else doc.prose
         regex = _compile(rule.pattern)
         unless = _compile(rule.unless, re.I) if rule.unless else None
+        if rule.scope == "sentence":
+            for start, end in spans:
+                if not rule.headings and in_heading(start):
+                    continue
+                sentence = text[start:end]
+                if regex.search(sentence) and not (unless and unless.search(sentence)):
+                    findings.append(Finding(rule, start, end))
+            continue
         for m in regex.finditer(text):
             if m.end() == m.start():
                 continue

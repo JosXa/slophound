@@ -18,6 +18,10 @@
 #                  literal sense of a figurative phrase.
 #   sentence_start Optional boolean. Require the match to start a sentence in
 #                  the prose view; a wrapped line alone is not a sentence start.
+#   scope          Optional. "match" (default) reports the matched text.
+#                  "sentence" tests the pattern in each sentence separately and
+#                  reports the whole sentence once, for rules whose candidate
+#                  is the sentence itself (see template.figure-of-speech).
 #   message        Full explanation plus the fix. The reader never needs to look
 #                  anything else up.
 #   repeat_message Optional short reminder for later findings of the same rule

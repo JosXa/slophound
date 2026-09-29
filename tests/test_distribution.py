@@ -202,9 +202,10 @@ class DistributionSmokeTest(unittest.TestCase):
             "        TypeSafeClient(transport=httpx2.MockTransport(handle), **kw)):\n"
             "    engine = Engine(load_rules())\n"
             "    doc = build_document('draft.md', 'Check the database connection pool.')\n"
-            "    assert len(engine.lint_deterministic(doc)) == 1\n"
+            "    ids = sorted(f.rule.id for f in engine.lint_deterministic(doc))\n"
+            "    assert ids == ['noun.cluster-three', 'template.figure-of-speech'], ids\n"
             "    assert engine.lint(doc) == []\n"
-            "assert len(calls) == 1\n"
+            "assert len(calls) == 1 and len(calls[0]['questions']) == 2, calls\n"
             "print('Jev term review passed')\n",
             encoding="utf-8",
         )

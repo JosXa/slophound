@@ -49,6 +49,8 @@ def _dedupe(findings: list[Finding]) -> list[Finding]:
             continue
         shadowed = any(
             k.rule.category != "doc"
+            # A candidate that waits for Jev may disappear, so it cannot hide others.
+            and not (k.rule.jev_veto is not None and k.rule.jev_veto.required)
             and k.start <= f.start
             and f.end <= k.end
             and (k.start, k.end) != (f.start, f.end)

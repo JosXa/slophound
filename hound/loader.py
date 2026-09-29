@@ -124,6 +124,10 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         if not isinstance(sentence_start, bool):
             raise RuleError(f"{where}: sentence_start must be a boolean")
         rule.sentence_start = sentence_start
+        scope = raw.get("scope", "match")
+        if scope not in ("match", "sentence"):
+            raise RuleError(f"{where}: scope must be \"match\" or \"sentence\"")
+        rule.scope = scope
         unless = raw.get("unless")
         if unless is not None:
             if not isinstance(unless, str):
@@ -181,8 +185,8 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
 
 
 def _build_jev_veto(raw: dict, where: str) -> JevVeto:
-    if not isinstance(raw, dict) or set(raw) != {"instructions", "criteria", "threshold"}:
-        raise RuleError(f"{where}: jev_veto needs instructions, criteria, and threshold")
+    if not isinstance(raw, dict) or not {"instructions", "criteria", "threshold"} <= set(raw) <= {"instructions", "criteria", "threshold", "required"}:
+        raise RuleError(f"{where}: jev_veto needs instructions, criteria, and threshold, and accepts only required besides them")
     criteria = raw["criteria"]
     if not isinstance(criteria, dict) or set(criteria) != {"true", "false"}:
         raise RuleError(f"{where}: jev_veto.criteria needs true and false descriptions")
@@ -191,4 +195,7 @@ def _build_jev_veto(raw: dict, where: str) -> JevVeto:
     threshold = raw["threshold"]
     if isinstance(threshold, bool) or not isinstance(threshold, (int, float)) or not 0.5 < threshold <= 1:
         raise RuleError(f"{where}: jev_veto.threshold must be greater than 0.5 and at most 1")
-    return JevVeto(raw["instructions"], criteria["true"], criteria["false"], float(threshold))
+    required = raw.get("required", False)
+    if not isinstance(required, bool):
+        raise RuleError(f"{where}: jev_veto.required must be true or false")
+    return JevVeto(raw["instructions"], criteria["true"], criteria["false"], float(threshold), required)

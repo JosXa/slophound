@@ -56,7 +56,10 @@
 # criteria.false, and threshold (P(yes), greater than 0.5 and at most 1). Jev
 # checks each matched span in its sentence automatically when a key resolves.
 # A yes at or above the threshold removes the finding. Other answers and
-# request failures keep it. Examples below test deterministic detection;
+# request failures keep it. Add `required = true` when the deterministic match
+# is only a candidate that must not be reported alone: the rule then reports a
+# finding only when Jev answered below the threshold, and it is silent without
+# a key or when the request fails. Examples below test deterministic detection;
 # tests/test_jev.py tests the veto with mock responses.
 
 [[rule]]
