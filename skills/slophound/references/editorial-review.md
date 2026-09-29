@@ -2,7 +2,7 @@
 
 Review the document after the lint stage. This reference retains the judgment checks from humanize, with examples and acceptable uses. Fixed phrase inventories and mechanical patterns remain in the linter. A clean lint result does not establish that a claim is supported, a metaphor is useful, or a paragraph adds information.
 
-Apply each check to the document. The examples illustrate possible revisions, with invented details where useful. Preserve established facts in the actual document, and use available evidence when adding specifics. Keep exact quotations and code intact. These examples do not override a linter finding. Handle false positives through the skill's approval flow.
+Apply each check to the document. The examples illustrate possible revisions, with invented details where useful. Preserve the document's established facts. Add specifics only where available evidence supports them. Keep exact quotations and code intact. These examples do not override a linter finding. Handle false positives through the skill's approval flow.
 
 ## Audience
 
@@ -62,7 +62,7 @@ Before: Setup takes less time. New hires become productive sooner. The onboardin
 After: New hires can complete setup in 25 minutes.
 ```
 
-Check the whole document for an introduction, sections, and conclusion that repeat one thesis with different words. Choose the structure based on the material. A conclusion can add a decision or synthesize evidence; a separately distributed summary may need to repeat facts.
+Check the whole document for an introduction, sections, and conclusion that repeat one thesis with different words. Choose the structure based on the material. A conclusion can add a decision or synthesize evidence, whereas a separately distributed summary may need to repeat facts.
 
 Keep all factual items in a list, including a complete three-step procedure. Remove ornamental padding only when it adds no distinct information. A document statistic about repetition is a prompt to inspect the passage, not permission to discard useful content.
 

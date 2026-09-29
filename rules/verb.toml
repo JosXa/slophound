@@ -465,7 +465,7 @@ acceptable = [
 [[rule]]
 id = "verb.comma-splice"
 severity = "bark"
-message = "Comma splice: two complete clauses joined by a bare comma, with no word that says how they relate (\"The brief sets the rules, attendees make every other choice\"). Name the relation: 'while' or 'whereas' for a division or contrast, 'but' for a contrast, 'so' for a consequence, 'because' for a reason, 'and' for an addition. Choose only a relation the text supports. For example, write \"The brief sets the rules, while attendees make every other choice.\" If the clauses are separate thoughts, use a period."
+message = "Comma splice: two complete clauses joined by a bare comma, with no word that says how they relate (\"The brief sets the rules, attendees make every other choice\"). Name the relation: 'while' or 'whereas' for a division or contrast, 'but' for a contrast, 'so' for a consequence, 'because' for a reason. Choose only a relation the text supports. For example, write \"The brief sets the rules, while attendees make every other choice.\" When the second clause only adds a fact, do not glue it on with 'and'. Rewrite the sentence so one idea carries the other: \"Older runs aren't deleted, they're hidden behind the marker\" becomes \"Older runs stay behind the dashed marker.\" If the clauses are separate thoughts, use a period."
 most_common_in = ["gpt", "claude"]
 # The comma and the second clause must be siblings with the comma first, so a
 # comma elsewhere in the sentence cannot complete the match.
@@ -485,7 +485,7 @@ dependency = [
     { LEFT_ID = "second", REL_OP = ">", RIGHT_ID = "subj2", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass", "expl"] } } },
   ],
 ]
-match_unless = ',\s*the (more|less|fewer|better|worse|faster|slower)\b|,\s*(and|but|or|nor|not|so|yet|for|then|because|while|whereas|although|though|since|unless|until|if|when|once|as|which|who|where|with|without|including)\b|[;:(]'
+match_unless = ',\s*the (more|less|fewer|better|worse|faster|slower)\b|,\s*(and|but|or|nor|not|so|yet|for|then|therefore|thus|hence|however|otherwise|consequently|accordingly|instead|meanwhile|nevertheless|nonetheless|moreover|furthermore|besides|likewise|still|also|indeed|rather|because|while|whereas|although|though|since|unless|until|if|when|once|as|which|who|where|with|without|including)\b|[;:(]'
 # Lists of clauses ("a claim is supported, a metaphor is useful, or a term is
 # defined"), absolute phrases ("this one included"), and balanced pairs that
 # repeat the subject noun ("the humorous story is American, the comic story is
@@ -502,6 +502,7 @@ example = [
 acceptable = [
   "The build brief sets the rules, while attendees make every other design choice themselves.",
   "The worker restarts, and the queue drains.",
+  "The conversion is not always possible, therefore we keep the helper functions.",
   "When the queue drains, the worker restarts.",
   "If it fails, we retry.",
   "In languages such as C#, reference counting is automatic.",

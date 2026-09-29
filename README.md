@@ -102,7 +102,7 @@ Code blocks, inline code, URLs, link targets, tables, and HTML comments are neve
 
 Once a key is configured, normal linting runs Jev automatically. The `noun.cluster-three` rule removes a sniff when Jev assigns at least 0.70 probability to the complete expression being conventional in its field. This includes established terms with ordinary literal modifiers. Lower probabilities keep the finding for review. The prompt distinguishes familiar usage from a phrase whose meaning a reader could merely guess.
 
-The `punct.semicolon-splice` bark fires on every semicolon that joins two clauses without a connective, since a model that may not use em dashes reaches for the semicolon next. Jev reads the sentence and clears the bark when the halves are parallel statements a careful writer would hold side by side. When the second half explains, causes, or contrasts with the first, the bark stays and the message asks for the conjunction.
+The `punct.semicolon-splice` bark fires on every semicolon that joins two clauses without a connective, since a model that may not use em dashes reaches for the semicolon next. Jev reads the sentence and clears the bark when the halves are parallel statements a careful writer would hold side by side. When the second half explains, causes, or contrasts with the first, the bark stays and the message asks for the connective. When the second half only adds a fact, the message asks for a rewrite instead of an 'and'.
 
 Store your [TypeSafe API key](https://docs.typesafe.ai/) once, from a terminal:
 
