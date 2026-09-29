@@ -50,7 +50,7 @@
 [[rule]]
 id = "verb.buys-us"
 severity = "bark"
-message = "\"buys (us) X\" is a Claude reflex for trading one thing for another. Name the trade: what was spent, what was gained, and for how long."
+message = "\"buys (us) X\" describes a trade as a purchase. Claude uses this pattern often. Name the trade: what was spent, what was gained, and for how long."
 most_common_in = ["claude"]
 # Two alternative patterns: a demonstrative or gerund subject ("That buys",
 # "Caching buys"), or any subject with "us" as the beneficiary ("The refactor
@@ -84,7 +84,7 @@ acceptable = [
 [[rule]]
 id = "verb.holds"
 severity = "bark"
-message = "\"that holds\" asserts an argument survives without saying what was tested. State the condition it survives and what would break it."
+message = "\"that holds\" says that an argument is still valid but does not say what was tested. State the condition that was tested and what would make the argument fail."
 most_common_in = ["claude"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "hold", POS = "VERB" } },
@@ -114,7 +114,7 @@ acceptable = [
 [[rule]]
 id = "verb.holds-content"
 severity = "bark"
-message = "Overused containment verb (\"the file holds the configuration\"). Use 'contains' or 'stores' for data, or name the document's action: 'the field records the decision', 'the document explains the reasoning'."
+message = "\"holds\" describes content as if it were in a container (\"the file holds the configuration\"). Use \"contains\" or \"stores\" for data, or name what the document does: \"the field records the decision\", \"the document explains the reasoning\"."
 most_common_in = ["claude"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "hold", POS = "VERB" } },
@@ -180,7 +180,7 @@ acceptable = [
 [[rule]]
 id = "verb.lands"
 severity = "bark"
-message = "Code does not \"land\". Say merged, deployed, or released, and when."
+message = "Code does not \"land\". Say merged, deployed, or released, and say when."
 most_common_in = ["claude", "gpt"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "land", POS = "VERB" } },
@@ -200,7 +200,7 @@ acceptable = [
 [[rule]]
 id = "verb.unlocks"
 severity = "bark"
-message = "\"unlocks\" promises value without naming it. Say what becomes possible and why it was blocked before."
+message = "\"unlocks\" promises value without naming it. Say what becomes possible and why it was not possible before."
 most_common_in = ["claude", "gpt"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "unlock", POS = "VERB" } },
@@ -220,7 +220,7 @@ acceptable = [
 [[rule]]
 id = "verb.surfaces"
 severity = "bark"
-message = "\"surfaces\" as a verb hides who shows what to whom. Say where the information appears and who sees it."
+message = "\"surfaces\" as a verb does not say who shows what to whom. Say where the information appears and who sees it."
 most_common_in = ["claude"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "surface", POS = "VERB" } },
@@ -239,7 +239,7 @@ acceptable = [
 [[rule]]
 id = "verb.leans-on"
 severity = "bark"
-message = "\"leans on\" is vague about dependency. Say depends on, calls, or reads, and what happens when that thing is missing."
+message = "\"leans on\" does not say what kind of dependency it is. Say depends on, calls, or reads, and say what happens when that thing is missing."
 most_common_in = ["claude"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "lean", POS = "VERB" } },
@@ -258,7 +258,7 @@ acceptable = [
 [[rule]]
 id = "verb.settles"
 severity = "bark"
-message = "\"that settles it\" declares a debate closed without showing the evidence. State the fact that decides it."
+message = "\"that settles it\" says that the discussion is finished but gives no evidence. State the fact that decides it."
 most_common_in = ["claude"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "settle", POS = "VERB" } },
@@ -300,7 +300,7 @@ acceptable = [
 [[rule]]
 id = "verb.sits"
 severity = "bark"
-message = "A pronoun \"sits\" or \"lives\" somewhere (\"Both sit at the top\", \"this lives in the config layer\"). A ranking or location dressed as furniture. Say what it is: \"Both are frontier models\", \"the config layer owns this\"."
+message = "A pronoun \"sits\" or \"lives\" somewhere (\"Both sit at the top\", \"this lives in the config layer\"). The verb describes a ranking or a location as a physical position. Say what the thing is or does: \"Both are frontier models\", \"the config layer defines this\"."
 most_common_in = ["claude", "gpt"]
 dependency = [
   [
@@ -336,7 +336,7 @@ acceptable = [
 [[rule]]
 id = "verb.carries"
 severity = "bark"
-message = "Overused verb for content or abstract meaning (\"two dropdowns carry the decision\", \"each card carries the dropdowns\", \"this carries weight\"). Say what the thing records or shows, or what the person does: \"the dropdowns record the decision\", \"the card shows the dropdowns\", \"reviewers take this seriously\". For libraries that \"carry\" a software layer, say which libraries the layer uses."
+message = "The verb \"carry\" is used for content or abstract meaning (\"two dropdowns carry the decision\", \"each card carries the dropdowns\", \"this carries weight\"). Say what the thing records or shows, or what people do: \"the dropdowns record the decision\", \"the card shows the dropdowns\", \"reviewers take this seriously\". For libraries that \"carry\" a software layer, say which libraries the layer uses."
 most_common_in = ["claude"]
 dependency = [
   [
@@ -417,7 +417,7 @@ acceptable = [
 [[rule]]
 id = "verb.copula-cleft"
 severity = "bark"
-message = "A noun, a copula, and the whole action parked in a where/what/why/how clause (\"The 2025 result is where most lean-file advice comes from\"). The subject does nothing. Give it the verb: \"Most lean-file advice traces back to the 2025 result.\""
+message = "The sentence uses a noun, a form of \"be\", and a where/what/why/how clause that contains the action (\"The 2025 result is where most lean-file advice comes from\"). Make the subject do the action: \"Most lean-file advice comes from the 2025 result.\""
 most_common_in = ["claude"]
 dependency = [
   [
@@ -465,7 +465,7 @@ acceptable = [
 [[rule]]
 id = "verb.comma-splice"
 severity = "bark"
-message = "Comma splice: two complete clauses joined by a bare comma, with no word that says how they relate (\"The brief sets the rules, attendees make every other choice\"). Name the relation: 'while' or 'whereas' for a division or contrast, 'but' for a contrast, 'so' for a consequence, 'because' for a reason. Choose only a relation the text supports. For example, write \"The brief sets the rules, while attendees make every other choice.\" When the second clause only adds a fact, do not glue it on with 'and'. Rewrite the sentence so one idea carries the other: \"Older runs aren't deleted, they're hidden behind the marker\" becomes \"Older runs stay behind the dashed marker.\" If the clauses are separate thoughts, use a period."
+message = "A comma joins two complete clauses but no word says how they relate (\"The brief sets the rules, attendees make every other choice\"). Name the relation: \"while\" or \"whereas\" for a division or contrast, \"but\" for a contrast, \"so\" for a consequence, \"because\" for a reason. Use only a relation that the text supports. For example, write \"The brief sets the rules, while attendees make every other choice.\" When the second clause only adds a fact, do not join the clauses with \"and\". Write one sentence that states both facts: \"The service restarts every night, it clears the cache\" becomes \"The nightly restart clears the cache.\" If the clauses are separate thoughts, use a period."
 most_common_in = ["gpt", "claude"]
 # The comma and the second clause must be siblings with the comma first, so a
 # comma elsewhere in the sentence cannot complete the match.

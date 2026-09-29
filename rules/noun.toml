@@ -62,7 +62,7 @@
 [[rule]]
 id = "noun.cluster-four"
 severity = "bite"
-message = "Four or more nouns stacked into one phrase (\"cache layer invalidation retry strategy\"). A reader cannot tell which noun modifies which. Unpack it with a preposition or a clause: \"the strategy for retrying cache invalidation\"."
+message = "The phrase contains four or more nouns in a row (\"cache layer invalidation retry strategy\"). The reader cannot tell which noun modifies which. Use a preposition or a clause: \"the strategy for retrying cache invalidation\"."
 # "service desk request form" is the established name of a request route, not
 # improvised compression. Its exception applies only to this matched cluster;
 # another cluster in the same sentence must still report.
@@ -126,7 +126,7 @@ acceptable = [
 [[rule]]
 id = "noun.cluster-three"
 severity = "sniff"
-message = "Three nouns stacked into one phrase (\"database connection pool\"). Readable, but one more and it tips over. Consider a preposition: \"the connection pool of the database\"."
+message = "The phrase contains three nouns in a row (\"database connection pool\"). Three nouns are usually readable, but a fourth noun makes the phrase difficult to read. Consider a preposition: \"the connection pool of the database\"."
 unless = '\b(security group rules|lower radiator hose clamp|all of it on the tokenizer|driver assignments)\b'
 most_common_in = ["claude", "gpt"]
 dependency = [

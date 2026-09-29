@@ -29,7 +29,7 @@
 [[rule]]
 id = "adj.self-appraisal-attributive"
 severity = "bark"
-message = "Praising your own change (surgical, elegant, clean, minimal, robust ...) is a claim the reader cannot check. Say what the change does and what it leaves alone."
+message = "The reader cannot check praise such as surgical, elegant, clean, minimal, or robust when you use it for your own change. Say what the change does and which parts it does not change."
 most_common_in = ["claude", "gpt"]
 dependency = [
   { RIGHT_ID = "noun", RIGHT_ATTRS = { LEMMA = { IN = ["update", "fix", "change", "diff", "patch", "refactor", "solution", "approach", "implementation", "rewrite", "abstraction", "design", "cut", "edit", "tweak", "workaround", "migration", "cleanup", "adjustment"] }, POS = "NOUN" } },
@@ -52,7 +52,7 @@ unless = "\\bminimal (supported|required|viable|version|reproducible|reproductio
 [[rule]]
 id = "adj.self-appraisal-predicative"
 severity = "bark"
-message = "\"The fix is clean/elegant/surgical\" is self-praise. Replace with what the reviewer can verify: files touched, behaviour changed, tests added."
+message = "\"The fix is clean/elegant/surgical\" praises your own work. Replace the adjective with facts that the reviewer can check: the files that changed, the behaviour that changed, and the tests that were added."
 most_common_in = ["claude", "gpt"]
 dependency = [
   { RIGHT_ID = "cop", RIGHT_ATTRS = { LEMMA = "be", POS = { IN = ["AUX", "VERB"] } } },
@@ -73,7 +73,7 @@ acceptable = [
 [[rule]]
 id = "adj.abstraction-praise"
 severity = "bark"
-message = "Adjectives like powerful, seamless, intuitive, or robust on a component describe a feeling. Give the measurement or the guarantee instead."
+message = "Adjectives such as powerful, seamless, intuitive, or robust describe a feeling about a component. Replace them with a measurement or a guarantee."
 most_common_in = ["gpt", "gemini", "claude"]
 dependency = [
   { RIGHT_ID = "noun", RIGHT_ATTRS = { LEMMA = { IN = ["abstraction", "primitive", "api", "interface", "framework", "platform", "tool", "toolkit", "library", "system", "architecture", "pipeline", "integration", "experience", "workflow", "foundation", "layer", "ecosystem", "model", "mechanism"] }, POS = { IN = ["NOUN", "PROPN"] } } },

@@ -56,7 +56,7 @@ severity = "sniff"
 metric = "sentence_length_cv"
 threshold = 0.30
 min_sentences = 8
-message = "Sentences are all about the same length. People vary: a long one, then a short one. Merge two, split one, cut one."
+message = "Most sentences have about the same length, which makes the text monotonous. Combine two short sentences, split a long sentence, or delete a sentence."
 example = [
 '''
 The service reads the queue every ten seconds by default. It then writes the results to the shared table. The worker retries failed items up to three times. Each retry waits twice as long as the one before it. The dashboard shows the current backlog for every tenant. Alerts fire when the backlog grows past five hundred. Operators can pause a tenant from the admin page. The pause takes effect within one polling interval.
@@ -74,7 +74,7 @@ severity = "sniff"
 metric = "paragraph_opener_repeats"
 threshold = 2
 min_paragraphs = 4
-message = "Several paragraphs open with the same words. Vary the openings or merge the paragraphs."
+message = "Several paragraphs start with the same words. Change the first words of some paragraphs, or combine the paragraphs."
 example = [
 '''
 The system handles retries by re-queueing the message.
@@ -103,7 +103,7 @@ id = "doc.sentence-opener-run"
 severity = "sniff"
 metric = "sentence_opener_run"
 threshold = 3
-message = "Three or more consecutive sentences start with the same word. That drumbeat reads as generated; rewrite one of them."
+message = "Three or more sentences in a row start with the same word, which makes the text sound generated. Rewrite at least one of them."
 example = [
 '''
 We moved the cache. We dropped the lock. We rewrote the scheduler. We shipped on Friday.
@@ -121,7 +121,7 @@ severity = "sniff"
 metric = "triad_density"
 threshold = 1.5
 min_sentences = 4
-message = "Too many three-item lists (X, Y, and Z). Models default to three; give the real count, even if it is two or five."
+message = "The document contains too many three-item lists (X, Y, and Z). Language models use three items by default. Give the real number of items, even if it is two or five."
 example = [
 '''
 The service is fast, reliable, and cheap. It handles retries, timeouts, and duplicates. Operators get dashboards, alerts, and runbooks. The team gained speed, confidence, and sleep.
@@ -144,7 +144,7 @@ metric = "parallel_clause_repeats"
 # not claims that those sentences occurred together in a source document.
 threshold = 2
 min_sentences = 2
-message = "Several sentences repeat the same three-clause rhythm: two subjects with the same predicate, then a third assertion. Keep parallel wording where it clarifies a comparison, but rewrite some of these sentences to vary the structure. Review the listed locations together."
+message = "Several sentences use the same structure: two subjects with the same predicate, then a third statement. Keep the parallel structure where it makes a comparison clearer. Rewrite the other sentences with a different structure. Examine the listed locations together."
 example = [
 '''
 Red means fix it, green means done, and the same text produces the same findings on every run.
@@ -171,7 +171,7 @@ id = "doc.bold-label-bullets"
 severity = "sniff"
 metric = "bold_label_bullets"
 threshold = 3
-message = "A list of **Label:** bullets is a slide, not prose. Write sentences, or drop the labels and let the items speak."
+message = "Each list item starts with a bold label (**Label:**), as on a presentation slide. Write sentences, or remove the labels."
 example = [
 '''
 A few things worth noting:
@@ -197,7 +197,7 @@ severity = "sniff"
 metric = "connective_openers"
 threshold = 3
 min_paragraphs = 4
-message = "Several paragraphs open with a connective (However, Moreover, Ultimately ...). Cut them; the order of paragraphs already carries the logic."
+message = "Several paragraphs start with a connective (However, Moreover, Ultimately ...). Delete these words. The order of the paragraphs already shows how they relate."
 example = [
 '''
 The cache made reads faster.
@@ -227,7 +227,7 @@ severity = "sniff"
 metric = "short_paragraph_share"
 threshold = 0.7
 min_paragraphs = 6
-message = "Most paragraphs are a single sentence. That is LinkedIn rhythm. Group related sentences into paragraphs."
+message = "Most paragraphs contain only one sentence. Put related sentences together in one paragraph."
 example = [
 '''
 We moved the cache.
@@ -261,7 +261,7 @@ severity = "sniff"
 metric = "participial_closer_share"
 threshold = 0.25
 min_sentences = 4
-message = "Many sentences end with \", ensuring/enabling/highlighting X\". That tail asserts a benefit without evidence. End the sentence at the fact."
+message = "Many sentences end with \", ensuring/enabling/highlighting X\". This ending states a benefit without evidence. End the sentence after the fact."
 example = [
 '''
 We moved the cache to the edge, ensuring lower latency. The lock was removed, enabling parallel writes. Alerts now fire earlier, allowing faster response. Dashboards were rebuilt, highlighting the backlog.
@@ -278,7 +278,7 @@ id = "doc.signpost-density"
 severity = "sniff"
 metric = "signpost_density"
 threshold = 1.0
-message = "The document repeatedly announces its route instead of making the next point. Cut roadmap phrases such as \"First,\" and \"In this section\" unless readers need the navigation."
+message = "The document often tells the reader what comes next instead of giving the next point. Delete phrases such as \"First,\" and \"In this section\" unless the reader needs them for navigation."
 example = [
 '''
 First, the migration starts by copying tenant records into the new store. Each copy is checked against the source before it can become visible. The worker keeps the original record until a second pass completes. A failed copy remains eligible for the next hourly batch. Operators can inspect the pending count from the migration dashboard. The dashboard also shows records rejected by the schema validator. Rejections stay in the old store until an engineer resolves them. In this section, we describe the validation pass that keeps a malformed record from blocking other tenants. The validator records the field, source value, and error code for each rejection. That detail lets support repair the record without replaying the whole tenant. Once the batch is stable, the cutover job changes reads to the new store. Writes continue to dual-write for one week. The team then compares both stores every morning. A mismatch pauses the next batch and opens an incident. This rollout limits the damage from a bad conversion while keeping the migration moving.
@@ -296,7 +296,7 @@ severity = "sniff"
 metric = "conclusion_coda"
 threshold = 0.45
 min_paragraphs = 4
-message = "The final paragraph reads like a recap or moral. End on a concrete point instead of a stock coda or a summary of the opening."
+message = "The last paragraph is a summary or a moral. End with a specific fact or the next step. Do not use a general closing or repeat the introduction."
 example = [
 '''
 The cache now keeps tenant reads close to the worker. That removes a network hop from the request path.
@@ -335,7 +335,7 @@ severity = "sniff"
 metric = "every_template_openers"
 threshold = 2
 min_paragraphs = 4
-message = "Several paragraphs open with \"Every <noun> <verb>\". The repeated template creates a machine rhythm; start each paragraph on its specific claim."
+message = "Several paragraphs start with \"Every <noun> <verb>\". This repeated pattern makes the text sound generated. Start each paragraph with its specific statement."
 example = [
 '''
 Every request receives a trace identifier before it reaches the handler. The identifier follows the work through the queue.
@@ -365,7 +365,7 @@ severity = "sniff"
 metric = "rhetorical_question_share"
 threshold = 0.25
 min_sentences = 8
-message = "Several questions immediately answer themselves. State the claim directly, or keep only the question that the reader needs to consider."
+message = "The text answers several of its questions in the next sentence. State the claim directly. Keep a question only when the reader needs to answer it."
 example = [
 '''
 What happens when the lease expires? The coordinator returns the job to the queue. Why keep the old record? It gives support a source for comparison. Who can restart a stalled job? The on-call engineer can do so from the dashboard. The worker records each retry. The dashboard keeps the trace for fourteen days. A weekly report lists recurring failures. Teams review that report during operations planning.
