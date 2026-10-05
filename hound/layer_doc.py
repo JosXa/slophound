@@ -353,6 +353,62 @@ def parallel_clause_repeats(doc: Document, get_nlp):
     )
 
 
+@metric("staccato_beats", parsed=True)
+def staccato_beats(doc: Document, get_nlp):
+    """Most short non-clausal beats in eight local running-prose sentences.
+
+    Complete short clauses and imperatives are not evidence. Require longer
+    prose in the same window, so standalone labels do not become a rhythm
+    finding. Paragraph whitespace is irrelevant; non-prose blocks break runs.
+    """
+    groups = []
+    current = []
+    previous_end = 0
+    for block in doc.blocks:
+        if block.kind != "paragraph" or doc.text[previous_end:block.start].strip():
+            if current:
+                groups.append(current)
+            current = []
+        if block.kind == "paragraph":
+            current.extend(split_block(doc.prose, block.start, block.end))
+        previous_end = block.end
+    if current:
+        groups.append(current)
+
+    lengths = {span: len(words(doc.prose[span[0]:span[1]])) for group in groups for span in group}
+    # Quoted examples are not the author's cadence. The shared prose view
+    # preserves inline quotes, so exclude their source intervals locally.
+    quoted = [m.span() for m in re.finditer(r'"[^"]*"|“[^”]*”', doc.text)]
+    candidates = [span for group in groups for span in group
+                  if 1 <= lengths[span] <= 5
+                  and not any(span[0] < end and start < span[1] for start, end in quoted)
+                  and re.search(r"[.!]\s*$", doc.prose[span[0]:span[1]])
+                  and ":" not in doc.prose[span[0]:span[1]]]
+    if len(candidates) < 3:
+        return 0, None, ""
+    # Normalize whitespace before parsing, without changing source offsets.
+    parsed = get_nlp().pipe([" ".join(doc.prose[s:e].split()) for s, e in candidates], batch_size=32)
+    # Proper-name parses are uncertain: the small model tags commands such
+    # as "Insert the card" and "Press Start" as names. Do not count them.
+    beats = {span for span, sentence in zip(candidates, parsed)
+             if not any(token.pos_ in {"VERB", "AUX", "PROPN"}
+                        or token.dep_ in {"nsubj", "nsubjpass", "csubj"}
+                        for token in sentence)}
+    best = []
+    for group in groups:
+        for index in range(len(group)):
+            window = group[index:index + 8]
+            if not any(lengths[span] > 5 for span in window):
+                continue
+            hits = [span for span in window if span in beats]
+            if len(hits) > len(best):
+                best = hits
+    locations = ", ".join(f"{doc.line_col(s)[0]}:{doc.line_col(s)[1]}" for s, _ in best)
+    return len(best), best[0] if best else None, (
+        f"{len(best)} short beats within eight prose sentences; line:column locations: {locations}"
+    )
+
+
 def run(doc: Document, rules: list[Rule], get_nlp) -> list[Finding]:
     findings: list[Finding] = []
     n_sentences = len(_sentences(doc))

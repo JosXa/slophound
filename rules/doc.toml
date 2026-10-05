@@ -28,6 +28,9 @@
 #                     connective_openers        paragraphs opening with However,
 #                                               Moreover, Ultimately, ...
 #                     short_paragraph_share     share of one-sentence paragraphs
+#                     staccato_beats            short non-clausal beats in eight
+#                                               prose sentences, with longer
+#                                               context; parses short candidates
 #                     participial_closer_share  share of sentences ending in
 #                                               ", ensuring/enabling/... X"
 #                     em_dash_density           em dashes per 100 words
@@ -252,6 +255,35 @@ We moved the cache on a Tuesday. It was slower than the old one, and nobody noti
 Then the pager went off at three in the morning. We rolled back within ten minutes, but the queue had already backed up past the alert threshold.
 
 The lesson is to ship smaller and watch the unsampled numbers for the first hour.
+''',
+]
+
+[[rule]]
+id = "doc.staccato-beats"
+severity = "sniff"
+metric = "staccato_beats"
+threshold = 3
+min_sentences = 4
+# At least three 1–5-word non-clausal beats in eight prose sentences, plus a
+# sentence longer than five words. Complete clauses and imperatives do not
+# count. Headings and lists break windows; paragraph reflow does not.
+# Motivated by the reviewed fishing reel (authorship unverified). First example
+# is its verbatim closing excerpt; the alternating example is constructed.
+message = "Several short beats interrupt the nearby prose (for example, separate labels or detached phrases). Read the listed locations together and join related beats to the sentence they explain, or use a list if they are items to scan. Keep brief instructions and deliberate isolated emphasis."
+example = [
+'''Pull up a satellite map. Look for streams coming in, points sticking out, and where the water changes color. That means weeds or a drop-off. Safe. Food. Easy. Find the spot with the most X's, and you've found the fish.''',
+'''The branches protect small fish from predators moving through the open water. A hiding place. The current delivers insects to fish waiting near the edge of the channel. A free meal. The rocks slow the current enough for fish to rest without swimming upstream. Less effort.''',
+]
+acceptable = [
+"Every fish wants three things. Don't get eaten. Eat. And don't get tired.",
+"Fish seek shelter, food, and water where they can rest without fighting the current.",
+"The disk fills. Writes fail. Clients retry. The queue grows.",
+"The server needs restarting. Stop it. Wait. Start it. Check the logs.",
+'''Look for places that offer the following:
+
+- Safe.
+- Food.
+- Easy.
 ''',
 ]
 

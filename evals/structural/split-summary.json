@@ -1,0 +1,117 @@
+{
+  "development": {
+    "redundant_conclusion": {
+      "labelled": 8,
+      "tp": 1,
+      "fp": 0,
+      "tn": 1,
+      "fn": 0,
+      "review": 6,
+      "error": 0
+    },
+    "empty_roadmap": {
+      "labelled": 8,
+      "tp": 0,
+      "fp": 0,
+      "tn": 1,
+      "fn": 0,
+      "review": 7,
+      "error": 0
+    },
+    "unsupported_stakes": {
+      "labelled": 8,
+      "tp": 1,
+      "fp": 0,
+      "tn": 1,
+      "fn": 0,
+      "review": 6,
+      "error": 0
+    },
+    "formulaic_contrast": {
+      "labelled": 8,
+      "tp": 0,
+      "fp": 0,
+      "tn": 5,
+      "fn": 0,
+      "review": 3,
+      "error": 0
+    }
+  },
+  "holdout": {
+    "redundant_conclusion": {
+      "labelled": 8,
+      "tp": 0,
+      "fp": 0,
+      "tn": 2,
+      "fn": 0,
+      "review": 6,
+      "error": 0
+    },
+    "empty_roadmap": {
+      "labelled": 8,
+      "tp": 0,
+      "fp": 0,
+      "tn": 0,
+      "fn": 0,
+      "review": 8,
+      "error": 0
+    },
+    "unsupported_stakes": {
+      "labelled": 8,
+      "tp": 1,
+      "fp": 0,
+      "tn": 1,
+      "fn": 0,
+      "review": 6,
+      "error": 0
+    },
+    "formulaic_contrast": {
+      "labelled": 8,
+      "tp": 0,
+      "fp": 0,
+      "tn": 5,
+      "fn": 0,
+      "review": 3,
+      "error": 0
+    }
+  },
+  "challenge": {
+    "redundant_conclusion": {
+      "labelled": 4,
+      "tp": 0,
+      "fp": 0,
+      "tn": 0,
+      "fn": 0,
+      "review": 4,
+      "error": 0
+    },
+    "empty_roadmap": {
+      "labelled": 4,
+      "tp": 0,
+      "fp": 0,
+      "tn": 0,
+      "fn": 0,
+      "review": 4,
+      "error": 0
+    },
+    "unsupported_stakes": {
+      "labelled": 4,
+      "tp": 0,
+      "fp": 0,
+      "tn": 1,
+      "fn": 0,
+      "review": 3,
+      "error": 0
+    },
+    "formulaic_contrast": {
+      "labelled": 4,
+      "tp": 0,
+      "fp": 0,
+      "tn": 1,
+      "fn": 0,
+      "review": 3,
+      "error": 0
+    }
+  },
+  "external-probe": {}
+}
