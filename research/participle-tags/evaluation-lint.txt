@@ -1,0 +1,11 @@
+research/participle-tags/EVALUATION.md:64:52  sniff  noun.cluster-three
+  …for review. The two legitimate controls block promotion to `bite` without a narrower…
+                                  ^^^^^^^^ ^^^^^ ^^^^^^^^^
+  The phrase contains three nouns in a row ("database connection pool"). Three nouns are usually readable, but a fourth noun makes the phrase difficult to read. Consider a preposition: "the connection pool of the database".
+
+research/participle-tags/additional-samples.md:5:895  sniff  noun.cluster-three
+  …or timestamp. Its four extracted assistant text blocks come from `trace`, because the…
+                                    ^^^^^^^^^ ^^^^ ^^^^^^
+  The phrase contains three nouns in a row ("database connection pool"). Three nouns are usually readable, but a fourth noun makes the phrase difficult to read. Consider a preposition: "the connection pool of the database".
+
+0 bites, 0 barks, 2 sniffs · 0.2 findings per 100 words

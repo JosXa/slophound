@@ -1,0 +1,232 @@
+{
+  "date": "2026-10-05",
+  "proposal": {
+    "core": [
+      "answered",
+      "verified",
+      "simplified",
+      "streamlined",
+      "solved",
+      "demystified",
+      "reimagined",
+      "elevated",
+      "perfected"
+    ],
+    "extended": [
+      "eliminated",
+      "unified",
+      "transformed",
+      "decoded",
+      "unlocked",
+      "redefined",
+      "reinvented",
+      "tamed"
+    ],
+    "separator": "comma",
+    "max_prefix_words": 12,
+    "blocks": [
+      "paragraph",
+      "list",
+      "heading",
+      "field"
+    ],
+    "grammar": "Nominal prefix after any colon/dash label, without VBD/VBP/VBZ/MD tokens",
+    "severity": "bark",
+    "enabled_in_production": false
+  },
+  "runtime": {
+    "spacy": "3.8.16",
+    "en_core_web_sm": "3.8.0"
+  },
+  "groups": {
+    "ghostbuster/generated": {
+      "documents": 5871,
+      "words": 2806510,
+      "spans": 156412
+    },
+    "ghostbuster/human": {
+      "documents": 2787,
+      "words": 1636290,
+      "spans": 94915
+    },
+    "rust/historical": {
+      "documents": 475,
+      "words": 635647,
+      "spans": 46628
+    },
+    "cc-bench": {
+      "documents": 9544,
+      "words": 123233,
+      "spans": 25278
+    },
+    "trace-commons": {
+      "documents": 4988,
+      "words": 132716,
+      "spans": 14560,
+      "lexical_comma": 1,
+      "proposal_core": 1
+    }
+  },
+  "totals": {
+    "documents": 23665,
+    "words": 5334396,
+    "spans": 337793,
+    "lexical_comma": 1,
+    "proposal_core": 1
+  },
+  "initial_proposal_findings": 0,
+  "final_proposal_findings": 1,
+  "colon_extension_findings": 0,
+  "controls": {
+    "total": 36,
+    "behavior_failures": 0,
+    "legitimate_controls_flagged": [
+      {
+        "id": "faq-heading",
+        "text": "## Your questions, answered",
+        "source": "constructed",
+        "quality": "legitimate-fragment",
+        "expected_detection": true,
+        "detected": true,
+        "candidates": [
+          {
+            "sentence": "Your questions, answered",
+            "prefix": "Your questions",
+            "whole_prefix": "Your questions",
+            "label_boundary": false,
+            "outcome": "answered",
+            "vocabulary": "core",
+            "separator": "comma",
+            "line": 1,
+            "column": 18,
+            "block": "heading",
+            "start": 3,
+            "end": 27,
+            "context": "## Your questions, answered",
+            "shape_rejection": null,
+            "grammar_rejection": null,
+            "prefix_parse": [
+              {
+                "text": "Your",
+                "pos": "PRON",
+                "tag": "PRP$",
+                "dep": "poss"
+              },
+              {
+                "text": "questions",
+                "pos": "NOUN",
+                "tag": "NNS",
+                "dep": "ROOT"
+              }
+            ],
+            "proposal_finding": true,
+            "colon_extension_finding": false
+          }
+        ]
+      },
+      {
+        "id": "status-label",
+        "text": "Order 123, verified.",
+        "source": "constructed",
+        "quality": "legitimate-fragment",
+        "expected_detection": true,
+        "detected": true,
+        "candidates": [
+          {
+            "sentence": "Order 123, verified.",
+            "prefix": "Order 123",
+            "whole_prefix": "Order 123",
+            "label_boundary": false,
+            "outcome": "verified",
+            "vocabulary": "core",
+            "separator": "comma",
+            "line": 1,
+            "column": 10,
+            "block": "paragraph",
+            "start": 0,
+            "end": 20,
+            "context": "Order 123, verified.",
+            "shape_rejection": null,
+            "grammar_rejection": null,
+            "prefix_parse": [
+              {
+                "text": "Order",
+                "pos": "NOUN",
+                "tag": "NN",
+                "dep": "ROOT"
+              },
+              {
+                "text": "123",
+                "pos": "NUM",
+                "tag": "CD",
+                "dep": "nummod"
+              }
+            ],
+            "proposal_finding": true,
+            "colon_extension_finding": false
+          }
+        ]
+      }
+    ]
+  },
+  "review": [
+    {
+      "group": "trace-commons/claude-opus-4-8/assistant",
+      "model": "claude-opus-4-8",
+      "date": "2026-06-16T23:41:30.394Z",
+      "source_url": "https://datasets-server.huggingface.co/rows?dataset=trace-commons%2Fagent-traces&config=default&split=train&offset=25&length=1",
+      "dataset_revision": "112ebd4d03ce852b00e935d523107c3d0c9a65bf",
+      "dataset_row": 25,
+      "id": "row25:messages[812].content",
+      "genre": "assistant_message",
+      "dataset": "trace-commons",
+      "sentence": "What this MR carries \u2014 the whole arc, verified",
+      "prefix": "the whole arc",
+      "whole_prefix": "What this MR carries \u2014 the whole arc",
+      "label_boundary": true,
+      "outcome": "verified",
+      "vocabulary": "core",
+      "separator": "comma",
+      "line": 9,
+      "column": 40,
+      "block": "heading",
+      "start": 639,
+      "end": 685,
+      "context": "## What this MR carries \u2014 the whole arc, verified",
+      "shape_rejection": null,
+      "grammar_rejection": null,
+      "prefix_parse": [
+        {
+          "text": "the",
+          "pos": "DET",
+          "tag": "DT",
+          "dep": "det"
+        },
+        {
+          "text": "whole",
+          "pos": "ADJ",
+          "tag": "JJ",
+          "dep": "amod"
+        },
+        {
+          "text": "arc",
+          "pos": "NOUN",
+          "tag": "NN",
+          "dep": "ROOT"
+        }
+      ],
+      "proposal_finding": true,
+      "colon_extension_finding": false,
+      "assessment": "target construction",
+      "suggested_rewrite": "Changes and checks in this MR"
+    }
+  ],
+  "input_sha256": "21b53371c5d513757113b62dcdb5ca9fa0bb6c35cb125f053124bf0fc08b67de",
+  "full_run_directory": "/tmp/opencode/slophound-participle-tags/proposal-v2",
+  "source_revisions": {
+    "ghostbuster": "86ebd72590556a81622986fab736ab9227a948af",
+    "rust-rfcs": "16f3bc024bdef9db7502ffbefeb602c37cee20bf",
+    "cc-bench": "792c6d3221db4d9ed475702ed61a176dd8948152",
+    "trace-commons": "112ebd4d03ce852b00e935d523107c3d0c9a65bf"
+  }
+}
