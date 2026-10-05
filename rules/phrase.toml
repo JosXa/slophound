@@ -16,6 +16,7 @@
 #   unless         Optional regex. If it matches anywhere in the sentence that
 #                  contains the hit, the hit is dropped. Use it to carve out the
 #                  literal sense of a figurative phrase.
+#   heading_only   Optional boolean. Fire only inside Markdown headings.
 #   sentence_start Optional boolean. Require the match to start a sentence in
 #                  the prose view; a wrapped line alone is not a sentence start.
 #   message        Full explanation plus the fix. The reader never needs to look
@@ -1196,5 +1197,36 @@ acceptable = [
   "The response has three fields: id, name, and status.",
   "The shape changes color when it is selected on the canvas.",
   "The shape of the vase matches the mold.",
+]
+most_common_in = ["claude"]
+
+# A headline built like a magazine cover line: a topic, a comma, and a short
+# tail that sorts, scopes, or frames it ("All 74 projects, by votes", "The
+# pipeline, explained", "Q3, at a glance"). The comma adds a pause for effect
+# that a label does not need. Of 294 headings in RFCs, PEPs, KEPs, the git and
+# Linux patch guides, and this repository's docs, none had this shape; their
+# commas separate list items ("Analogies, metaphors, and ranges"). The tail must
+# run to the end of the heading and contain no further comma.
+[[rule]]
+id = "phrase.comma-tail-heading"
+severity = "bite"
+heading_only = true
+pattern = '^[ \t]*[^\n]{1,80}?,[ \t]+(?:(?:by|per|across|over|in|at|on|from|for|under|via|versus|vs\.?)[ \t]+[^\s,][^,\n]{0,30}|(?:ranked|sorted|ordered|grouped|compared|explained|revisited|decoded|visuali[sz]ed|mapped|annotated|summari[sz]ed|simplified|unpacked|illustrated|untangled|demystified|reconsidered|condensed|distilled|abridged|tallied|counted)(?:[ \t]+(?:by|in|from|against|with|for)[^,\n]{0,30})?|side by side|step by step|one by one|end to end|then and now|so far|for real|in full)[ \t]*[.!]?[ \t]*$'
+message = "The heading is a topic, a comma, and a tail that frames it (\"All 74 projects, by votes\"), like a magazine cover line. Write a plain label without the pause: \"Projects ranked by votes\", or state the content: \"Votes for all 74 projects\"."
+example = [
+  "## All 74 projects, by votes",
+  "# 📋 All 74 projects, by votes",
+  "## The deploy pipeline, explained",
+  "### Q3 incidents, at a glance",
+  "## Every rule, ranked by noise",
+  "## Latency, by region",
+]
+acceptable = [
+  "## Projects ranked by votes",
+  "## Latency by region",
+  "## Analogies, metaphors, and ranges",
+  "## Rollout, Upgrade and Rollback Planning",
+  "##### Example 4, invariant",
+  "We sorted all 74 projects, by votes from everyone's top three.",
 ]
 most_common_in = ["claude"]

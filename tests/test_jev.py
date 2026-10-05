@@ -544,6 +544,17 @@ class RequiredRuleValidation(unittest.TestCase):
             with self.subTest(bad=bad), self.assertRaises(RuleError):
                 _build_rule(bad, "verb", Path("<t>"))
 
+    def test_heading_only_is_a_phrase_boolean_that_implies_headings(self) -> None:
+        raw = {"id": "phrase.test", "severity": "bite", "pattern": "x", "message": "T.", "example": ["x"], "acceptable": ["y"]}
+        rule = _build_rule({**raw, "heading_only": True, "headings": False}, "phrase", Path("<t>"))
+        self.assertTrue(rule.heading_only and rule.headings)
+        for bad, category in (({**raw, "heading_only": "yes"}, "phrase"), ({**raw, "id": "template.test", "heading_only": True}, "template")):
+            with self.subTest(bad=bad), self.assertRaises(RuleError):
+                _build_rule(bad, category, Path("<t>"))
+        engine = Engine([r for r in load_rules() if r.id == "phrase.comma-tail-heading"])
+        self.assertEqual(1, len(engine.lint_deterministic(build_document("d.md", "## All 74 projects, by votes\n"))))
+        self.assertEqual([], engine.lint_deterministic(build_document("d.md", "All 74 projects, by votes\n")))
+
     def test_invalid_veto_specs_fail_at_load_time(self) -> None:
         raw = {
             "id": "phrase.test", "severity": "sniff", "pattern": "test", "message": "Test.",

@@ -64,6 +64,8 @@ class Rule:
     most_common_in: list[str] = field(default_factory=list)
     # Whether the rule may fire inside Markdown headings (phrase rules only).
     headings: bool = False
+    # Whether the rule fires only inside Markdown headings (phrase rules only).
+    heading_only: bool = False
     # A high-confidence yes can remove a sniff after deterministic detection.
     jev_veto: JevVeto | None = None
     # Short reminder after the full message has appeared in the current report.

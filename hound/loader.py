@@ -124,6 +124,14 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         if not isinstance(sentence_start, bool):
             raise RuleError(f"{where}: sentence_start must be a boolean")
         rule.sentence_start = sentence_start
+        heading_only = raw.get("heading_only", False)
+        if not isinstance(heading_only, bool):
+            raise RuleError(f"{where}: heading_only must be a boolean")
+        if heading_only and category != "phrase":
+            raise RuleError(f"{where}: heading_only is for phrase rules; templates never run in headings")
+        rule.heading_only = heading_only
+        if heading_only:
+            rule.headings = True
         unless = raw.get("unless")
         if unless is not None:
             if not isinstance(unless, str):

@@ -44,6 +44,8 @@ def run(doc: Document, rules: list[Rule]) -> list[Finding]:
                 continue
             if not rule.headings and in_heading(m.start()):
                 continue
+            if rule.heading_only and not in_heading(m.start()):
+                continue
             if unless is not None:
                 sent = containing_sentence(spans, m.start())
                 context = text[sent[0] : sent[1]] if sent else m.group(0)
