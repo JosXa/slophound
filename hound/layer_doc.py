@@ -401,6 +401,9 @@ def staccato_beats(doc: Document, get_nlp):
             if not any(lengths[span] > 5 for span in window):
                 continue
             hits = [span for span in window if span in beats]
+            # Repeating the same isolated emphasis is a single rhetorical beat.
+            if len({doc.prose[s:e].strip().rstrip(".").casefold() for s, e in hits}) < 3:
+                continue
             if len(hits) > len(best):
                 best = hits
     locations = ", ".join(f"{doc.line_col(s)[0]}:{doc.line_col(s)[1]}" for s, _ in best)

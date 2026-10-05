@@ -14,6 +14,7 @@ from .masking import Document
 _ABBREV = re.compile(r"\b(?:e\.g|i\.e|vs|etc|Mr|Mrs|Dr|Ms|St|No|Fig|approx|cf)\.$", re.I)
 # These may also end a sentence. Only a lowercase continuation keeps them joined.
 _CONTINUATION_ABBREV = re.compile(r"\b(?:Inc|Ltd|Co|Corp)\.$|\b(?:[a-z]\.){2,}$", re.I)
+_GENUS_INITIAL = re.compile(r"\b[A-Z]\.$")
 # Sentence starts do not require capitalization; informal prose is still linted.
 _BOUNDARY = re.compile(r"[.!?]+[\"')\]]*(?=\s+[\"'(\[]?[A-Za-z0-9]|\s*$)")
 
@@ -34,6 +35,9 @@ def split_block(text: str, start: int, end: int) -> list[tuple[int, int]]:
         if _ABBREV.search(candidate.rstrip()):
             continue
         if _CONTINUATION_ABBREV.search(candidate.rstrip()) and re.match(r"\s+[\"'(\[]?[a-z]", segment[m.end():]):
+            continue
+        # A genus initial followed by a lowercase species name is not a sentence end.
+        if _GENUS_INITIAL.search(candidate.rstrip()) and re.match(r"\s+[a-z]", segment[m.end():]):
             continue
         s, e = _trim(segment, cursor, m.end())
         if e > s:
