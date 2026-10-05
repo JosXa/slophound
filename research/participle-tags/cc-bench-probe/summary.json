@@ -1,0 +1,99 @@
+{
+  "parameters": {
+    "ghostbuster": "None",
+    "rust": "None",
+    "extra": "[PosixPath('/tmp/opencode/slophound-participle-tags/cc-bench-prose.jsonl')]",
+    "output": "research/participle-tags/cc-bench-probe",
+    "limit": "10000",
+    "min_words": "1",
+    "max_words": "50000"
+  },
+  "groups": {
+    "cc-bench/Claude-Sonnet-4/assistant": {
+      "eligible": 643,
+      "texts": 643,
+      "words": 8587,
+      "sentences": 2501,
+      "tags": {}
+    },
+    "cc-bench/Claude-Sonnet-4/file-write": {
+      "eligible": 8,
+      "texts": 8,
+      "words": 652,
+      "sentences": 348,
+      "tags": {}
+    },
+    "cc-bench/DeepSeek-V3.1/assistant": {
+      "eligible": 1086,
+      "texts": 1086,
+      "words": 20049,
+      "sentences": 2874,
+      "tags": {}
+    },
+    "cc-bench/DeepSeek-V3.1/file-write": {
+      "eligible": 7,
+      "texts": 7,
+      "words": 386,
+      "sentences": 198,
+      "tags": {}
+    },
+    "cc-bench/GLM-4.5/assistant": {
+      "eligible": 979,
+      "texts": 979,
+      "words": 18475,
+      "sentences": 3694,
+      "tags": {
+        "centered": 1
+      }
+    },
+    "cc-bench/GLM-4.5/edit-excerpt": {
+      "eligible": 6,
+      "texts": 6,
+      "words": 35,
+      "sentences": 32,
+      "tags": {}
+    },
+    "cc-bench/GLM-4.5/file-write": {
+      "eligible": 8,
+      "texts": 8,
+      "words": 944,
+      "sentences": 311,
+      "tags": {}
+    },
+    "cc-bench/Kimi-K2-Instruct/assistant": {
+      "eligible": 1049,
+      "texts": 1049,
+      "words": 27161,
+      "sentences": 3247,
+      "tags": {}
+    },
+    "cc-bench/Kimi-K2-Instruct/file-write": {
+      "eligible": 13,
+      "texts": 13,
+      "words": 1882,
+      "sentences": 383,
+      "tags": {}
+    },
+    "cc-bench/Qwen3-Coder-480B-A35B-Instruct/assistant": {
+      "eligible": 1615,
+      "texts": 1615,
+      "words": 18016,
+      "sentences": 3999,
+      "tags": {}
+    },
+    "cc-bench/Qwen3-Coder-480B-A35B-Instruct/edit-excerpt": {
+      "eligible": 7,
+      "texts": 7,
+      "words": 148,
+      "sentences": 42,
+      "tags": {}
+    },
+    "cc-bench/Qwen3-Coder-480B-A35B-Instruct/file-write": {
+      "eligible": 13,
+      "texts": 13,
+      "words": 1391,
+      "sentences": 304,
+      "tags": {}
+    }
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "parameters": {
+    "ghostbuster": "/home/joscha/.cache/opencode-github/vivek3141/ghostbuster-data",
+    "rust": "/home/joscha/.cache/opencode-github/rust-lang/rfcs",
+    "extra": "[]",
+    "output": "research/participle-tags/reference-probe",
+    "limit": "1000",
+    "min_words": "200",
+    "max_words": "5000"
+  },
+  "groups": {
+    "ghostbuster/essay/claude": {
+      "eligible": 1000,
+      "texts": 1000,
+      "words": 457062,
+      "sentences": 22766,
+      "tags": {}
+    },
+    "ghostbuster/essay/gpt": {
+      "eligible": 1000,
+      "texts": 1000,
+      "words": 570496,
+      "sentences": 28818,
+      "tags": {
+        "sliced": 1,
+        "minced": 1
+      }
+    },
+    "ghostbuster/essay/human": {
+      "eligible": 962,
+      "texts": 962,
+      "words": 624134,
+      "sentences": 30836,
+      "tags": {
+        "related": 1
+      }
+    },
+    "ghostbuster/reuter/claude": {
+      "eligible": 1000,
+      "texts": 1000,
+      "words": 395543,
+      "sentences": 18523,
+      "tags": {}
+    },
+    "ghostbuster/reuter/gpt": {
+      "eligible": 986,
+      "texts": 986,
+      "words": 507275,
+      "sentences": 21622,
+      "tags": {
+        "skyrocketed": 1
+      }
+    },
+    "ghostbuster/reuter/human": {
+      "eligible": 980,
+      "texts": 980,
+      "words": 502685,
+      "sentences": 21434,
+      "tags": {
+        "said": 15
+      }
+    },
+    "ghostbuster/wp/claude": {
+      "eligible": 981,
+      "texts": 981,
+      "words": 388195,
+      "sentences": 34006,
+      "tags": {
+        "startled": 6,
+        "confused": 8,
+        "stunned": 2,
+        "corrupted": 1,
+        "perplexed": 1,
+        "bewildered": 2,
+        "unsettled": 1,
+        "concerned": 2,
+        "discouraged": 1,
+        "mesmerized": 1,
+        "followed": 1,
+        "puzzled": 2,
+        "enthralled": 1,
+        "relieved": 2,
+        "caught": 1,
+        "scoffed": 1,
+        "overcome": 1,
+        "snarled": 1,
+        "confessed": 1,
+        "exhausted": 1,
+        "grinned": 1,
+        "evolved": 1,
+        "distracted": 1,
+        "baffled": 1,
+        "yawned": 1,
+        "dumbfounded": 1
+      }
+    },
+    "ghostbuster/wp/gpt": {
+      "eligible": 904,
+      "texts": 904,
+      "words": 487939,
+      "sentences": 30677,
+      "tags": {
+        "bewildered": 3,
+        "intrigued": 2,
+        "smiled": 1,
+        "bemused": 1,
+        "adapted": 1,
+        "snapped": 1,
+        "betrayed": 1,
+        "personified": 1,
+        "nodded": 1,
+        "healed": 1,
+        "astonished": 1,
+        "dumbfounded": 1,
+        "puzzled": 1,
+        "defeated": 1
+      }
+    },
+    "ghostbuster/wp/human": {
+      "eligible": 845,
+      "texts": 845,
+      "words": 509471,
+      "sentences": 42645,
+      "tags": {
+        "annoyed": 1,
+        "defeated": 2,
+        "confused": 6,
+        "died": 1,
+        "broken": 1,
+        "shocked": 2,
+        "exhausted": 1,
+        "shit": 1,
+        "cramped": 1,
+        "amused": 1,
+        "forgotten": 1,
+        "surprised": 1,
+        "outraged": 1,
+        "flustered": 1,
+        "gone": 2,
+        "created": 1,
+        "troubled": 1,
+        "remained": 1,
+        "delighted": 1,
+        "puzzled": 1,
+        "bemused": 1,
+        "alarmed": 1,
+        "bound": 1
+      }
+    },
+    "rust/historical": {
+      "eligible": 475,
+      "texts": 475,
+      "words": 620483,
+      "sentences": 40655,
+      "tags": {
+        "given": 1,
+        "done": 1,
+        "would": 1
+      }
+    }
+  }
+}
