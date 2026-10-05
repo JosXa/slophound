@@ -277,12 +277,17 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
 
 
 def _blank_title_labels(text: str) -> str:
-    """Hide link labels that are names of things, such as page titles in Title Case.
+    """Hide link labels that are names of things, such as page titles in Title Case,
+    and the opening bracket of every inline link.
 
     A lowercase label like [the migration guide](...) is prose and stays visible.
     """
     out = text
     for m in _LINK_LABEL_RE.finditer(text):
+        # The opening bracket is syntax like the `](target)` that follows. Left
+        # visible, the parser reads "[" as a token and misattaches the words
+        # after it ("See [Contributing](...) for ... and [Corpora](...) for").
+        out = _blank(out, m.start(), m.start() + 1)
         label = m.group(1)
         tokens = [t for t in re.split(r"[\s-]+", label) if t]
         if len(tokens) >= 2 and all(t[0].isupper() or t[0].isdigit() for t in tokens):

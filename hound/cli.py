@@ -2,6 +2,7 @@
 
     slophound FILE [FILE...]      lint files (Markdown or plain text)
     slophound -                   lint stdin
+    echo "text" | slophound       lint piped stdin without '-'
     slophound test                run the rule self-tests and the corpus checks
     slophound auth set-key        store a Jev key from a hidden prompt or stdin
 
@@ -39,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
             " Use 'auth set-key' to let Jev review ambiguous findings automatically."
         ),
     )
-    p.add_argument("paths", nargs="*", help="Markdown or text files; '-' reads stdin. 'test' runs the self-tests.")
+    p.add_argument("paths", nargs="*", help="Markdown or text files; '-' or piped input with no files reads stdin. 'test' runs the self-tests.")
     p.add_argument("--disable", action="append", default=[], metavar="ID[,ID]", help="skip these rule ids for this run")
     p.add_argument(
         "--disable-category",
@@ -124,10 +125,17 @@ def main(argv: list[str] | None = None) -> int:
 
         return selftest_main(args.paths[1:], rules_dir=args.rules)
 
+    piped: str | None = None
     if not args.paths:
-        parser.print_usage(sys.stderr)
-        print("slophound: give at least one file, or '-' for stdin", file=sys.stderr)
-        return EXIT_FAILURE
+        # Piped input needs no '-': `echo "text" | slophound` lints stdin. An
+        # empty stream (/dev/null, a closed pipe) counts as no input at all.
+        if sys.stdin is not None and not sys.stdin.isatty():
+            piped = sys.stdin.read()
+        if not piped or not piped.strip():
+            parser.print_usage(sys.stderr)
+            print("slophound: give at least one file, pipe text on stdin, or pass '-'", file=sys.stderr)
+            return EXIT_FAILURE
+        args.paths = ["-"]
 
     try:
         rules = load_rules(args.rules) if args.rules else load_rules()
@@ -146,7 +154,7 @@ def main(argv: list[str] | None = None) -> int:
     seen_rules: set[str] = set()
     try:
         for path in args.paths:
-            name, text = read_input(path)
+            name, text = ("<stdin>", piped) if piped is not None else read_input(path)
             doc = build_document(name, text, skip_quotes=args.skip_quotes)
             findings = engine.lint(doc)
             render(doc, findings, vocab=vocab, seen_rules=seen_rules)

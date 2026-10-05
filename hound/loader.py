@@ -164,6 +164,11 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
             except re.error as exc:
                 raise RuleError(f"{where}: invalid match_unless regex: {exc}") from exc
             rule.match_unless = match_unless
+        if "anchor_without" in raw:
+            try:
+                rule.anchor_without = _as_list(raw["anchor_without"])
+            except RuleError as exc:
+                raise RuleError(f"{where}: anchor_without: {exc}") from exc
     elif category in DOC_CATEGORIES:
         metric = raw.get("metric")
         if not isinstance(metric, str):
@@ -181,8 +186,13 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
 
 
 def _build_jev_veto(raw: dict, where: str) -> JevVeto:
-    if not isinstance(raw, dict) or set(raw) != {"instructions", "criteria", "threshold"}:
-        raise RuleError(f"{where}: jev_veto needs instructions, criteria, and threshold")
+    if not isinstance(raw, dict) or not {"instructions", "criteria", "threshold"} <= set(raw) <= {
+        "instructions", "criteria", "threshold", "required",
+    }:
+        raise RuleError(f"{where}: jev_veto needs instructions, criteria, and threshold (and optionally required)")
+    required = raw.get("required", False)
+    if not isinstance(required, bool):
+        raise RuleError(f"{where}: jev_veto.required must be a boolean")
     criteria = raw["criteria"]
     if not isinstance(criteria, dict) or set(criteria) != {"true", "false"}:
         raise RuleError(f"{where}: jev_veto.criteria needs true and false descriptions")
@@ -191,4 +201,4 @@ def _build_jev_veto(raw: dict, where: str) -> JevVeto:
     threshold = raw["threshold"]
     if isinstance(threshold, bool) or not isinstance(threshold, (int, float)) or not 0.5 < threshold <= 1:
         raise RuleError(f"{where}: jev_veto.threshold must be greater than 0.5 and at most 1")
-    return JevVeto(raw["instructions"], criteria["true"], criteria["false"], float(threshold))
+    return JevVeto(raw["instructions"], criteria["true"], criteria["false"], float(threshold), required)

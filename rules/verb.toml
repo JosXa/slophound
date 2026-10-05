@@ -26,6 +26,16 @@
 #                 sentence that contains the match. If it matches, the finding
 #                 is dropped. Use it to express "no object" or other things the
 #                 matcher cannot say directly.
+#   match_unless  Optional regex tested against the matched span only (from the
+#                 first to the last matched token).
+#   anchor_without  Optional list of dependency labels. The match is dropped
+#                 when the anchor (first node) has a child with one of them.
+#                 Use it for "no subject" (["nsubj"]) or "no by-agent"
+#                 (["agent"]), which a DependencyMatcher pattern cannot say.
+#   jev_veto      Optional table asking Jev whether a finding should be removed;
+#                 see docs/adding-rules.md. With `required = true` the rule
+#                 reports nothing unless Jev answered, so it is silent without
+#                 a key. Use that only when the parse alone finds register.
 #   message       Shown verbatim under the offending line. Say what to write
 #                 instead.
 #   example       One or more sentences that MUST trigger this rule.
@@ -427,6 +437,11 @@ dependency = [
     {LEFT_ID = "clause", REL_OP = ">>", RIGHT_ID = "wh", RIGHT_ATTRS = {TAG = {IN = ["WRB", "WP"]}, LOWER = {IN = ["where", "what", "why", "how"]}}},
   ],
 ]
+# "The rules follow from how this repository works: pull requests are not
+# squashed" parses with the later "are" as root and the first clause as its
+# ccomp. A colon or semicolon inside the match means the copula belongs to a
+# separate clause, so there is no cleft.
+match_unless = '[:;]'
 # "The question is whether", "the problem is that" are ordinary framing and do
 # not use a wh-word, so they never match. Guard the remaining literal senses:
 # a place or a named person as subject.
@@ -451,6 +466,7 @@ acceptable = [
   "The question is whether we ship.",
   "The problem is that it leaks.",
   "The reason is how the parser tokenises hyphens.",
+  "The rules come from how this repository works: pull requests are not squashed.",
 ]
 
 # Asyndetic parataxis with a comma: two independent clauses, each with its own
@@ -515,3 +531,86 @@ acceptable = [
   "The humorous story is American, the comic story is English.",
   "The DOM also gets slower, the more nodes are in it.",
 ]
+
+# An imperative joined by "and" to a clause with its own subject: "drop own-team
+# claps and their vote moves elsewhere". The "and" stands for "if you do this,
+# then", so the sentence is a condition the reader has to rebuild. Two plain
+# imperatives ("Drop the cache and restart the server") give the second verb no
+# subject and never match. Across about 5,800 sentences of RFCs, PEPs, the git
+# and Linux patch guides, and project READMEs the shape appeared twice, both
+# parser errors. anchor_without drops a first verb with its own subject ("You
+# should drop the claps and ..."); match_unless drops "and if/when ..." where the
+# second clause is a condition of its own.
+[[rule]]
+id = "verb.imperative-and-consequence"
+severity = "bark"
+message = "An instruction joined by \"and\" to its result (\"drop own-team claps and their vote moves elsewhere\") hides a condition: the \"and\" means \"if you do this, then\". Write the condition: \"If own-team claps do not count, their vote moves to another project.\""
+most_common_in = ["gpt", "claude"]
+dependency = [
+  [
+    { RIGHT_ID = "action", RIGHT_ATTRS = { TAG = "VB", DEP = { IN = ["ROOT", "conj"] } } },
+    { LEFT_ID = "action", REL_OP = ">", RIGHT_ID = "and", RIGHT_ATTRS = { DEP = "cc", LOWER = "and" } },
+    { LEFT_ID = "and", REL_OP = "$++", RIGHT_ID = "result", RIGHT_ATTRS = { DEP = "conj", POS = { IN = ["VERB", "AUX"] } } },
+    { LEFT_ID = "result", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass", "expl"] }, TAG = { NOT_IN = ["WDT", "WP"] }, LOWER = { NOT_IN = ["i", "we"] } } },
+  ],
+]
+anchor_without = ["nsubj", "nsubjpass", "expl"]
+match_unless = '\band,? (if|when|whenever|once|unless|after|before|while|as soon as)\b'
+example = [
+  "One person had their own project as their favourite; drop own-team claps and their vote moves elsewhere.",
+  "Remove the flag and the build fails on Windows.",
+  "Delve into the traces and it's obvious.",
+  "Skip the warmup and the first request fails.",
+]
+acceptable = [
+  "If own-team claps do not count, their vote moves to another project.",
+  "Drop the cache and restart the server.",
+  "Check the catalog, and if it is missing, add it with the sentence you just wrote.",
+  "If you hit a parsing bug, open an issue and I will usually get to it within a week.",
+  "We drop the claps and the vote moves elsewhere.",
+  "You should drop the claps and the vote moves elsewhere.",
+  "When designing such a class, take care to make explicit decisions about which attributes are public, which are part of the subclass API, and which are truly only to be used by your base class.",
+]
+
+# A passive without a by-agent that leaves out a known actor: "every sentence
+# has to be checked against the diff", "the skill text was drafted with AI".
+# A parse finds every passive, and human specs use them in 16 to 31 percent of
+# sentences ("the token MUST be kept confidential", "the bug was fixed in
+# 3.37.2"), which is register. Only Jev can tell whether the actor matters, so
+# the check is required: without a key, or when Jev does not answer, the rule
+# reports nothing. Calibrated on 20 passives each from RFC 6749, PEP 8, the Rust
+# NLL RFC, the SQLite and Redis docs, and the git and Linux patch guides: one of
+# 140 scored below 0.72 (0.65, "were adapted from Guido's essay"), all others
+# 0.74 or higher. The motivating PR description scored 0.44 to 0.84.
+[[rule]]
+id = "verb.hidden-actor-passive"
+severity = "bark"
+message = "The passive leaves out who does this (\"every sentence has to be checked against the diff\"), although the writer knows and the reader needs it. Name the actor: \"the reviewer has to check every sentence against the diff\". Keep the passive when the actor is unknown or does not matter."
+most_common_in = ["gpt", "claude"]
+dependency = [
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { TAG = "VBN" } },
+    # ">--": the auxiliary precedes the participle. The parser sometimes hangs a
+    # later "'s" on a participle ("Agreed, so here's a ranking").
+    { LEFT_ID = "verb", REL_OP = ">--", RIGHT_ID = "aux", RIGHT_ATTRS = { DEP = "auxpass" } },
+  ],
+]
+anchor_without = ["agent"]
+example = [
+  "Every sentence has to be checked against the diff before it can be trusted.",
+  "The skill text was drafted with AI and reviewed by hand.",
+  "The pre-filled description is treated as a convenience.",
+]
+acceptable = [
+  "The reviewer has to check every sentence against the diff.",
+  "I drafted the skill text with AI and reviewed it by hand.",
+  "The ticket was closed by the release manager.",
+  "Agreed, so here's a ranking where nobody wins.",
+]
+
+[rule.jev_veto]
+instructions = "`matched_text` is a passive verb with no by-agent. Is the passive appropriate here, because naming who performs the action would not help the reader?"
+threshold = 0.72
+required = true
+criteria.true = "The actor is unknown, generic, irrelevant, or already clear from the sentence; or the sentence states a rule, a definition, a protocol requirement, or a historical result where the action matters more than who performed it (for example: the token was revoked at 10:02; requests are rejected when the header is missing; the bug was fixed in version 3.2)."
+criteria.false = "A specific person, role, team, or component performs the action, the writer knows it, and naming it would tell the reader who is responsible (for example: every sentence has to be checked, meaning the reviewer checks it; the text was drafted with AI, meaning the author drafted it)."

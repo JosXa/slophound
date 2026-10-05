@@ -74,7 +74,7 @@ In a source checkout, the existing script works too:
 
 ```sh
 ./slophound README.md docs/*.md     # lint files
-cat draft.txt | ./slophound -       # lint stdin
+echo "One sentence." | ./slophound  # lint piped stdin ('-' also reads stdin)
 ./slophound test                    # run the rule and corpus tests
 ```
 

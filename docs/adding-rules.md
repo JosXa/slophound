@@ -9,7 +9,7 @@ Contract: a rule ships only when `./slophound test` is green, the repo's own doc
 A rule usually catches a construction a model produces where a person would have written something plainer. Use origin, source, or history instead of `provenance`, as appropriate. Existing code and quotation masking still applies.
 
 - Bare words are blacklists. `robust`, `never`, `sits`, `actually`, `framework` appear in human technical prose at the same rate as in generated prose. Gate a word with the company it keeps: `the shape of the problem`, `sits at the intersection of`, `buys us`. If the only pattern you can write is one word, you have a vocabulary preference and not a rule.
-- Register is not slop. Tests of passive voice, formal vocabulary (`commence`, `sufficient`), and long sentences flagged human and generated prose at the same rate. Those rules were deleted. If a candidate would flag good human writing as often as generated writing, drop it.
+- Register is not slop. Tests of passive voice, formal vocabulary (`commence`, `sufficient`), and long sentences flagged human and generated prose at the same rate. Those rules were deleted. If a candidate would flag good human writing as often as generated writing, drop it, or make it a required Jev check (see below) when a typed question separates the two. `verb.hidden-actor-passive` is the example: every passive is a candidate, and Jev keeps only passives that leave out a known actor.
 - One occurrence has to be wrong on its own for a phrase or template rule. If a construction is fine once but tiresome when repeated, it is a document statistic (`doc.*`), and the rule is a threshold on a metric in `hound/layer_doc.py`.
 - The example must come from somewhere. The best source is a sentence a model wrote, ideally one you or the user just caught. Upstream catalogs (unsloppify, unslop, antislop lists) are candidates to probe, never lists to paste: most of them are fiction register or bare words.
 
@@ -40,7 +40,7 @@ Cheapest layer that can separate the slop from the literal use:
    tools/parse.py "That holds even under load." "The worker holds a mutex."
    ```
 
-   It prints `i text lemma pos tag dep head` per token from the same model the linter uses. Write the pattern against what the parser produces for your examples, then check each `acceptable` sentence parses differently. If the parser gets your best example wrong, fall back to a `phrase` rule for that surface form instead of fighting the parser.
+   It prints `i text lemma pos tag dep head` per token from the same model the linter uses. Write the pattern against what the parser produces for your examples, then check each `acceptable` sentence parses differently. A pattern cannot say that a token lacks a child, so `anchor_without` drops a match whose first node has a subject, a by-agent, or another listed dependent. If the parser gets your best example wrong, fall back to a `phrase` rule for that surface form instead of fighting the parser.
 5. `doc` when only aggregate counts tell. Add the metric function to `hound/layer_doc.py` under the `@metric` decorator, document it in the `rules/doc.toml` header, then add the rule with `threshold` and `min_sentences` or `min_paragraphs` so short texts cannot trip it.
 
 ## Examples and acceptables
@@ -66,6 +66,8 @@ criteria.false = "The expression is improvised or merely understandable from its
 ```
 
 The table belongs to the preceding `[[rule]]`; put it after that rule's other fields. All fields shown are required. The threshold is P(yes), must be greater than 0.5 and at most 1, and includes equality. Unknown fields are rejected.
+
+Add `required = true` when the deterministic candidate alone is register and would break the human corpus ceiling. A required check keeps a finding only when Jev answered below the threshold. Without a key, after a request failure, or for a missing answer, the finding is dropped. The human corpus ceiling skips these candidates, because no reader sees them without Jev. Calibrate the threshold before committing: score candidates from several human documents and from the motivating text, and pick a value that separates them. Record the measurement in the comment above the rule.
 
 Each question gets one finding's `sentence`, `matched_text`, and `tokens` from the masked prose. Small batches stay within a document block, with a question referring to its own item. Write criteria about the complete expression in that context. A yes removes the finding only at or above the threshold. Uncertain, missing, or invalid answers keep it. A request failure keeps the document's deterministic findings.
 
@@ -99,7 +101,7 @@ The repo's own Markdown must pass with zero bites. When a new rule catches a sen
 
 1. `./slophound test` green (every rule solo, masking checks, corpus ceilings, own docs).
 2. `./slophound README.md AGENTS.md docs/*.md` prints no findings.
-3. Commit the rule with its motivating sentence in the message body. Commits in this repo are made with `git -c commit.gpgsign=false commit`.
+3. Commit the rule with its motivating sentence in the message body. Use `git -c commit.gpgsign=false commit` in this repo.
 4. If the rule corrects a false positive reported by a user, explain the change and offer to contribute it. Ask before submitting a PR.
 
 ## Repairing a false positive

@@ -1146,3 +1146,55 @@ acceptable = [
   "The timeout is the setting that matters to the on-call engineer.",
 ]
 most_common_in = ["gpt", "claude", "gemini"]
+
+# "X follows from Y" and "X follows what/how Y" borrow the wording of a proof
+# ("the bound follows from Lemma 2") or of "form follows function" to present a
+# design decision as inevitable, without saying which fact causes which choice.
+# Banned outright in software prose. Measured on about 5,800 sentences of human
+# specs and patch guides: one hit ("If the patch follows from a mailing list
+# discussion"), accepted as the price of the ban.
+[[rule]]
+id = "phrase.follows-from"
+severity = "bite"
+pattern = '\bfollow(s|ed|ing)?\s+(directly\s+|naturally\s+|logically\s+|straight\s+|simply\s+)?from\b|\bfollows\s+(what|how|whatever|wherever|where|whichever|whoever)\b'
+unless = '\b(is|are|was|were|be|been|being|get|gets|got) followed from\b'
+message = "\"X follows from Y\" or \"X follows what Y\" presents a decision as a logical consequence without naming the fact that caused it (\"The rules follow from how this repository works\", \"The shape follows what needs explaining\"). Name the fact and the decision it causes: \"Pull requests are not squashed, so every commit message stays in the history.\""
+example = [
+  "The rules follow from how this repository works.",
+  "The shape follows what needs explaining.",
+  "The API shape follows naturally from the data model.",
+  "Everything else followed from that decision.",
+]
+acceptable = [
+  "Pull requests are not squashed, so every commit message stays in the history.",
+  "Follow the steps below.",
+  "The section that follows explains the setup.",
+  "The output is as follows:",
+  "Step three follows step two.",
+  "The courier was followed from the station.",
+  "We will follow up from the meeting on Monday.",
+]
+most_common_in = ["claude", "gpt"]
+
+# "The shape" as the subject of an action verb: "The shape follows what needs
+# explaining", "the API shape depends on the caller". The abstract noun stands in
+# for a concrete property (length, sections, fields) and then acts like a
+# person. phrase.engineering-slang covers "the shape of the problem".
+[[rule]]
+id = "phrase.shape-as-actor"
+severity = "bite"
+pattern = '\b(the|its|their|this|that|our|your)(\s+[a-z][\w-]*)?\s+shape\s+(follows|tracks|mirrors|matches|reflects|depends\s+on|comes\s+from|falls\s+out\s+of|emerges|changes|varies|adapts|is\s+(driven|set|dictated|determined|decided)\s+by)\b'
+unless = '\b(colou?r|canvas|svg|fill|stroke|drag|hover|selected|polygon|circle|rectangle|vase|mold|mould|clay)\b'
+message = "\"The shape\" stands in for a concrete property and then acts like a person (\"The shape follows what needs explaining\"). Name the property and say who or what decides it: \"A one-line change gets one sentence; a series of commits gets a Summary and a Commits section.\""
+example = [
+  "The shape follows what needs explaining.",
+  "The API shape depends on the caller.",
+  "Its shape is driven by the data model.",
+]
+acceptable = [
+  "A one-line change gets one sentence; a series of commits gets a Summary and a Commits section.",
+  "The response has three fields: id, name, and status.",
+  "The shape changes color when it is selected on the canvas.",
+  "The shape of the vase matches the mold.",
+]
+most_common_in = ["claude"]

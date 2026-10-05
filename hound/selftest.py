@@ -81,7 +81,9 @@ def check_corpus(engine: Engine) -> list[str]:
         for f in bites:
             line, col = doc.line_col(f.start)
             problems.append(f"{path.relative_to(ROOT)}:{line}:{col}: human text hit {f.rule.id}: {doc.text[f.start:f.end]!r}")
-        soft = [f for f in findings if f.severity != BITE]
+        # A rule with a required Jev check reports nothing until Jev answers, so
+        # its raw candidates are not warnings a reader of this text would see.
+        soft = [f for f in findings if f.severity != BITE and not (f.rule.jev_veto and f.rule.jev_veto.required)]
         density = len(soft) / max(doc.word_count(), 1) * 100
         if density > HUMAN_WARNING_DENSITY_CEILING:
             ids = sorted({f.rule.id for f in soft})
@@ -147,6 +149,8 @@ def check_masking() -> list[str]:
     ):
         if needle not in doc.prose:
             problems.append(f"{needle!r} is prose and must stay visible")
+    if "[the guide" in doc.prose or "[Artifact" in doc.prose:
+        problems.append("the opening bracket of an inline link must be masked")
     if "quote here" not in doc.prose:
         problems.append("blockquote text should stay visible by default")
     skipped = build_document("<sample>", sample, skip_quotes=True)

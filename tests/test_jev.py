@@ -462,7 +462,88 @@ class AutomaticTermChecks(IsolatedConfig):
             factory.assert_not_called()
 
 
-class VetoRuleValidation(unittest.TestCase):
+class RequiredChecks(IsolatedConfig):
+    """A required check reports a finding only after Jev answered below the threshold."""
+
+    TEXT = "Every sentence has to be checked against the diff. That holds even under load.\n"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.engine = Engine(load_rules())
+
+    def ids(self) -> list[str]:
+        return [f.rule.id for f in self.engine.lint(build_document("draft.md", self.TEXT))]
+
+    def answer(self, probability) -> list[dict]:
+        requests = []
+
+        def handle(request):
+            payload = json.loads(request.content)
+            requests.append(payload)
+            return httpx2.Response(200, json={**RESPONSE, "answers": {
+                key: {"type": "noul", "noul": probability} for key in payload["questions"]
+            }})
+
+        self.transport(handle)
+        return requests
+
+    def test_deterministic_candidate_exists_for_the_selftest(self) -> None:
+        doc = build_document("draft.md", self.TEXT)
+        self.assertIn("verb.hidden-actor-passive", [f.rule.id for f in self.engine.lint_deterministic(doc)])
+
+    def test_unset_key_reports_nothing_and_opens_no_transport(self) -> None:
+        with patch("typesafe_sdk.TypeSafeClient") as factory:
+            self.assertEqual(["verb.holds"], self.ids())
+        factory.assert_not_called()
+
+    def test_answer_below_threshold_reports_and_at_threshold_removes(self) -> None:
+        rule = next(r for r in self.engine.rules if r.id == "verb.hidden-actor-passive")
+        save_jev_key(KEY)
+        requests = self.answer(rule.jev_veto.threshold - 0.01)
+        self.assertEqual(["verb.hidden-actor-passive", "verb.holds"], self.ids())
+        self.assertEqual("be checked", requests[0]["state"]["items"][0]["matched_text"])
+        self.answer(rule.jev_veto.threshold)
+        self.assertEqual(["verb.holds"], self.ids())
+
+    def test_missing_answer_and_api_failure_drop_only_required_findings(self) -> None:
+        save_jev_key(KEY)
+        self.transport(lambda _: httpx2.Response(200, json={**RESPONSE, "answers": {}}))
+        self.assertEqual(["verb.holds"], self.ids())
+        self.transport(lambda _: httpx2.Response(401, json={"error": KEY}))
+        self.assertEqual(["verb.holds"], self.ids())
+
+    def test_human_corpus_density_ignores_required_candidates(self) -> None:
+        from hound.selftest import check_corpus
+
+        self.assertEqual([], check_corpus(self.engine))
+
+
+class PipedInput(IsolatedConfig):
+    def test_piped_stdin_needs_no_dash_and_empty_stdin_is_missing_input(self) -> None:
+        code, out, err = self.cli("--no-footer", stdin="That holds even under load.\n")
+        self.assertEqual((0, ""), (code, err))
+        self.assertIn("<stdin>:1:", out)
+        self.assertIn("verb.holds", out)
+        code, out, err = self.cli("--no-footer", stdin="")
+        self.assertEqual(2, code)
+        self.assertIn("pipe text on stdin", err)
+
+
+class RequiredRuleValidation(unittest.TestCase):
+    def test_required_flag_and_anchor_without_are_validated(self) -> None:
+        veto = {"instructions": "Is it fine?", "criteria": {"true": "Yes.", "false": "No."}, "threshold": 0.9}
+        raw = {
+            "id": "verb.test", "severity": "bark", "message": "Test.", "example": ["test"], "acceptable": ["other"],
+            "dependency": [{"RIGHT_ID": "v", "RIGHT_ATTRS": {"TAG": "VBN"}}],
+        }
+        rule = _build_rule({**raw, "jev_veto": {**veto, "required": True}, "anchor_without": ["agent"]}, "verb", Path("<t>"))
+        self.assertTrue(rule.jev_veto.required)
+        self.assertEqual(["agent"], rule.anchor_without)
+        self.assertFalse(_build_rule({**raw, "jev_veto": veto}, "verb", Path("<t>")).jev_veto.required)
+        for bad in ({**raw, "jev_veto": {**veto, "required": "yes"}}, {**raw, "anchor_without": [1]}):
+            with self.subTest(bad=bad), self.assertRaises(RuleError):
+                _build_rule(bad, "verb", Path("<t>"))
+
     def test_invalid_veto_specs_fail_at_load_time(self) -> None:
         raw = {
             "id": "phrase.test", "severity": "sniff", "pattern": "test", "message": "Test.",

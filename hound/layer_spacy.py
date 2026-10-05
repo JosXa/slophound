@@ -90,6 +90,10 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
         for key, token_ids in matcher(parsed):
             rule = by_key[key]
             tokens = [parsed[i] for i in token_ids]
+            # token_ids follow the pattern's node order, so index 0 is the anchor
+            # in every alternative pattern.
+            if rule.anchor_without and any(c.dep_ in rule.anchor_without for c in tokens[0].children):
+                continue
             start = block.start + min(t.idx for t in tokens)
             end = block.start + max(t.idx + len(t.text) for t in tokens)
             if rule.match_unless and re.search(rule.match_unless, doc.prose[start:end], re.I):

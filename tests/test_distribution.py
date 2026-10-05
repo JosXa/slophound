@@ -80,6 +80,8 @@ class DistributionSmokeTest(unittest.TestCase):
             arguments,
             cwd=cwd,
             input=input_text,
+            # Without input, the CLI must not read the test runner's stdin.
+            stdin=subprocess.DEVNULL if input_text is None else None,
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,

@@ -27,6 +27,10 @@ class JevVeto:
     true: str
     false: str
     threshold: float
+    # A required check reports a finding only after Jev answered below the
+    # threshold. Without a key, or when the request fails, the finding is
+    # dropped instead of kept.
+    required: bool = False
 
 
 @dataclass
@@ -48,6 +52,9 @@ class Rule:
     unless: str | None = None
     # spaCy-only regex that must NOT match the dependency-match span.
     match_unless: str | None = None
+    # spaCy-only dependency labels the anchor token must not have as children
+    # (the matcher cannot express "no subject" or "no by-agent").
+    anchor_without: list[str] = field(default_factory=list)
     # Document statistics layer: name of the metric function and its threshold.
     metric: str | None = None
     threshold: float | None = None

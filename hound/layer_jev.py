@@ -19,10 +19,11 @@ def run(doc: Document, findings: list[Finding]) -> list[Finding]:
     if not any(f.rule.jev_veto for f in findings):
         return findings
     vetoed: set[int] = set()
+    answered: set[int] = set()
     try:
         with JevClient() as client:
             if not client.enabled:
-                return findings
+                return _settle(findings, vetoed, answered)
             for batch in _batches(doc, findings):
                 questions = {}
                 for slot, (index, _) in enumerate(batch):
@@ -42,13 +43,28 @@ def run(doc: Document, findings: list[Finding]) -> list[Finding]:
                 for index, _ in batch:
                     answer = result.nouls.get(f"finding_{index}")
                     # Missing, wrong-type, or out-of-range answers cannot veto.
-                    if answer is not None and findings[index].rule.jev_veto.threshold <= answer.noul <= 1:
+                    if answer is None or not isinstance(answer.noul, (int, float)) or not 0 <= answer.noul <= 1:
+                        continue
+                    answered.add(index)
+                    if findings[index].rule.jev_veto.threshold <= answer.noul:
                         vetoed.add(index)
     except (ConfigError, JevError):
         # A failed review leaves the deterministic report intact, including any
         # findings from earlier batches in this document. Do not fail linting.
-        return findings
-    return [f for index, f in enumerate(findings) if index not in vetoed]
+        # Required checks have no deterministic report to fall back on.
+        return _settle(findings, set(), set())
+    return _settle(findings, vetoed, answered)
+
+
+def _settle(findings: list[Finding], vetoed: set[int], answered: set[int]) -> list[Finding]:
+    kept = []
+    for index, f in enumerate(findings):
+        if index in vetoed:
+            continue
+        if f.rule.jev_veto is not None and f.rule.jev_veto.required and index not in answered:
+            continue
+        kept.append(f)
+    return kept
 
 
 def _batches(doc: Document, findings: list[Finding]) -> Iterator[list[tuple[int, dict]]]:
