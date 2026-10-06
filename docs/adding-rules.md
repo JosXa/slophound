@@ -31,7 +31,7 @@ Promote or demote a tier only after measuring noise (below), never from taste.
 
 Cheapest layer that can separate the slop from the literal use:
 
-1. `phrase` when the words themselves are the signal.
+1. `phrase` when the words themselves are the signal. With `nominal_prefix = true`, the regex must match the whole sentence and contain a named `prefix` group. The parser checks that group for a nominal root and no finite verb. Use this for a fixed ending after a noun phrase when parsing the whole sentence mistakes the ending for a finite verb. The regex still bounds the phrase and declares the outcome words, and the rule stays advisory.
 2. `template` when the shape is the signal and the content varies ("It's not X. It's Y."). Keep every wildcard bounded (`[^.!?\n]{1,60}`) so a match cannot swallow a paragraph, and anchor to a sentence start with `sentence_start = true` or `(^|(?<=[.!?] ))` when the shape only counts at the start.
 3. `punct` when the glyph is the signal. These run on the masked view where typographic characters are still original, so name them with `\u` escapes.
 4. `verb`, `adj`, `noun` when the same words are fine in one grammatical role and slop in another. Before writing a DependencyMatcher pattern, look at the actual parse:

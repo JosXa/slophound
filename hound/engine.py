@@ -29,7 +29,7 @@ class Engine:
         spacy_rules = [r for r in self.rules if r.category in SPACY_CATEGORIES]
         doc_rules = [r for r in self.rules if r.category in DOC_CATEGORIES]
         if regex_rules:
-            findings.extend(layer_regex.run(doc, regex_rules))
+            findings.extend(layer_regex.run(doc, regex_rules, lambda: self.nlp))
         if spacy_rules:
             findings.extend(layer_spacy.run(doc, spacy_rules, self.nlp))
         if doc_rules:

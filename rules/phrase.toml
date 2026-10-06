@@ -19,6 +19,9 @@
 #   heading_only   Optional boolean. Fire only inside Markdown headings.
 #   sentence_start Optional boolean. Require the match to start a sentence in
 #                  the prose view; a wrapped line alone is not a sentence start.
+#   nominal_prefix Optional boolean. Match the whole sentence, then require the
+#                  named regex group "prefix" to parse as a noun phrase without
+#                  a finite verb. The parser loads only for a regex candidate.
 #   message        Full explanation plus the fix. The reader never needs to look
 #                  anything else up.
 #   repeat_message Optional short reminder for later findings of the same rule
@@ -1230,3 +1233,53 @@ acceptable = [
   "We sorted all 74 projects, by votes from everyone's top three.",
 ]
 most_common_in = ["claude"]
+
+# Detached outcome endings requested by Joscha, with no restriction to "same".
+# The outcome is a closed list because arbitrary participles also describe
+# useful alignment, ingredient preparation and status. Parsing only the noun
+# phrase avoids spaCy's VBD reading of "answered". An introductory heading label
+# may have its own verb, so the prefix group starts after that label.
+# Motivating generated heading: Trace Commons row 25,
+# messages[812].content, session model label claude-opus-4-8, 2026-06-16.
+# FAQ and identifier-based status labels are legitimate and excluded below.
+[[rule]]
+id = "phrase.detached-outcome"
+severity = "bark"
+nominal_prefix = true
+headings = true
+pattern = '(?:[^.!?]{1,120}(?::\s+|\s+[—–]\s+))?(?P<prefix>[^\s,;:!?—–]+(?:\s+[^\s,;:!?—–]+){0,11}),\s+(?:answered|verified|simplified|streamlined|solved|demystified|reimagined|elevated|perfected)[.!?]*'
+unless = '\b(?:your|common|frequently asked)\s+questions,\s*answered[.!?]*\s*$|\b(?:order|ticket|job|run|build|request)\s+#?(?:\d+|[a-z]+[-_]?\d[\w-]*),\s*(?:answered|verified|solved)[.!?]*\s*$'
+message = "A noun phrase ends with a comma and an outcome word (\"the same submission, answered\"). In prose, state who did what or which check passed. In a heading, name the content without the added verdict: \"Submission response\" or \"Verification results\". Keep conventional FAQ headings and literal status labels."
+example = [
+  "the same submission, answered",
+  "all the same process, verified",
+  "## Your workflow, simplified",
+  "The whole pipeline, streamlined.",
+  "The problem, solved.",
+  "The architecture, demystified.",
+  "Your deployment, reimagined.",
+  "The experience, elevated.",
+  "The process, perfected.",
+  "## What this MR carries — the whole arc, verified",
+  "Outcome: the whole process, verified.",
+]
+acceptable = [
+  "The reviewer answered the submission.",
+  "The process was verified against the audit log.",
+  "The patch is small, verified.",
+  "Outcome: the patch is small, verified.",
+  "The issue, solved by the maintainer, stayed closed.",
+  "The process, verified against the audit log.",
+  "## Your questions, answered",
+  "Frequently asked questions, answered.",
+  "Order 123, verified.",
+  "Ticket ABC-123, answered.",
+  "Build #17, verified.",
+  # Historical Rust RFC 0213, line 434: the inference procedure terminates.
+  "No more defaults to apply, done.",
+  "A container with 800px width, centered",
+  "Eight criteria, scored 1 to 5.",
+  "Submission response",
+  "Verification results",
+  "The example is `the same submission, answered`.",
+]

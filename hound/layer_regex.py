@@ -24,7 +24,29 @@ def _compile(pattern: str, flags: int = re.I | re.M) -> re.Pattern:
     return _compiled[key]
 
 
-def run(doc: Document, rules: list[Rule]) -> list[Finding]:
+def _matches(text, regex, spans, nominal_prefix):
+    if not nominal_prefix:
+        yield from ((match, 0) for match in regex.finditer(text))
+        return
+    # A prefix must cover its sentence, so an ordinary finite clause cannot be
+    # bypassed by matching only its last few words. Sentence windows also keep
+    # wrapped phrases together without joining separate paragraphs.
+    for start, end in spans:
+        match = regex.fullmatch(text[start:end])
+        if match is not None:
+            yield match, start
+
+
+def _is_nominal_prefix(prefix, nlp):
+    if not prefix:
+        return False
+    parsed = nlp(prefix)
+    if any(token.tag_ in {"VBD", "VBP", "VBZ", "MD"} for token in parsed):
+        return False
+    return any(token.dep_ == "ROOT" and token.pos_ in {"NOUN", "PROPN", "PRON"} for token in parsed)
+
+
+def run(doc: Document, rules: list[Rule], get_nlp=None) -> list[Finding]:
     findings: list[Finding] = []
     spans = sentence_spans(doc, ("paragraph", "list", "quote", "heading", "field"))
     sentence_starts = {start for start, _ in spans}
@@ -37,19 +59,22 @@ def run(doc: Document, rules: list[Rule]) -> list[Finding]:
         text = doc.masked if rule.category == "punct" else doc.prose
         regex = _compile(rule.pattern)
         unless = _compile(rule.unless, re.I) if rule.unless else None
-        for m in regex.finditer(text):
+        for m, offset in _matches(text, regex, spans, rule.nominal_prefix):
             if m.end() == m.start():
                 continue
-            if rule.sentence_start and m.start() not in sentence_starts:
+            start, end = offset + m.start(), offset + m.end()
+            if rule.sentence_start and start not in sentence_starts:
                 continue
-            if not rule.headings and in_heading(m.start()):
+            if not rule.headings and in_heading(start):
                 continue
-            if rule.heading_only and not in_heading(m.start()):
+            if rule.heading_only and not in_heading(start):
                 continue
             if unless is not None:
-                sent = containing_sentence(spans, m.start())
+                sent = containing_sentence(spans, start)
                 context = text[sent[0] : sent[1]] if sent else m.group(0)
                 if unless.search(context):
                     continue
-            findings.append(Finding(rule, m.start(), m.end()))
+            if rule.nominal_prefix and not _is_nominal_prefix(m["prefix"], get_nlp()):
+                continue
+            findings.append(Finding(rule, start, end))
     return findings

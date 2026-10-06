@@ -111,12 +111,19 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         headings=bool(raw.get("headings", category == "phrase")),
     )
 
+    nominal_prefix = raw.get("nominal_prefix", False)
+    if not isinstance(nominal_prefix, bool):
+        raise RuleError(f"{where}: nominal_prefix must be a boolean")
+    if nominal_prefix and category != "phrase":
+        raise RuleError(f"{where}: nominal_prefix is for phrase rules")
+    rule.nominal_prefix = nominal_prefix
+
     if category in REGEX_CATEGORIES:
         pattern = raw.get("pattern")
         if not isinstance(pattern, str):
             raise RuleError(f"{where}: pattern (regex string) is required")
         try:
-            re.compile(pattern, re.I | re.M)
+            compiled = re.compile(pattern, re.I | re.M)
         except re.error as exc:
             raise RuleError(f"{where}: invalid regex: {exc}") from exc
         rule.pattern = pattern
@@ -124,6 +131,8 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
         if not isinstance(sentence_start, bool):
             raise RuleError(f"{where}: sentence_start must be a boolean")
         rule.sentence_start = sentence_start
+        if nominal_prefix and "prefix" not in compiled.groupindex:
+            raise RuleError(f"{where}: nominal_prefix needs a named prefix regex group")
         heading_only = raw.get("heading_only", False)
         if not isinstance(heading_only, bool):
             raise RuleError(f"{where}: heading_only must be a boolean")

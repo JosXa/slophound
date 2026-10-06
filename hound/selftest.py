@@ -49,7 +49,7 @@ def check_rule(engine: Engine, rule: Rule) -> list[str]:
     # rule already covers on the same span, which would hide a working rule
     # behind a stronger one and make this check lie.
     solo = Engine([rule], engine.lang)
-    if rule.category in SPACY_CATEGORIES:
+    if rule.category in SPACY_CATEGORIES or rule.nominal_prefix:
         solo._nlp = engine.nlp
     problems: list[str] = []
     for sentence in rule.example:
