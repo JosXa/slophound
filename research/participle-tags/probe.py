@@ -1,7 +1,7 @@
 """Search pinned reference corpora for a comma and one final participle.
 
 This collects candidates for review, without treating the construction as a
-writing defect. Run from the repository with `uv run .../probe.py --help`.
+writing defect. Run `uv run research/participle-tags/probe.py --help`.
 """
 
 import argparse
@@ -64,12 +64,14 @@ def main():
     parser.add_argument("--limit", type=int, default=1000)
     parser.add_argument("--min-words", type=int, default=200)
     parser.add_argument("--max-words", type=int, default=5000)
+    parser.add_argument("--headings", action="store_true")
     args = parser.parse_args()
     groups = defaultdict(list)
     seen = set()
     for row in sources(args):
         doc = build_document(row["id"], row["text"])
-        spans = sentence_spans(doc, ("paragraph", "list"))
+        kinds = ("paragraph", "list", "heading") if args.headings else ("paragraph", "list")
+        spans = sentence_spans(doc, kinds)
         count = sum(len(words(doc.prose[s:e])) for s, e in spans)
         sha = hashlib.sha256(re.sub(r"\s+", " ", row["text"]).encode()).hexdigest()
         key = row["group"], sha
