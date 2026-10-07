@@ -164,10 +164,23 @@ acceptable = [
   "Deliver concise conversion notes.",
   "CSV releases contain text, a binary label, and source information encoding domain, generation method, and model.",
   "Deduplicate against HC3 and other components before combining corpora. Scraped responses and incomplete component documentation weaken attribution. The card declares MIT, with source terms requiring separate review for redistribution.",
+  # The parser tags a separator as a noun.
+  "> CONFIDENCE: high | medium | low \u2014 <what remains>",
+  # A slash joins alternatives, which the reader groups like a hyphen.
+  "Search both MasterFunctions and the domain Provider; route live connection/data-transfer/meeting connectivity to Router only.",
+  "Redact device/customer IDs before quoting logs.",
 ]
 
+# The small parser reads a finite verb as a third noun ("each step names
+# layer", "does the server stub map the field"). The lexicon check in
+# hound/layer_spacy.py keeps such words because they also have a noun reading,
+# so Jev settles it. Measured
+# on 27 candidates from the repo docs, the corpora, and a skill review: the
+# seven verb misreads scored 0.78 to 0.91, real stacks that Jev kept before
+# stayed at or below 0.63 ("code block trace" 0.43), and established terms kept
+# their earlier verdicts.
 [rule.jev_veto]
-instructions = "Do the selected words form a conventional, unambiguous domain expression in this sentence? Include an established term with an ordinary literal modifier. Judge actual usage, not whether the full phrase is a named concept or dictionary entry."
+instructions = "Do the selected words form a conventional, unambiguous domain expression in this sentence? Include an established term with an ordinary literal modifier. Judge actual usage, not whether the full phrase is a named concept or dictionary entry. First read the whole sentence: if it uses one selected word as a verb, the words are not a noun phrase, so answer yes."
 threshold = 0.7
-criteria.true = "The expression has a familiar, clear meaning in its field, such as customer support team or server error logs. It is used literally with the usual relationship between its words. A line break inside the expression is irrelevant."
-criteria.false = "The combination is improvised, figurative, or a coined label whose meaning the reader must guess; or the selected words are not one noun phrase here. Familiar individual words do not make an unfamiliar combination conventional."
+criteria.true = "The expression has a familiar, clear meaning in its field, such as customer support team or server error logs. It is used literally with the usual relationship between its words. A line break inside the expression is irrelevant. Also true when the sentence uses one of the selected words as a verb, so the words are not a stack of nouns (each step names the layer; does the server stub map the field)."
+criteria.false = "The combination is improvised, figurative, or a coined label whose meaning the reader must guess. Familiar individual words do not make an unfamiliar combination conventional."

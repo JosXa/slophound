@@ -106,10 +106,14 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
                 context = doc.prose[sent[0] : sent[1]] if sent else doc.prose[start:end]
                 if re.search(rule.unless, context, re.I):
                     continue
-            # Hyphenated compounds ("em-dash density", "pre-commit hook") are
-            # tokenised as separate nouns, yet the hyphen already groups them
-            # for the reader. Noun-cluster rules leave those alone.
-            if rule.category == "noun" and "-" in doc.prose[start:end]:
+            # Hyphenated compounds ("em-dash density", "pre-commit hook") and
+            # slash-joined alternatives ("device/customer IDs") are tokenised
+            # as separate nouns, yet the punctuation already groups them for
+            # the reader. Noun-cluster rules leave those alone.
+            if rule.category == "noun" and ("-" in doc.prose[start:end] or "/" in doc.prose[start:end]):
+                continue
+            # The parser tags a separator such as "|" as a noun ("high | medium | low").
+            if rule.category == "noun" and any(not any(c.isalpha() for c in t.text) for t in tokens):
                 continue
             # Include intervening tokens: a smaller matcher pattern can omit
             # the mis-tagged verb while still joining nouns on either side.
