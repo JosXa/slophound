@@ -32,6 +32,8 @@
 #                 when the anchor (first node) has a child with one of them.
 #                 Use it for "no subject" (["nsubj"]) or "no by-agent"
 #                 (["agent"]), which a DependencyMatcher pattern cannot say.
+#                 A "label:word" entry also requires the child's lowercase
+#                 text, so "prep:by" drops a by-phrase the parser labelled prep.
 #   jev_veto      Optional table asking Jev whether a finding should be removed;
 #                 see docs/adding-rules.md. With `required = true` the rule
 #                 reports nothing unless Jev answered, so it is silent without
@@ -607,7 +609,7 @@ dependency = [
     { LEFT_ID = "verb", REL_OP = ">--", RIGHT_ID = "aux", RIGHT_ATTRS = { DEP = "auxpass" } },
   ],
 ]
-anchor_without = ["agent"]
+anchor_without = ["agent", "prep:by"]
 example = [
   "Every sentence has to be checked against the diff before it can be trusted.",
   "The skill text was drafted with AI and reviewed by hand.",
@@ -618,6 +620,10 @@ acceptable = [
   "I drafted the skill text with AI and reviewed it by hand.",
   "The ticket was closed by the release manager.",
   "Agreed, so here's a ranking where nobody wins.",
+  # A line break or a masked code span before the agent makes the block parse
+  # label "by" as prep instead of agent.
+  "**`ConsoleGroupIdUrl` is the MCO console's\nURL** — so when an account's dyngate-id resolves to that group, the notification is handled\nby **MCO**, not WPS, and MCO's handler can **diverge** from WPS's.",
+  "Members are loaded once at\nbootstrap by `CompanyService.loadCompanyData()`.",
 ]
 
 [rule.jev_veto]

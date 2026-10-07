@@ -92,7 +92,10 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
             tokens = [parsed[i] for i in token_ids]
             # token_ids follow the pattern's node order, so index 0 is the anchor
             # in every alternative pattern.
-            if rule.anchor_without and any(c.dep_ in rule.anchor_without for c in tokens[0].children):
+            if rule.anchor_without and any(
+                c.dep_ in rule.anchor_without or f"{c.dep_}:{c.lower_}" in rule.anchor_without
+                for c in tokens[0].children
+            ):
                 continue
             start = block.start + min(t.idx for t in tokens)
             end = block.start + max(t.idx + len(t.text) for t in tokens)
