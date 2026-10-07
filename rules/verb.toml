@@ -60,11 +60,13 @@
 [[rule]]
 id = "verb.buys-us"
 severity = "bark"
-message = "\"buys (us) X\" describes a trade as a purchase. Claude uses this pattern often. Name the trade: what was spent, what was gained, and for how long."
+message = "\"X buys (us) Y\" describes a trade as a purchase. Claude uses this pattern often. Name the trade: what was spent, what was gained, and for how long."
 most_common_in = ["claude"]
-# Two alternative patterns: a demonstrative or gerund subject ("That buys",
-# "Caching buys"), or any subject with "us" as the beneficiary ("The refactor
-# buys us time").
+# Three alternative patterns: a demonstrative or gerund subject ("That buys",
+# "Caching buys"), any subject with "us" as the beneficiary ("The refactor
+# buys us time"), or a cost or design noun as the subject ("The token cost
+# buys correct figures", "The retry buys another attempt"). Money nouns such
+# as budget, dollar, or price stay out of the list: they buy literally.
 dependency = [
   [
     { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "buy", POS = "VERB" } },
@@ -74,6 +76,10 @@ dependency = [
     { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "buy", POS = "VERB" } },
     { LEFT_ID = "verb", REL_OP = ">>", RIGHT_ID = "us", RIGHT_ATTRS = { LOWER = "us" } },
   ],
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "buy", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { IN = ["cost", "overhead", "latency", "delay", "slowdown", "complexity", "indirection", "effort", "tax", "penalty", "tradeoff", "trade-off", "change", "fix", "refactor", "rewrite", "approach", "design", "cache", "retry", "check", "layer", "step", "abstraction", "redundancy", "duplication", "constraint", "restriction"] } } },
+  ],
 ]
 unless = "\\bbuys? us (lunch|coffee|dinner|drinks|beer|pizza|food|breakfast|tickets|a round)\\b"
 example = [
@@ -82,6 +88,9 @@ example = [
   "Caching the token buys us time until the refactor.",
   "The refactor buys us time.",
   "Moving the check earlier buys us a cheaper failure mode.",
+  "The token cost buys correct headline figures, and the suite keeps fixed bugs fixed.",
+  "The extra latency buys strong consistency.",
+  "The retry buys the client another attempt.",
 ]
 acceptable = [
   "She buys milk on the way home.",
@@ -89,6 +98,9 @@ acceptable = [
   "Finance buys the licenses in bulk.",
   "The office manager buys us lunch on Fridays.",
   "He buys the team coffee.",
+  "A dollar buys more in Mexico.",
+  "The budget buys two more laptops.",
+  "With the higher token cost, the bot reports the headline figures correctly.",
 ]
 
 [[rule]]
