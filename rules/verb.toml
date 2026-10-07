@@ -204,21 +204,26 @@ acceptable = [
 [[rule]]
 id = "verb.lands"
 severity = "bark"
-message = "Code does not \"land\". Say merged, deployed, or released, and say when."
+message = "\"Lands\" hides what happens (\"the fix lands next sprint\", \"a fault that lands there\"). For code, say merged, deployed, or released, and say when. For a fault, bug, or ticket, say where it occurs or who owns it."
 most_common_in = ["claude", "gpt"]
 dependency = [
   { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "land", POS = "VERB" } },
-  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass"] }, LEMMA = { IN = ["fix", "feature", "change", "pr", "patch", "commit", "release", "work", "refactor", "migration", "branch", "update", "version", "this", "that", "it", "rewrite", "improvement", "code"] } } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass"] }, LEMMA = { IN = ["fix", "feature", "change", "pr", "patch", "commit", "release", "work", "refactor", "migration", "branch", "update", "version", "this", "that", "it", "rewrite", "improvement", "code", "fault", "bug", "issue", "ticket", "regression"] } } },
 ]
 example = [
   "The fix lands in main tomorrow.",
   "Once the feature lands, we can delete the flag.",
   "The change lands next sprint.",
+  "The `sso.teamviewer.com` SSO service is its own service and is not one of the 9 mapped repos, so treat a fault that lands there as a coverage boundary.",
+  "If the bug lands in the frontend, hand it to the UI team.",
 ]
 acceptable = [
   "The plane lands at noon.",
   "The ball landed in the neighbour's garden.",
   "She landed the job after two interviews.",
+  "The fix is merged into main tomorrow.",
+  "Treat a fault in the SSO service as a coverage boundary.",
+  "If the bug is in the frontend, hand it to the UI team.",
 ]
 
 [[rule]]
