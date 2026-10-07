@@ -1,1 +1,0 @@
-{"id": "train/115/message/37/block/0", "group": "cc-bench/GLM-4.5/assistant", "source_url": "https://huggingface.co/datasets/zai-org/CC-Bench-trajectories", "line": 3, "text": "A container with 800px width, centered", "masked_text": "A container with 800px width, centered", "tag": "centered", "comma_count": 1, "words_before": 5}
