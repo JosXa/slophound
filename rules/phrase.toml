@@ -868,15 +868,18 @@ most_common_in = ["gpt", "claude"]
 [[rule]]
 id = "phrase.buzzword-vocabulary"
 severity = "bark"
-pattern = '\b(robust(ly|ness)?|pivotal|transformative|iconic|seminal|trailblazing|ubiquitous|granular(ity)?|actionable|impactful|proactive(ly)?|sophisticated|versatile|encompass(es|ed|ing)?|grapple(s|d)? with|palpable|spearhead(s|ed|ing)?|showcas(e|es|ed|ing)|next[- ]gen(eration)?|slippery slope|truly|literally|renowned|innovative|invaluable|paramount|indispensable|commendable|effortless(ly)?|frictionless|turnkey|bespoke|curated|enriching|empowering|compelling|nuanced|remarkable|remarkably|unwavering|steadfast|relentless(ly)?|tireless(ly)?|thrilled|excited to (announce|share)|passionate about|a testament|paradigm|synergi\w+|elevat(e|es|ed|ing) (the|our|your)|revolutionary|visionary|profound(ly)?|reimagin(e|es|ed|ing)|endeavou?rs?|thought leader\w*|best practices|value[- ]add|touch ?base|circle back|low[- ]hanging fruit|deep[- ]dive|mission[- ]critical|(highly|deeply) (scalable|performant))\b'
+pattern = '\b(robust(ly|ness)?|pivotal|transformative|iconic|seminal|trailblazing|ubiquitous|granular(ity)?|actionable|impactful|proactive(ly)?|sophisticated|versatile|encompass(es|ed|ing)?|grapple(s|d)? with|palpable|spearhead(s|ed|ing)?|showcas(e|es|ed|ing)|next[- ]gen(eration)?|slippery slope|truly|literally(?!\s+(?:appears?|appeared|appearing|occurs?|occurred|match(?:es|ed)?|contains?|contained|equals?|spelled|spelt|named|called)\b)|renowned|innovative|invaluable|paramount|indispensable|commendable|effortless(ly)?|frictionless|turnkey|bespoke|curated|enriching|empowering|compelling|nuanced|remarkable|remarkably|unwavering|steadfast|relentless(ly)?|tireless(ly)?|thrilled|excited to (announce|share)|passionate about|a testament|paradigm|synergi\w+|elevat(e|es|ed|ing) (the|our|your)|revolutionary|visionary|profound(ly)?|reimagin(e|es|ed|ing)|endeavou?rs?|thought leader\w*|best practices|value[- ]add|touch ?base|circle back|low[- ]hanging fruit|deep[- ]dive|mission[- ]critical|(highly|deeply) (scalable|performant))\b'
 unless = '\bsigning service.*hash verification\b'
 message = "The word makes the text sound polished but gives no information. Use the plain word, or the measurement that the word replaces."
 example = [
   "The new pipeline is robust and truly transformative.",
   "We spearheaded an innovative approach to caching.",
+  "This is literally the fastest cache we have.",
 ]
 acceptable = [
   "The new pipeline survives a lost node without dropping messages.",
+  "The failing field's name must literally appear in the mapper that copies notification fields into view state.",
+  "The function is literally called `retry`.",
   "We cache the lookups in memory.",
   "The signing service performed robust hash verification on the replacement token.",
 ]
