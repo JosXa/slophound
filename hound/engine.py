@@ -8,8 +8,10 @@ from .model import DOC_CATEGORIES, REGEX_CATEGORIES, SEVERITIES, SPACY_CATEGORIE
 
 
 class Engine:
-    def __init__(self, rules: list[Rule], lang: str = "en"):
+    def __init__(self, rules: list[Rule], lang: str = "en", *, check_references: bool = False):
         self.rules = rules
+        self.check_references = check_references
+        self.reference_outcomes: list[dict] = []
         self.lang = lang
         self._nlp = None
 
@@ -20,13 +22,24 @@ class Engine:
         return self._nlp
 
     def lint(self, doc: Document) -> list[Finding]:
-        return layer_jev.run(doc, self.lint_deterministic(doc))
+        self.reference_outcomes = []
+        # Existing sentence-level veto behavior is unchanged. Reference review
+        # settles its own required candidates rather than feeding them to noul.
+        local = self.lint_deterministic(doc, include_references=False)
+        findings = layer_jev.run(doc, [f for f in local if f.rule.reference_check is None])
+        if self.check_references:
+            for rule in self.rules:
+                if rule.reference_check is not None:
+                    reviewed, outcomes = layer_jev.run_references(doc, rule, self.nlp)
+                    findings.extend(reviewed)
+                    self.reference_outcomes.extend(outcomes)
+        return _dedupe(findings)
 
-    def lint_deterministic(self, doc: Document) -> list[Finding]:
+    def lint_deterministic(self, doc: Document, *, include_references: bool = True) -> list[Finding]:
         """Run local detection alone, including when testing rule examples."""
         findings: list[Finding] = []
         regex_rules = [r for r in self.rules if r.category in REGEX_CATEGORIES]
-        spacy_rules = [r for r in self.rules if r.category in SPACY_CATEGORIES]
+        spacy_rules = [r for r in self.rules if r.category in SPACY_CATEGORIES and r.reference_check is None]
         doc_rules = [r for r in self.rules if r.category in DOC_CATEGORIES]
         if regex_rules:
             findings.extend(layer_regex.run(doc, regex_rules, lambda: self.nlp))
@@ -34,6 +47,12 @@ class Engine:
             findings.extend(layer_spacy.run(doc, spacy_rules, self.nlp))
         if doc_rules:
             findings.extend(layer_doc.run(doc, doc_rules, lambda: self.nlp))
+        if self.check_references and include_references:
+            from .reference_check import collect_reference_paragraphs
+            for rule in self.rules:
+                if rule.reference_check is not None:
+                    for row in collect_reference_paragraphs(doc, self.nlp):
+                        findings.extend(Finding(rule, c.start, c.end) for c in row.candidates)
         return _dedupe(findings)
 
 

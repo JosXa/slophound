@@ -33,6 +33,13 @@ class JevVeto:
     required: bool = False
 
 
+@dataclass(frozen=True)
+class JevReference:
+    instructions: str
+    criteria: dict[str, str]
+    confidence_floor: float
+
+
 @dataclass
 class Rule:
     id: str
@@ -73,6 +80,8 @@ class Rule:
     heading_only: bool = False
     # A high-confidence yes can remove a sniff after deterministic detection.
     jev_veto: JevVeto | None = None
+    # Explicit opt-in paragraph reference review, not a sentence-level veto.
+    reference_check: JevReference | None = None
     # Short reminder after the full message has appeared in the current report.
     repeat_message: str | None = None
 

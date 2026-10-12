@@ -57,6 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="print error/warning/suggestion instead of bite/bark/sniff (also SLOPHOUND_FORMAL=1); for CI",
     )
     p.add_argument("--lang", default="en", metavar="XX", help="language code for the grammar layer (default en)")
+    p.add_argument('--check-references', action='store_true', help='ask Jev about references in prose paragraphs shorter than 300 characters (external service; opt-in)')
     p.add_argument("--skip-quotes", action="store_true", help="do not lint Markdown blockquotes")
     p.add_argument(
         "--no-emoji",
@@ -112,6 +113,35 @@ def read_input(path: str) -> tuple[str, str]:
     return str(p), p.read_text(encoding="utf-8")
 
 
+def reference_summary(outcomes: list[dict]) -> str:
+    """Report abstentions separately; an empty warning list is not a clear verdict."""
+    from collections import Counter
+
+    counts = Counter(row['status'] for row in outcomes)
+    if not outcomes or set(counts) == {'no_candidates'}:
+        return 'Reference review: no eligible reference candidates were reviewed.'
+    uncertain = sum(counts[s] for s in ('uncertain', 'low_confidence', 'context_incomplete'))
+    message = f"Reference review: {counts['clear']} clear, {counts['unclear']} unclear, {uncertain} uncertain."
+    if counts['skipped_length']:
+        message += f" {counts['skipped_length']} paragraphs not reviewed (300 characters or more)."
+    reasons = {
+        'missing_key': 'missing API key',
+        'credential_lookup_failed': 'credential lookup failed',
+        'missing_answer': 'missing answer',
+        'invalid_answer': 'invalid answer',
+        'missing_response': 'missing response',
+        'model_mismatch': 'unexpected model',
+        'request_failed': 'provider request failed',
+        'request_budget': 'request limit reached',
+    }
+    unavailable = [description for status, description in reasons.items() if counts[status]]
+    if unavailable:
+        message += ' Some references were not reviewed: ' + '; '.join(unavailable) + '.'
+    if counts['context_incomplete']:
+        message += ' Earlier context was omitted, so an unclear result cannot produce a warning.'
+    return message
+
+
 def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
@@ -147,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_FAILURE
 
     vocab = Vocabulary(args.formal or formal_requested())
-    engine = Engine(rules, lang=args.lang)
+    engine = Engine(rules, lang=args.lang, check_references=args.check_references)
     all_findings: list[Finding] = []
     total_words = 0
     rule_files: dict[str, None] = {}
@@ -157,6 +187,8 @@ def main(argv: list[str] | None = None) -> int:
             name, text = ("<stdin>", piped) if piped is not None else read_input(path)
             doc = build_document(name, text, skip_quotes=args.skip_quotes)
             findings = engine.lint(doc)
+            if args.check_references:
+                print(f'{name}: {reference_summary(engine.reference_outcomes)}', file=sys.stderr)
             render(doc, findings, vocab=vocab, seen_rules=seen_rules)
             all_findings.extend(findings)
             total_words += doc.word_count()

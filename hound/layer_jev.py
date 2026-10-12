@@ -10,6 +10,13 @@ from .masking import Document
 from .model import Finding
 from .sentences import containing_sentence, split_block
 
+
+def run_references(doc, rule, nlp):
+    """Required, explicitly opted-in paragraph judgments, separate from noul veto."""
+    from .reference_check import run as review
+    return review(doc, rule, nlp)
+
+
 # Larger batches diluted sentence-level judgments in the initial experiments.
 _BATCH_SIZE = 6
 _MAX_CONTEXT_CHARS = 2000

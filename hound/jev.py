@@ -22,8 +22,9 @@ class JevError(Exception):
 
 
 class JevClient:
-    def __init__(self, *, model: str = DEFAULT_MODEL) -> None:
+    def __init__(self, *, model: str = DEFAULT_MODEL, max_retries: int = 2) -> None:
         self.model = model
+        self.max_retries = max_retries
         self._key = read_jev_key()
         self._client: TypeSafeClient | None = None
 
@@ -45,7 +46,7 @@ class JevClient:
                     model=self.model,
                     base_url="https://api.typesafe.ai",
                     timeout=5.0,
-                    retry=RetryPolicy(max_retries=2, timeout=10.0),
+                    retry=RetryPolicy(max_retries=self.max_retries, timeout=10.0),
                 )
             return self._client.system_one(state=state, questions=questions)
         except TypeSafeAPIError as exc:

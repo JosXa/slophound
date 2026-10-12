@@ -1,27 +1,84 @@
-# Unclear opening references
+# Unclear references
 
-Six advisory families check context-free opening claims. Five phrase rules cover a bare demonstrative verdict, a demonstrative consequence, a demonstrative abstraction, a definite abstraction, and an unnamed comparison. The existing `verb.demonstrative-enables` rule owns benefit claims and now includes `allow`.
+## Ask Jev about short paragraphs
 
-The checks ask the writer to identify a referent, not to delete demonstratives or definite articles. Ordinary nouns, explicit modifiers, definitions, and literal instructions remain valid. The rules do not attempt to prove that an antecedent is absent by searching for an exact noun. A synonym, an earlier event, or a part of a previously introduced object can establish a reference without repeating its name.
+```sh
+./slophound --check-references draft.md
+```
 
-## Eligibility
+This optional check finds definite noun phrases and demonstratives with the parser:
+"the queue", "the capacitor", "this", "those files", and any other noun.
+There is no list of nouns that must or may appear. Jev judges whether each
+reference is explained, rather than treating its presence as a writing problem.
+The noun-list rules formerly in this PR have been removed.
 
-`opening_reference = true` is an optional boolean for regex and parser rules. It requires a candidate to begin a paragraph with no preceding visible context anywhere in the document. Leading whitespace and emphasis markers do not count as context. Any preceding heading, paragraph, list, rendered metadata, or quotation suppresses a candidate. The rules do not inspect headings, list items, block quotations, or rendered metadata as opening assertions.
+Each ordinary prose paragraph must be **strictly shorter than 300 source Unicode
+characters**. The paragraph is sent intact, with its heading and up to 2,000
+characters of preceding reader-visible text. Jev considers explanations before
+or after the reference, ordinary generic uses, and reasonable inferences.
+A heading supplies evidence; it does not turn the check off.
 
-Code, tables, link labels, and bare URLs can establish reader-visible context even when the prose view masks them as lint targets. The eligibility gate preserves references after those constructs without interpreting their content. HTML comments and machine-only front matter do not establish context. Rendered front-matter values still do. Ordinary double quotations are not masked by the prose view. An opening quotation mark supplies visible context, so quoted candidates remain silent, including curly quotation marks and soft-wrapped multi-sentence quotations. No shared masking behavior has changed.
+For example:
 
-Phrase patterns require adjacent bounded words, not arbitrary text between the article and its noun. A modifier between the abstraction and its verb takes the claim outside the candidate shape. A copular definition does not match an abstraction rule. Verdicts with an infinitival explanation also remain silent. A colon or an explanatory connective in the containing sentence suppresses the claim-oriented rules. That sentence-wide exemption is deliberately generous and can hide a separate unclear clause.
+```markdown
+# Request latency metrics
 
-## Ownership
+A histogram records durations. The histogram sends counts to the monitoring system.
+```
 
-`phrase.vague-back-reference` still owns unnamed textual pointers such as references to an earlier discussion. `phrase.cataphoric-count` still owns list-count announcements. Neither inventory is duplicated here. The five new phrase patterns and the pattern for benefit claims have distinct opening shapes. Tests assert one finding per eligible synthetic probe both individually and together.
+"The histogram" has an introduction. "The monitoring system" may need one.
+Jev judges them separately; a paragraph need not receive one blanket verdict.
+Model judgments can remain uncertain even when an editor sees a problem.
 
-## Evidence and limits
+The three answers are `clear`, `unclear`, and `uncertain`. Only `unclear` with
+confidence at least 0.8 produces a `noun.unclear-reference` warning. The returned
+model must be `jev-1.13.0`, and the typed answer must be valid and consistent
+with its choice probabilities. If earlier context was cut off, an unclear answer
+cannot produce a warning: the missing text might introduce the reference.
 
-[Plain Writing rule 24](https://github.com/docwriter-org/plain-writing-skill/blob/f0d3630983ac7a82aa580f1c1509d72df739ee12/skills/plain-writing/SKILL.md) motivated the subject of this work. Its repository license is MIT, copyright 2026 Shreya Shankar. The implementation, messages, and new fixtures are independently written. The source recommends a general demonstrative ban, but these checks preserve established references.
+Paragraphs of 300 characters or more are skipped, not split or declared clear.
+The parser can misidentify a noun phrase; Jev must abstain when the selected span
+is not actually a reference. Quotations, code, headings, lists, tables, and front
+matter are not review targets. Reader-visible quotations, code, tables, and link
+labels can still explain a following paragraph. Hidden comments, HTML attributes,
+link destinations, and machine metadata are excluded from requests. Only the
+known reader-facing front-matter fields `heading`, `title`, `lede`, and `callout`
+are retained as context; unknown fields are not assumed visible. Unsupported
+reader-facing YAML values and continuations are omitted and mark context
+incomplete, so an unclear answer cannot produce a warning.
 
-New fixtures are synthetic calibration probes, not independently collected generated or human passages. Baseline and post-change reports on the repository human and generated corpora are identical. Those reports establish no added corpus noise, but they provide no new positive evidence for these opening families. The authoring guide's requirement for a real generated positive remains unfulfilled for the five new families. Broader deployment needs sourced examples and evaluation because the synthetic tests do not establish precision or recall.
+Configure a key with `./slophound auth set-key`. This opt-in mode sends paragraph
+text and reader-visible context to TypeSafe, including visible code or quotations.
+Keep that in mind for private documents. There are at most six references in each
+request and 40 requests per document, with no retries for this check. Missing keys,
+request failures, unexpected models, invalid answers, and exhausted request limits
+produce no new reference warnings. The CLI prints a separate review summary so
+an unavailable or uncertain result is not mistaken for a clear result.
 
-The conservative gate misses references after any visible introduction, even an unrelated heading. It does not reset at paragraph or section boundaries. Shared knowledge, external screenshots, earlier messages, and established technical abstractions can justify an opening reference despite a finding. Every family remains advisory because external context can justify the reference.
+For Python callers, `Engine(rules, check_references=True)` enables the check and
+exposes `reference_outcomes`. Normal runs leave it off. Existing Jev veto checks
+continue to work as before. To isolate this check from other rules:
 
-The small English parser reads `Those enable recovery.` and `Those empower developers to ship.` incorrectly and the benefit family misses them. No lexical fallback was added to reinterpret those parses. Unlisted abstractions, modified constructions, most adverbial variants, and indirect references also remain unchecked. Resolving arbitrary references is an editorial task, not a deterministic coreference claim.
+```sh
+./slophound --check-references --only noun.unclear-reference draft.md
+```
+
+## Remaining opening-only checks
+
+Separate deterministic advisories still catch a few opening constructions:
+"This is necessary", "This causes delays", "Unlike this", and "This enables
+recovery". They do not name or resolve nouns. They stop after any preceding
+reader-visible context, even a heading, so they miss later vague references.
+They remain independent of the opt-in paragraph review.
+
+Their `opening_reference = true` setting is metadata for regex/parser rules.
+Detection still uses the masked prose view, while the opening-context test
+preserves reader-visible headings, code, quotations, tables, and labels.
+
+## Evidence limit
+
+The examples and regression cases are constructed, not independently sourced
+generated writing. This is an experimental check, not a calibrated detector of
+machine-written prose. PR #4 remains draft while sourced positive calibration
+is missing. Neither a clean deterministic report nor an uncertain Jev answer
+establishes that a document's references are clear.

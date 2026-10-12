@@ -16,18 +16,6 @@ CASES = {
         'This causes delays.', 'That prevents recovery.',
         'These reduce latency.', 'Those increase costs.',
     ],
-    'phrase.orphan-demonstrative-abstraction': [
-        'This approach requires coordination.', 'That strategy relies on retries.',
-        'These mechanisms support recovery.', 'Those principles guide deployment.',
-    ],
-    'phrase.orphan-definite-abstraction': [
-        'The approach requires coordination.', 'The strategy depends on retries.',
-        'The framework supports recovery.', 'The tradeoff affects availability.',
-        'The solution assumes reliable delivery.', 'The mechanism prevents races.',
-        'The system requires coordination.', 'The configuration supports recovery.',
-        'The change reduces latency.', 'The design depends on retries.',
-        'The decision affects availability.',
-    ],
     'phrase.orphan-reference-comparison': [
         'Unlike this, the queue persists messages.',
         'Compared with that, the queue is slower.',
