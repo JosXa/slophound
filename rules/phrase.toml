@@ -1290,3 +1290,62 @@ acceptable = [
   "Verification results",
   "The example is `the same submission, answered`.",
 ]
+
+# Unintroduced opening references. All fixtures below are original synthetic
+# probes. These are advisory candidates, not semantic coreference judgments.
+# Any preceding visible context (including headings) preserves possible synonyms
+# and bridging references. See docs/unclear-references.md for the recall limits.
+
+[[rule]]
+id = "phrase.orphan-demonstrative-verdict"
+severity = "bark"
+headings = false
+opening_reference = true
+pattern = '\b(this|that|these|those)\s+(is|was|are|were)\s+(necessary|sufficient|essential|effective|useful|problematic|acceptable|unclear|important|true|false)\b(?!\s+to\b)'
+unless = '[:]|\b(because|when|if|means|refers)\b'
+message = "The opening verdict (\"this is necessary\", \"these are useful\") does not name what it evaluates. Name the requirement, result, or objects if the reader cannot identify them. External context may make this reference valid."
+example = ["This is necessary.", "That was useful.", "These are essential.", "Those were effective.", "This is problematic."]
+acceptable = ["Persisting each message is necessary for recovery.", "This is necessary because the broker may restart.", "This is necessary to recover messages.", "These are the messages awaiting acknowledgement.", "A queue stores messages. This is useful."]
+
+[[rule]]
+id = "phrase.orphan-demonstrative-consequence"
+severity = "bark"
+headings = false
+opening_reference = true
+pattern = '\b(this|that|these|those)\s+(causes?|caused|prevents?|prevented|reduces?|reduced|increases?|increased)\b'
+unless = '[:]|\b(because|when|if|means|refers)\b'
+message = "The opening consequence (\"this causes\", \"those reduce\") leaves its cause unnamed. Name the change or event if the reader cannot identify it. The check does not resolve references supplied outside the document."
+example = ["This causes delays.", "That prevents recovery.", "These reduce latency.", "Those increase costs."]
+acceptable = ["A full queue causes delays.", "This causes delays when the queue is full.", "A queue stores messages. That prevents data loss.", "This flag prevents retries."]
+
+[[rule]]
+id = "phrase.orphan-demonstrative-abstraction"
+severity = "bark"
+headings = false
+opening_reference = true
+pattern = '\b(this|that|these|those)\s+(approach(?:es)?|strateg(?:y|ies)|frameworks?|solutions?|mechanisms?|principles?|tradeoffs?)\s+(requires?|depends?|relies?|assumes?|supports?|guides?|affects?|prevents?)\b'
+unless = '[:]|\b(because|when|if|means|refers)\b'
+message = "The opening claim names an abstraction (\"this approach\", \"those principles\") without preceding context. Identify the method, design, or principles if the reader cannot recover them. This is an advisory reference check, not a ban on those nouns."
+example = ["This approach requires coordination.", "That strategy relies on retries.", "These mechanisms support recovery.", "Those principles guide deployment."]
+acceptable = ["This approach to retries requires a queue.", "A queue stores messages. This approach requires replication.", "These retry mechanisms support recovery.", "This approach is to persist every message."]
+
+[[rule]]
+id = "phrase.orphan-definite-abstraction"
+severity = "bark"
+headings = false
+opening_reference = true
+pattern = '\bthe\s+(approach|strategy|framework|solution|mechanism|principle|tradeoff|system|configuration|change|design|decision)\s+(requires|depends|relies|assumes|supports|guides|affects|prevents|reduces)\b'
+unless = '[:]|\b(because|when|if|means|refers)\b'
+message = "The opening claim treats an abstraction (\"the approach\", \"the tradeoff\") as already identified. Name or describe it if it is not established for the reader. Shared knowledge and bridging references can make a definite article valid; this check cannot decide that."
+example = ["The approach requires coordination.", "The strategy depends on retries.", "The framework supports recovery.", "The tradeoff affects availability.", "The solution assumes reliable delivery.", "The mechanism prevents races.", "The system requires coordination.", "The configuration supports recovery.", "The change reduces latency.", "The design depends on retries.", "The decision affects availability."]
+acceptable = ["The retry mechanism prevents races.", "The strategy for durable delivery depends on replication.", "A queue stores messages. The approach requires replication.", "The framework described in RFC 7231 supports caching.", "The approach is to persist every message.", "Restart the process.", "The operating system requires two gigabytes of memory.", "The configuration for the retry worker supports recovery.", "The change to message storage reduces latency.", "The decision to persist every message affects availability.", "The design is to persist messages before acknowledgment.", "Replication reduces latency."]
+
+[[rule]]
+id = "phrase.orphan-reference-comparison"
+severity = "bark"
+headings = false
+opening_reference = true
+pattern = '\b(unlike|compared\s+(with|to)|in\s+contrast\s+to)\s+(this|that|these|those)(?=\s*,)'
+message = "The opening comparison (\"unlike this\", \"compared with that\") leaves one side unnamed. Name the alternative if the reader cannot identify it. A comparison tied to an external example may be valid."
+example = ["Unlike this, the queue persists messages.", "Compared with that, the queue is slower.", "In contrast to these, the workers are stateless.", "Unlike those, the queue preserves order."]
+acceptable = ["Unlike this queue, the worker forgets completed jobs.", "Compared with that implementation, the queue is slower.", "A worker forgets completed jobs. Unlike this, the queue persists messages.", "Compared to a worker, the queue preserves order."]

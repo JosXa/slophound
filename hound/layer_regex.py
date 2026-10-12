@@ -12,6 +12,7 @@ import re
 
 from .masking import Document
 from .model import Finding, Rule
+from .references import opening_reference_candidate
 from .sentences import containing_sentence, sentence_spans
 
 _compiled: dict[str, re.Pattern] = {}
@@ -63,6 +64,8 @@ def run(doc: Document, rules: list[Rule], get_nlp=None) -> list[Finding]:
             if m.end() == m.start():
                 continue
             start, end = offset + m.start(), offset + m.end()
+            if rule.opening_reference and not opening_reference_candidate(doc, start):
+                continue
             if rule.sentence_start and start not in sentence_starts:
                 continue
             if not rule.headings and in_heading(start):

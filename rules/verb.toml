@@ -307,14 +307,19 @@ acceptable = [
 [[rule]]
 id = "verb.demonstrative-enables"
 severity = "bark"
-message = "\"this enables/allows/ensures X\" states a benefit with no actor. Name who does what as a result."
+opening_reference = true
+message = "The opening benefit claim (\"this enables/allows/ensures X\") has no preceding context for the demonstrative. Name the change or mechanism if the reader cannot identify it. This check cannot resolve references supplied outside the document."
 most_common_in = ["gpt", "claude", "gemini"]
 dependency = [
-  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = { IN = ["enable", "ensure", "empower", "streamline", "elevate"] }, POS = "VERB" } },
-  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", TAG = { IN = ["DT", "WDT"] } } },
+  { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = { IN = ["enable", "allow", "ensure", "empower", "streamline", "elevate"] }, POS = "VERB" } },
+  { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LOWER = { IN = ["this", "that", "these", "those"] } } },
 ]
-unless = "\\btechnical architecture\\b.*\\benables\\b.*\\bartifact flows\\b"
+unless = '[:]|\b(because|when|if|means|refers)\b'
+# Existing examples plus original synthetic reference/context regressions.
 example = [
+  "That allows workers to retry.",
+  "These ensure consistency.",
+  "Those allow recovery.",
   "This enables teams to ship faster.",
   "This ensures consistency across the platform.",
   "This empowers developers to focus on features.",
@@ -324,6 +329,11 @@ acceptable = [
   "The retry loop ensures every message is delivered at least once.",
   "Two reviewers must approve before merge.",
   "This page describes the technical architecture that enables artifact flows.",
+  "A queue stores messages. This enables retries.",
+  "# Durable delivery\n\nThis enables retries.",
+  "This enables retries because every write is persisted.",
+  "This ensures recovery: the broker persists every write.",
+  "Which enables retries?",
 ]
 
 [[rule]]

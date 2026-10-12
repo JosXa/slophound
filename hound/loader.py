@@ -117,6 +117,12 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
     if nominal_prefix and category != "phrase":
         raise RuleError(f"{where}: nominal_prefix is for phrase rules")
     rule.nominal_prefix = nominal_prefix
+    opening_reference = raw.get("opening_reference", False)
+    if not isinstance(opening_reference, bool):
+        raise RuleError(f"{where}: opening_reference must be a boolean")
+    if opening_reference and category not in REGEX_CATEGORIES + SPACY_CATEGORIES:
+        raise RuleError(f"{where}: opening_reference requires a regex or parser rule")
+    rule.opening_reference = opening_reference
 
     if category in REGEX_CATEGORIES:
         pattern = raw.get("pattern")

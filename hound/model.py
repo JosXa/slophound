@@ -49,6 +49,8 @@ class Rule:
     # Full-sentence regex candidate with a named "prefix" group that must parse
     # as a noun phrase. Load the parser only after the regex matches.
     nominal_prefix: bool = False
+    # Restrict a reference candidate to an unintroduced document-opening claim.
+    opening_reference: bool = False
     # spaCy layer: a DependencyMatcher pattern (list of node dicts).
     dependency: list[list[dict]] | None = None  # one or more DependencyMatcher patterns
     # Extra regex that must NOT match the matched sentence.

@@ -82,6 +82,12 @@ Before: This creates the supervision paradox.
 After: Reviewing each generated change takes longer than writing the change manually.
 ```
 
+## Reference clarity
+
+Check what each demonstrative or definite abstraction identifies. A previous event, synonym, heading, established technical concept, or part of an introduced object can establish a referent without repeating its noun. Preserve such references when a reader can recover them. Name the object, method, change, or alternatives when the reader cannot.
+
+The deterministic opening-reference rules only inspect claims with no preceding visible context. They leave later paragraphs and sections to this review. Do not interpret their silence as resolved references or their advisories as proof that shared knowledge is missing. Keep explicit modifiers, definitions, literal instructions, quotations, and code intact. Avoid a blanket ban on sentence-initial demonstratives or definite articles.
+
 ## Assumptions and explanation
 
 Make each conclusion understandable from the information already provided. Introduce a concept before relying on it. Expand compressed explanations when the reader would otherwise have to reconstruct the missing steps.
