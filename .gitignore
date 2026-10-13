@@ -7,3 +7,4 @@ dist/
 .tmp/
 mise/
 uv.lock
+**/.slophound/example-data/

@@ -96,6 +96,52 @@ For CI logs and tools that parse linter output, `--formal` (or `SLOPHOUND_FORMAL
 
 Code blocks, inline code, URLs, link targets, tables, and HTML comments are never linted. Front matter is masked except for values the reader sees: a slide deck's `heading:`, `lede:` or `callout:`, a page's `title:` or `description:`, and list entries with `title:` and `detail:` are linted like paragraphs, while keys, one-word settings and `class:`/`style:`/`layout:` values stay hidden.
 
+## Download example data
+
+```sh
+slophound get-corpus
+slophound get-corpus --output-dir /tmp/slophound-examples
+# In a checkout:
+./slophound get-corpus
+```
+
+The default is `.slophound/example-data/` relative to your current directory,
+ignored by Git in this checkout. Custom locations are your responsibility.
+The command downloads 168 examples: 166 recorded assistant messages under
+`ai/trace-commons/` and two human-authored PEPs under `human/`. It does not
+run linting, load the NLP model, look up a Jev key, or generate text.
+Package installation still installs the normal linter dependencies.
+
+The AI source is [Trace Commons agent-traces](https://huggingface.co/datasets/trace-commons/agent-traces),
+pinned to `112ebd4d03ce852b00e935d523107c3d0c9a65bf`. The selection preserves
+previously reviewed complete messages, grouped by native message ID, with
+exactly one visible text block. Raw sessions stay in memory; user messages,
+tool results, thinking blocks, and rejected text are never cached. The
+CC-BY-4.0 dataset notice is downloaded unchanged to `notices/trace-commons.md`.
+Contributor certification supplies the rights basis, not independent proof
+of ownership. Privacy filtering is conservative but cannot prove absence of
+all sensitive information. Models and message locations are in the inventory.
+
+The human examples are Tim Peters's PEP 20 and David Goodger and Guido van
+Rossum's PEP 257 at Python PEP commit
+`475d6cdf8caf61cfe02ec527f84d9489566349e6` (2019-12-31). Full original bytes,
+including authors' public contact metadata and embedded public-domain notices,
+are preserved. These historical documents form a small human baseline, not a
+representative sample of current engineering writing. Neither group is a
+lint-clean gold standard. Authorship labels come from source records, not a classifier result;
+other documentation with unknown or assisted authorship is excluded.
+
+`inventory.json` records source URLs, revisions, authors or models, extraction
+locations, licences, byte lengths, and SHA-256 hashes. Only metadata ships in
+Git; example prose and upstream notices are downloaded on demand. Existing
+managed files are hash-checked before network access. A complete output tree
+works offline; corrupt files cause exit 2 and are never overwritten. First-run
+source or network failures write no examples. A disk failure may leave verified
+files that a later run can resume. Source reads use a 30-second socket timeout,
+20 MB per-source ceiling, and 100 MB aggregate source ceiling. Requests are
+sequential, so first acquisition may take several minutes. Upstream availability
+is required for missing files; no generated substitute is used.
+
 ## Jev for contextual judgment
 
 [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) supplies judgment where grammar alone is insufficient. It answers typed questions and generates no prose. Slophound asks it whether a flagged noun cluster is an established term in the sentence's field, so familiar terminology can pass without adding every term to a regex exception, and whether a semicolon between two clauses belongs there or stands in for the word that would have said how the clauses relate.
