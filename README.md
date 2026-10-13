@@ -107,7 +107,7 @@ slophound get-corpus --output-dir /tmp/slophound-examples
 
 The default is `.slophound/example-data/` relative to your current directory,
 ignored by Git in this checkout. Custom locations are your responsibility.
-The command downloads 168 examples: 166 recorded assistant messages under
+The no-option command downloads 168 frozen examples: 166 recorded assistant messages under
 `ai/trace-commons/` and two human-authored PEPs under `human/`. It does not
 run linting, load the NLP model, look up a Jev key, or generate text.
 Package installation still installs the normal linter dependencies.
@@ -129,7 +129,64 @@ including authors' public contact metadata and embedded public-domain notices,
 are preserved. These historical documents form a small human baseline, not a
 representative sample of current engineering writing. Neither group is a
 lint-clean gold standard. Authorship labels come from source records, not a classifier result;
-other documentation with unknown or assisted authorship is excluded.
+other documentation with unknown or assisted authorship is excluded from the default.
+
+Use the offline catalogue to inspect contents, purposes, authorship, licences,
+availability, and sample limitations before selecting a source:
+
+```sh
+slophound get-corpus --list
+slophound get-corpus --info trace-commons
+slophound get-corpus --dataset trace-commons --limit 1000
+slophound get-corpus --dataset pytest-docs --dataset click-docs
+slophound get-corpus --purpose technical-false-positives
+```
+
+Explicit selections use `<dataset>/limit-<N>/` directories, each with its own
+inventory, inventory digest, and downloaded notices. Different selections and
+limits coexist. `--limit` accepts 1 through 10000 and counts complete items per
+dataset, including PEPs and technical documentation; it never truncates bytes.
+The selective default is 1000. Eligible yield may be lower: nonempty partial
+results succeed with their count and stopping reason; zero yield or fetch errors
+exit 2 without claiming success. With no options, the original curated quickstart
+layout and offline cache still work.
+
+`wildchat` samples complete assistant turns through bounded HF viewer pagination
+(at most 50 pages, 52 requests, 300 seconds and 64 MiB). Inventories retain each
+page URL and response hash. Matching before/after revision observations are not
+a native snapshot pin. `llm-jp-arena` uses a native revision- and hash-pinned
+JSONL containing 990 paired conversations, retaining eligible assistant answers
+and side-specific model attribution. Both download original dataset cards and
+write attribution notices; output rights depend on source and model terms.
+Privacy screens are conservative heuristics, not clearance. For example:
+
+```sh
+slophound get-corpus --dataset wildchat --limit 10
+slophound get-corpus --dataset llm-jp-arena --limit 10
+```
+
+The installed Nebius adapter has no verified eligible yield: inspected rows were
+tool-call dominated. Its catalogue entry is not downloadable.
+
+`trace-commons-curated` is the reproducible 166-message selection, **not the
+whole Trace Commons collection**. `trace-commons` scans all 25 pinned native
+Claude Code sources in the installed source inventory, without the curated
+166-message cap. Its inventory reports the runtime eligible and selected counts
+for those sources, not an upstream total. Selection is deterministic in source
+and the order of messages within each native source, not randomized or representative.
+The filter excludes an entire message if it contains quotations, code payloads,
+or recognizable sensitive content. New selections are not manually reviewed. Assistant text is retained
+whole and unchanged, alongside the original model strings. Native formats other
+than Claude Code are not supported by this adapter.
+
+`pytest-docs` (42 files) and `click-docs` (32 files) retain every frozen URL and
+hash. Their authorship is unknown-human-or-assisted: use them for technical
+register false positives, not gold human prose. Plain-writing guidelines remain
+manual/catalogue-only until per-asset rights are resolved; repository MIT terms
+do not blanket-license quoted assets, especially ND material. Other listed
+sources explicitly report unavailable, not-generated-output, or gated status
+until real adapters are installed. No access agreements are accepted or keys
+requested. Purpose labels are suggestions, not a quality certification.
 
 `inventory.json` records source URLs, revisions, authors or models, extraction
 locations, licences, byte lengths, and SHA-256 hashes. Only metadata ships in

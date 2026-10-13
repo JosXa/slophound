@@ -136,13 +136,48 @@ def download(output, catalog=None, fetcher=None):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog='slophound get-corpus', description='Download 166 recorded AI messages and two historical human PEPs; no NLP or Jev required.')
+    from .datasets import load_datasets, download_dataset, report_selection
+    entries = load_datasets()
+    parser = argparse.ArgumentParser(prog='slophound get-corpus', description='Inspect and select corpora without NLP or keys. Default: frozen 166 curated AI messages plus two human PEPs, not whole Trace Commons.')
     parser.add_argument('--output-dir', type=Path, default=DEFAULT_OUTPUT, help='output directory (default: .slophound/example-data relative to cwd)')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--list', action='store_true', help='offline dataset catalogue; not a golden-quality ranking')
+    mode.add_argument('--info', choices=entries, metavar='DATASET', help='offline metadata and limitations')
+    parser.add_argument('--dataset', action='append', choices=entries, help='repeat to select datasets; unavailable entries fail explicitly')
+    parser.add_argument('--purpose', choices=sorted({p for e in entries.values() for p in e['purposes']}), help='select downloadable datasets matching this purpose')
+    parser.add_argument('--limit', type=int, default=None, help='maximum complete items per dataset, 1..10000 (selective default 1000); never truncates text; eligible yield may be lower')
     args = parser.parse_args(argv)
+    if args.limit is not None and not 1 <= args.limit <= 10000:
+        parser.error('--limit must be 1..10000')
+    if args.list:
+        for name, entry in entries.items():
+            available = entry['available_count'] if entry['available_count'] is not None else 'unknown until inspected'
+            print(f"{name}: {entry['status']}; known eligible={available}; curated={entry['curated_count']}; scope={entry['scope']}; purposes={','.join(entry['purposes'])}; {entry['cache']}")
+        return 0
+    if args.info:
+        print(json.dumps(entries[args.info], ensure_ascii=False, indent=2))
+        return 0
+    selected = args.dataset or []
+    if args.purpose:
+        selected = [name for name in (selected or entries) if args.purpose in entries[name]['purposes'] and entries[name]['downloadable']]
+        if not selected:
+            parser.error('no downloadable datasets match purpose')
+    if args.limit is not None and not selected:
+        selected = ['trace-commons-curated', 'human-peps']
     try:
-        count = download(args.output_dir)
+        if selected:
+            for name in dict.fromkeys(selected):
+                if not entries[name]['downloadable']:
+                    raise ValueError(f"{name}: {entries[name]['status']}; {entries[name]['caveats']}")
+            count = 0
+            for name in dict.fromkeys(selected):
+                count += download_dataset(name, args.output_dir, args.limit or 1000)
+                print(report_selection(name, args.output_dir, args.limit or 1000))
+        else:
+            count = download(args.output_dir)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         print(f'slophound get-corpus: {exc}', file=sys.stderr)
         return 2
-    print(f'{count} examples verified in {args.output_dir}; provenance: inventory.json; notices: notices/')
+    provenance = '<dataset>/limit-<N>/inventory.json and notices/' if selected else 'inventory.json and notices/'
+    print(f'{count} examples verified in {args.output_dir}; provenance: {provenance}')
     return 0
