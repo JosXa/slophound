@@ -19,6 +19,7 @@ RULE_IDS = {
     "template.is-a-x-not-a-y",
     "template.evidence-scope-contrast",
     "template.residual-verification",
+    "template.abstract-benefit-contrast",
 }
 
 
@@ -46,6 +47,33 @@ class ContrastiveScopeTests(unittest.TestCase):
         ):
             text = f"{subject} separate measurements, not a combined run."
             with self.subTest(subject=subject):
+                self.assertTrue(self.findings(text))
+
+    def test_operator_review_of_missed_constructions(self):
+        records = {json.loads(line)["id"]: json.loads(line) for line in
+                   (STUDY / "corpus.jsonl").read_text().splitlines()}
+        for line in (STUDY / "operator-review.jsonl").read_text().splitlines():
+            case = json.loads(line)
+            with self.subTest(number=case["number"]):
+                self.assertIn(case["text"], records[case["corpus_id"]]["text"])
+                findings = self.findings(case["text"])
+                self.assertEqual(case["expected"], [f.severity for f in findings])
+                if case["expected"]:
+                    self.assertTrue(self.findings(records[case["corpus_id"]]["text"]))
+                if case["number"] == 10:
+                    rule = next(r for r in load_rules() if r.id == "punct.semicolon-splice")
+                    self.assertTrue(Engine([rule]).lint_deterministic(
+                        build_document("example.md", case["text"])))
+
+    def test_reviewed_constructions_generalize_and_wrap(self):
+        for text in (
+            "The saved report was a baseline, not evidence of current readiness.",
+            "The checks are the initial scope, not exhaustive coverage.",
+            "The list below is the minimum\nscope, not the complete checklist.",
+            "The recorded measurements confirm crop timing, but they do not prove picture parity.",
+            "The evidence supports continuous crop\nevaluation, but matching that clock does not prove picture parity.",
+        ):
+            with self.subTest(text=text):
                 self.assertTrue(self.findings(text))
 
     def test_plural_predicates_and_evidence_verbs(self):

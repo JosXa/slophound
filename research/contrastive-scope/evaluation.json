@@ -45,6 +45,22 @@
           "context": "- It is keyed only by `eventId`, while crop paths are media-scoped.\n- It is timing-dependent (`setTimeout(0)`), not tied to the persistence transaction.\n- It represents no operation identity, baseline, or completion state.\n- It only covers the legacy paired `updateClipRange`"
         },
         {
+          "document": "4ce9a48fba80",
+          "rule": "template.evidence-scope-contrast",
+          "start": 0,
+          "end": 218,
+          "already_matched": false,
+          "context": "The evidence supports continuous crop evaluation during held pictures. The original-recording browser harness uses unscaled canonical times, while the backend uses the duration ratio, so those runs do not yet establish parity on the same physical path.\n"
+        },
+        {
+          "document": "80535de66954",
+          "rule": "template.evidence-scope-contrast",
+          "start": 2,
+          "end": 90,
+          "already_matched": false,
+          "context": "**The evidence supports continuous crop evaluation, but matching that clock does not prove picture parity or shake removal.**"
+        },
+        {
           "document": "86b4a0f0eb56",
           "rule": "template.residual-verification",
           "start": 30,
@@ -83,6 +99,14 @@
           "end": 51,
           "already_matched": false,
           "context": "This establishes bounded numerical improvement, not shake removal, browser parity or audio alignment."
+        },
+        {
+          "document": "fcf0b68152d4",
+          "rule": "template.abstract-benefit-contrast",
+          "start": 4,
+          "end": 51,
+          "already_matched": false,
+          "context": "💡 **Buffering helps readiness, not identifiability.** Backend metadata can precede an edit without requiring a complete recording or a fixed one-minute wait."
         },
         {
           "document": "aa327a87fab0",
@@ -403,15 +427,32 @@
           "end": 155,
           "already_matched": false,
           "context": "ve ingestion and some interpolation, manual-seek, legacy-data and failure-injection cases remain unverified; I have not marked them as passed."
+        },
+        {
+          "document": "b3d43ac53dec",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 75,
+          "end": 105,
+          "already_matched": false,
+          "context": "Recheck both PRs, current dev branches, reviews and CI. The recorded state is a starting point, not proof of current readiness."
+        },
+        {
+          "document": "61a0a510fcca",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 117,
+          "end": 165,
+          "already_matched": false,
+          "context": "he full PR diffs, product documents, existing tests and previous findings. The list below is the minimum scope, not the complete checklist."
         }
       ],
       "findings_by_rule": {
-        "template.is-a-x-not-a-y": 21,
+        "template.is-a-x-not-a-y": 23,
+        "template.evidence-scope-contrast": 10,
         "template.residual-verification": 17,
-        "template.evidence-scope-contrast": 8
+        "template.abstract-benefit-contrast": 1
       },
-      "matched_documents": 46,
-      "new_findings": 40
+      "matched_documents": 51,
+      "new_findings": 45
     },
     "rust/historical-human": {
       "documents": 512,

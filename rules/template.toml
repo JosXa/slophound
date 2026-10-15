@@ -279,7 +279,7 @@ most_common_in = ["claude", "gpt"]
 [[rule]]
 id = "template.is-a-x-not-a-y"
 severity = "bite"
-pattern = '\b(?:is|was|are|were|becomes?|remains?) (?:a|an) [a-z][a-z-]*(?: [a-z][a-z-]*)?, not (?:a|an) [a-z][a-z-]*(?: [a-z][a-z-]*)?[.,;]|\b(?:a|an) [a-z][a-z-]*(?: [a-z][a-z-]*)?, not (?:a|an) [a-z][a-z-]*(?: [a-z][a-z-]*)?\.|\bfeature, not a bug\b|\bbug, not a feature\b|\b(?:(?:it|that|this|he|she)(?:\x27s|[ \t\n]+(?:is|was))|(?:they|we|you)(?:\x27re|[ \t\n]+(?:are|were))|(?:these|those)(?:[ \t\n]+[a-z][a-z-]*){0,2}[ \t\n]+(?:are|were))[ \t\n]+(?!not\b)(?:(?!\n[ \t]*\n)[^.!?;,:]){1,180}?,[ \t\n]+not\b(?![ \t\n]+(?:only|just|all|every|long|necessarily)\b)'
+pattern = '\b(?:is|was|are|were|becomes?|remains?) (?:a|an) [a-z][a-z-]*(?: [a-z][a-z-]*)?, not (?:a|an) [a-z][a-z-]*(?: [a-z][a-z-]*)?[.,;]|\b(?:a|an) [a-z][a-z-]*(?: [a-z][a-z-]*)?, not (?:a|an) [a-z][a-z-]*(?: [a-z][a-z-]*)?\.|\bfeature, not a bug\b|\bbug, not a feature\b|\b(?:(?:it|that|this|he|she)(?:\x27s|[ \t\n]+(?:is|was))|(?:they|we|you)(?:\x27re|[ \t\n]+(?:are|were))|(?:these|those)(?:[ \t\n]+[a-z][a-z-]*){0,2}[ \t\n]+(?:are|were))[ \t\n]+(?!not\b)(?:(?!\n[ \t]*\n)[^.!?;,:]){1,180}?,[ \t\n]+not\b(?![ \t\n]+(?:only|just|all|every|long|necessarily)\b)|\b(?:is|was|are|were)[ \t\n]+(?:a|an|the)[ \t\n]+[^.!?;,:]{1,100},[ \t\n]+not[ \t\n]+(?:(?:a|an|the)[ \t\n]+)?(?:proof|evidence|(?:complete|full|exhaustive)[ \t\n]+(?:checklist|scope|coverage|validation|verification))\b'
 unless = "\\b(is|was) (a|an) (int|integer|string|float|list|dict|array|byte|boolean|bool|char|struct|class|enum|pointer|reference|copy|view|tuple|set|map)\\b|\\b(?:these|those|they) are (?:concrete )?types\\b|\\bdeferral is a decision, not an omission\\b"
 message = "The sentence defines something through a rejected alternative (\"It's X, not Y\", including plural and contracted subjects). State the result directly. If the distinction affects a decision, explain that consequence in a separate factual sentence."
 example = [
@@ -291,6 +291,8 @@ example = [
   "This was a source audit, not runtime verification.",
   "They're separate results, not one combined live timing pass.",
   "However, these callbacks are observations, not a complete list of every source picture:",
+  "The recorded state is a starting point, not proof of current readiness.",
+  "The list below is the minimum scope, not the complete checklist.",
 ]
 acceptable = [
   "The linter blocks the commit when it finds a violation.",
@@ -300,6 +302,10 @@ acceptable = [
   "These are the results. We have not tested recovery.",
   "These are concrete types, not variables.",
   "This is big churn on a major feature, not long before 1.0.",
+  "The prepared video is part of the current unshipped implementation, not a requirement of your timestamp approach.",
+  "The team names and fixture ID above are examples, not the identified fixture for this job.",
+  "The recorded state shows the last completed run. Check the current run before deploying.",
+  "Start with the checks below and add cases from the full diff.",
 ]
 most_common_in = ["claude", "gpt"]
 
@@ -311,7 +317,7 @@ severity = "bite"
 # A positive evidence claim must precede the scope denial in the same paragraph.
 # Plain negative reports and functional limits such as input validation pass.
 sentence_start = true
-pattern = '\b(?:this|that|it|these|those)(?:[ \t\n]+[a-z][a-z-]*){0,3}[ \t\n]+(?:supports?(?=[ \t\n]+(?:separat(?:ing|ion)|(?:the|a|an)[ \t\n]+(?:registered[ \t\n]+)?(?:conclusion|prediction|finding|hypothesis|claim|interpretation)))|establish(?:es|ed)?|prov(?:e[sd]?|ing)|validat(?:es?|ed)|confirm(?:s|ed)?|demonstrat(?:es?|ed)|passes|passed)\b(?:(?!\n[ \t]*\n)[^!?]){1,240}?(?:,[ \t\n]+not\b|\b(?:(?:does|do|did)[ \t\n]+not|(?:doesn|don|didn)\x27t)[ \t\n]+(?:independently[ \t\n]+|yet[ \t\n]+)?(?:validate|establish|prove|confirm|demonstrate|guarantee)\b)'
+pattern = '\b(?:(?:this|that|it|these|those)(?:[ \t\n]+[a-z][a-z-]*){0,3}[ \t\n]+(?:supports?(?=[ \t\n]+(?:separat(?:ing|ion)|(?:the|a|an)[ \t\n]+(?:registered[ \t\n]+)?(?:conclusion|prediction|finding|hypothesis|claim|interpretation)))|establish(?:es|ed)?|prov(?:e[sd]?|ing)|validat(?:es?|ed)|confirm(?:s|ed)?|demonstrat(?:es?|ed)|passes|passed)|(?:the|this|these)[ \t\n]+(?:available[ \t\n]+|recorded[ \t\n]+)?(?:evidence|measurements|findings|results)[ \t\n]+(?:supports?|establish(?:es|ed)?|prov(?:e[sd]?|ing)|confirm(?:s|ed)?|demonstrat(?:es?|ed)))\b(?:(?!\n[ \t]*\n)[^!?]){1,240}?(?:,[ \t\n]+not\b|\b(?:(?:does|do|did)[ \t\n]+not|(?:doesn|don|didn)\x27t)[ \t\n]+(?:independently[ \t\n]+|yet[ \t\n]+)?(?:validate|establish|prove|confirm|demonstrate|guarantee)\b)'
 unless = '\bestablish(?:es|ed)?[ \t\n]+(?:a[ \t\n]+|the[ \t\n]+)?(?:connection|session|tunnel|socket)\b'
 message = "A result claim is balanced with a denied conclusion (\"This establishes X; it does not validate Y\"). Give the measured result directly, then name the missing check and its consequence if it affects the next decision. Keep any real verification gap; replacing the pronoun or the evidence verb does not fix the construction."
 example = [
@@ -319,12 +325,32 @@ example = [
   "That establishes a working mechanism and a local numerical improvement. It does not establish complete shake removal.",
   "That session established export shaking; it did not establish a preview/export mismatch.",
   "This establishes the fixed scene's source, integer geometry, encoded association and scoped audio phase; it does not validate production's selection filtering or accept the conditional retiming policy.",
+  "The evidence supports continuous crop evaluation, but matching that clock does not prove picture parity or shake removal.",
 ]
 acceptable = [
   "The test counted two reversals. I did not compare browser screenshots, so preview parity needs another test.",
   "This does not validate user input.",
   "The logs do not establish which request acquired the lock.",
   "This establishes a connection. It does not validate user input.",
+  "The evidence supports continuous crop evaluation. We did not compare the browser and exported pictures.",
+  "The exact session shows a confirmed export-shaking problem, not an observed preview/export mismatch.",
+]
+most_common_in = ["gpt"]
+
+[[rule]]
+id = "template.abstract-benefit-contrast"
+severity = "bark"
+# The operator rejected "Buffering helps readiness, not identifiability" as
+# an abstract slogan; suffixes suggest abstraction but do not prove obscurity.
+pattern = '\b[a-z][a-z-]*(?:[ \t\n]+[a-z][a-z-]*){0,3}[ \t\n]+(?:helps?|improves?|increases?)[ \t\n]+[a-z-]{2,40}(?:ness|ability|ibility),[ \t\n]+not[ \t\n]+[a-z-]{2,40}(?:ness|ability|ibility)[.!?]'
+message = "The sentence contrasts abstract benefits without explaining the change (\"Buffering helps readiness, not identifiability\"). Name what becomes possible or changes, and explain the remaining problem in concrete terms. Keep established technical terms when they are needed."
+example = [
+  "Buffering helps readiness, not identifiability.",
+]
+acceptable = [
+  "Buffering lets the player fetch frames before playback, but it cannot identify which source frame belongs at each timestamp.",
+  "They express domain outcomes, not clicks, and each one is tagged for selection.",
+  "Replication improves availability from 99% to 99.9%.",
 ]
 most_common_in = ["gpt"]
 

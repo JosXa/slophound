@@ -25,6 +25,7 @@ RULE_IDS = {
     "template.is-a-x-not-a-y",
     "template.evidence-scope-contrast",
     "template.residual-verification",
+    "template.abstract-benefit-contrast",
 }
 RUST_REV = "16f3bc024bdef9db7502ffbefeb602c37cee20bf"
 GHOST_REV = "86ebd72590556a81622986fab736ab9227a948af"

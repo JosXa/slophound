@@ -58,8 +58,9 @@ unproved, unproven, unverified, unvalidated, or unconfirmed. A report that names
 the check the author did not perform passes. Explained uncertainty about a
 cause also passes.
 
-All three rules report bites. Sentence templates match within one paragraph or
-list item, including ordinary line wrapping.
+These three rules report bites. Contrasts between abstract benefits receive a
+bark. Sentence templates match within one paragraph or list item, including
+ordinary line wrapping.
 
 ## Measurement
 
@@ -69,23 +70,43 @@ alone so overlapping findings cannot hide a match.
 
 | Sample | Documents | Prose words | Findings | Added findings |
 | --- | ---: | ---: | ---: | ---: |
-| Historical examples | 93 | 4,418 | 46 | 40 |
+| Historical examples | 93 | 4,418 | 51 | 45 |
 | Historical comparison controls | 105 | 4,959 | 2 | 0 |
 | Rust RFCs | 512 | 741,422 | 14 | 11 |
 | Ghostbuster human essays | 100 | 58,383 | 1 | 1 |
 | Ghostbuster human Reuters | 100 | 46,945 | 1 | 1 |
 | Ghostbuster human stories | 100 | 58,277 | 2 | 1 |
 
-The targeted rules cover 46 of the 93 historical examples, compared with six
-before this change. Other excerpts include noncopular contrasts, noun subjects,
+The targeted rules cover 51 of the 93 historical examples, compared with six
+before this change. These findings comprise 50 bites and one bark. Other excerpts
+include noncopular contrasts, noun subjects,
 and longer evidence qualifications outside the implemented templates. These
 related constructions are retained for further evaluation.
 
-The evidence and residual-status rules produced no findings in the external
-human samples. The copular rule matches constructions in human writing too,
-including technical explanations and quoted speech. These findings express a
-style constraint and provide no evidence of machine authorship. The repository's
-human regression corpus and existing documentation pass without edits.
+The evidence, residual-status, and abstract-benefit rules produced no findings
+in the external human samples. The copular rule matches constructions in human
+writing too, including technical explanations and quoted speech. These findings
+express a style constraint and provide no evidence of machine authorship. The
+repository's human regression corpus and existing documentation pass without
+edits.
+
+## Operator review
+
+[operator-review.jsonl](operator-review.jsonl) records the operator's judgments
+on ten previously missed excerpts and the expected behavior for each. These
+judgments take precedence over the collector's broad example labels.
+
+The operator rejected the starting-point and minimum-scope disclaimers, along
+with the evidence claim followed by a denial about picture parity. Scope
+disclaimers with noun subjects now trigger the copular rule. Evidence,
+measurements, findings, and results can also supply the subject for the evidence
+rule.
+
+The abstract-benefit contrast receives a bark because the wording leaves the
+effect unexplained. Its noun suffixes suggest abstraction but cannot establish
+whether a technical term is necessary. The acceptable and borderline contrasts
+remain controls. The semicolon example is covered by the existing punctuation
+warning.
 
 ## Reproduction
 
