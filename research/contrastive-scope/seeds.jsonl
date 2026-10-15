@@ -1,0 +1,5 @@
+{"source":"user-request","text":"These are separate results, not one combined live timing pass. <X> remain(s) unclear."}
+{"source":"user-request","text":"The representation and crop\nrendering pass this control; runtime browser gap recovery remains untested."}
+{"source":"user-request","text":"This retains the failed live run\nand supplies neither a fresh live-readiness result nor another full-pixel\ncomparison. Individual verification costs and physical refresh remain unproved."}
+{"source":"user-request","text":"This supports separating extraction by unique source identity from each\ncomposition use. It does not independently validate the shared scaler or\nestablish browser scheduling, audio or runtime recovery from an actual gap.\nH36's historical contract failure remains valid."}
+{"source":"user-request","text":"This establishes the fixed scene's source, integer geometry, encoded\nassociation and scoped audio phase; it does not validate production's\nselection filtering or accept the conditional retiming policy."}

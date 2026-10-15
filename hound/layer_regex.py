@@ -63,6 +63,12 @@ def run(doc: Document, rules: list[Rule], get_nlp=None) -> list[Finding]:
             if m.end() == m.start():
                 continue
             start, end = offset + m.start(), offset + m.end()
+            # Wrapped prose belongs together; separate paragraphs and list items
+            # must not supply opposite halves of one sentence template.
+            if rule.category == "template" and not any(
+                block.start <= start and end <= block.end for block in doc.blocks
+            ):
+                continue
             if rule.sentence_start and start not in sentence_starts:
                 continue
             if not rule.headings and in_heading(start):

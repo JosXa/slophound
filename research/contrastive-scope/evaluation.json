@@ -1,0 +1,605 @@
+{
+  "baseline_revision": "073e33d17068736ac8e4c2db02e8ced6a4f5f54d",
+  "revisions": {
+    "rust-lang/rfcs": "16f3bc024bdef9db7502ffbefeb602c37cee20bf",
+    "vivek3141/ghostbuster-data": "86ebd72590556a81622986fab736ab9227a948af"
+  },
+  "groups": {
+    "history/comparison-control": {
+      "documents": 105,
+      "prose_words": 4959,
+      "findings": [
+        {
+          "document": "f084a3b856c0",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 372,
+          "end": 412,
+          "already_matched": true,
+          "context": " than assert an upstream cause (`msg_12828a8c…`, 23:31:56). This makes the upstream cause a question, not a confirmed attribution."
+        },
+        {
+          "document": "c63dc255afa3",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 15,
+          "end": 46,
+          "already_matched": true,
+          "context": "The crop shows a dark oval, not a clear badge. The automation worktree is clean, and the dev worktree holds Joscha's unrelated GLOSSARY edit, which I'll leave alone. Next I'll reproduce the oval at 1920×108"
+        }
+      ],
+      "findings_by_rule": {
+        "template.is-a-x-not-a-y": 2
+      },
+      "matched_documents": 2,
+      "new_findings": 0
+    },
+    "history/example": {
+      "documents": 93,
+      "prose_words": 4418,
+      "findings": [
+        {
+          "document": "080020b7e940",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 70,
+          "end": 115,
+          "already_matched": false,
+          "context": "- It is keyed only by `eventId`, while crop paths are media-scoped.\n- It is timing-dependent (`setTimeout(0)`), not tied to the persistence transaction.\n- It represents no operation identity, baseline, or completion state.\n- It only covers the legacy paired `updateClipRange`"
+        },
+        {
+          "document": "86b4a0f0eb56",
+          "rule": "template.residual-verification",
+          "start": 30,
+          "end": 46,
+          "already_matched": false,
+          "context": "💡 **Original-recording parity remains unproven.** Browser and backend recording paths use different timeline translations, while duration ratio alone does not establish corresponding content."
+        },
+        {
+          "document": "0f0f454b2ed2",
+          "rule": "template.residual-verification",
+          "start": 105,
+          "end": 120,
+          "already_matched": false,
+          "context": "s can support controlled presentation, but timely frame availability and shake prevention remain unproved.**"
+        },
+        {
+          "document": "41c5bf034497",
+          "rule": "template.evidence-scope-contrast",
+          "start": 0,
+          "end": 65,
+          "already_matched": false,
+          "context": "This proves capability for **lossless RGB H.264 High 4:4:4**, not browser compatibility, shake removal or acceptance of VFR policy."
+        },
+        {
+          "document": "7dadf2416f0b",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 62,
+          "end": 112,
+          "already_matched": false,
+          "context": "Only the registered filter change ran; no further adjustment. This is an experimental configuration failure, not a production defect."
+        },
+        {
+          "document": "ede68d63cd84",
+          "rule": "template.evidence-scope-contrast",
+          "start": 0,
+          "end": 51,
+          "already_matched": false,
+          "context": "This establishes bounded numerical improvement, not shake removal, browser parity or audio alignment."
+        },
+        {
+          "document": "aa327a87fab0",
+          "rule": "template.evidence-scope-contrast",
+          "start": 0,
+          "end": 77,
+          "already_matched": false,
+          "context": "This supports the registered prediction **within the examined contexts**, not a broadcast-wide absence claim. Automatic retiming still requires verified producer capture identifiers/timestamps and their ingest mapping, a documented sourc"
+        },
+        {
+          "document": "0d336736697c",
+          "rule": "template.evidence-scope-contrast",
+          "start": 28,
+          "end": 74,
+          "already_matched": false,
+          "context": "One encode, no adjustments. This establishes configuration capability, not browser/audio compatibility or acceptance of its compression trade-off or sampling policy."
+        },
+        {
+          "document": "b8f1af074983",
+          "rule": "template.residual-verification",
+          "start": 576,
+          "end": 592,
+          "already_matched": false,
+          "context": "bmitted-frame metadata remain measurable; strict on-screen or frontend/export association remains unproved."
+        },
+        {
+          "document": "8e022f15f2d2",
+          "rule": "template.residual-verification",
+          "start": 163,
+          "end": 178,
+          "already_matched": false,
+          "context": "ntinuous 120-second backend exports, and exact browser picture/composition correspondence remain unproved."
+        },
+        {
+          "document": "c111753ad7b1",
+          "rule": "template.residual-verification",
+          "start": 28,
+          "end": 44,
+          "already_matched": false,
+          "context": "✅ **Physical display parity remains unproved.** Browser script observations establish pairing differences, while heavily dropped original-source runs cannot establish strict composition parity."
+        },
+        {
+          "document": "a8990c080b50",
+          "rule": "template.residual-verification",
+          "start": 115,
+          "end": 130,
+          "already_matched": false,
+          "context": ".** Browser presentation, large outages, general repeat detection and H08 audio alignment remain unproved."
+        },
+        {
+          "document": "2cadd7d4bc07",
+          "rule": "template.residual-verification",
+          "start": 111,
+          "end": 126,
+          "already_matched": false,
+          "context": "s and comparison contracts are complete; shake removal and strict frontend/backend parity remain unproved.**"
+        },
+        {
+          "document": "2d16e9a5f1e3",
+          "rule": "template.residual-verification",
+          "start": 18,
+          "end": 34,
+          "already_matched": false,
+          "context": "❓ **Shake removal remains unproved.** Final runs had substantial dropped frames and screenshot brackets of 411–1631 ms, preventing strict screen-parity conclusions."
+        },
+        {
+          "document": "52a28e82597e",
+          "rule": "template.residual-verification",
+          "start": 51,
+          "end": 66,
+          "already_matched": false,
+          "context": "Physical display parity and complete shake removal remain unproved; no product changes were made."
+        },
+        {
+          "document": "762d725abc64",
+          "rule": "template.residual-verification",
+          "start": 53,
+          "end": 68,
+          "already_matched": false,
+          "context": "Physical-display parity and general shake prevention remain unproved. Previous runs were preserved."
+        },
+        {
+          "document": "4cd06cee08bb",
+          "rule": "template.residual-verification",
+          "start": 190,
+          "end": 205,
+          "already_matched": false,
+          "context": "g independently of returned decoder timestamps. Physical-display parity and shake removal remain unproved."
+        },
+        {
+          "document": "2f896786410a",
+          "rule": "template.residual-verification",
+          "start": 18,
+          "end": 34,
+          "already_matched": false,
+          "context": "💡 **Shake removal remains unproved.** The fixed group oracle improves backend motion measurements but retains reversals and provides no physical-display guarantee."
+        },
+        {
+          "document": "19592d406831",
+          "rule": "template.residual-verification",
+          "start": 23,
+          "end": 39,
+          "already_matched": false,
+          "context": "❓ **Early availability remains unproved.** No target resource arrived before the second segment; this establishes eventual correctness, not a live deadline or physical-display guarantee."
+        },
+        {
+          "document": "61231bbdd6d7",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 73,
+          "end": 104,
+          "already_matched": false,
+          "context": "Inspected E2EProbe revision: `76cc3903c78bf1389dda7215a5b26c5ce02116fb`. This is a source inventory, not a new test or CI verdict."
+        },
+        {
+          "document": "fc4da5866379",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 27,
+          "end": 83,
+          "already_matched": false,
+          "context": "**Reporting distinction:** these Markdown files are reusable manual procedures, not executable BDD scenarios or proof that the procedures passed. The documented legacy Dynamic Cropper opener limitation should be labelled **“documented product-"
+        },
+        {
+          "document": "b893b785b197",
+          "rule": "template.residual-verification",
+          "start": 20,
+          "end": 37,
+          "already_matched": false,
+          "context": "💡 **Run conclusions remain unverified.** The report links the pinned CI run without claiming its outcome or artifact availability."
+        },
+        {
+          "document": "6b321e9b722b",
+          "rule": "template.evidence-scope-contrast",
+          "start": 2093,
+          "end": 2274,
+          "already_matched": false,
+          "context": "ender-path investigations; it does not document an actual preview-versus-export mismatch. It also does not demonstrate an exact timestamp/gesture-capture failure; the later timestamp discussion flags browser/media clock conversion and missed pointer samples as risks, not observed incidents.\n- **Earlier decision/evidence:** The investigation recommended correcting frame selection and its alignment with the authored crop path, an"
+        },
+        {
+          "document": "e85029988bd0",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 223,
+          "end": 293,
+          "already_matched": false,
+          "context": "tion occurred roughly 12–13 times per second, enlarged about 1.8× in the portrait output. These are the investigation’s motion measurements and explanation, not an independent measurement of viewer perception.  \n(Assistant, `msg_1281b610…`, 23:17:25; follow-up explanation begins at `msg_128219a7…`, 23:24:13.)"
+        },
+        {
+          "document": "8a095856cd52",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 0,
+          "end": 55,
+          "already_matched": false,
+          "context": "These were one roughly six-second segment per club, not full-match checks. Some inconsistent figures across successive survey summaries mean the broad categories should be read as sampled indications, not precise pr"
+        },
+        {
+          "document": "4dfcbc7444c7",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 330,
+          "end": 362,
+          "already_matched": true,
+          "context": "e the renderer the timestamp of each frame that was actually selected” (`msg_1281b610…`). That is a proposed solution, not a verified fix. The tested `fps=25:round=near` filter was not robust to shifted starts; that does not by itself rule out a backend algorithm that explicitly as"
+        },
+        {
+          "document": "2c0f13b96282",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 33,
+          "end": 57,
+          "already_matched": true,
+          "context": "`E2EProbe` is Stefan's repo, but it's a probe runner, not an integration-tests repo. I'll look for other repos Stefan commits to, including private ones."
+        },
+        {
+          "document": "1bc1c24a0b48",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 129,
+          "end": 161,
+          "already_matched": false,
+          "context": "er probe team, named `probe_test …`, are still in `Running` status from older probe runs. That is probe-owned residue, not something this run created. Since the probe writes to these teams every 2 hours on both environments, I'll treat them as blocked for writes. The local NEXT sta"
+        },
+        {
+          "document": "1d38e03b0eaa",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 205,
+          "end": 231,
+          "already_matched": true,
+          "context": "t, I'll correct the design document where it no longer matches the code: the remote guard is an abort, not a report; cleanup needs four proofs; raw artifacts live in `runs/` and sanitised copies in `exports/`; and the prod limit and prepared CI are stated accurately."
+        },
+        {
+          "document": "24be9fcc2a9d",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 192,
+          "end": 236,
+          "already_matched": true,
+          "context": " walking the tree gets directories with no file listing, so Walter's empty result matches a permissions boundary, not a failed export. I'll keep the privacy setting, since the content is customer and team data, and make the export auditable instead. Each run will write a manifest with absolute"
+        },
+        {
+          "document": "8cceacc1a7ba",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 318,
+          "end": 358,
+          "already_matched": false,
+          "context": "56 px box that leaves 22 px of content, and that is why the logo and the fallback shrink. This is my own class-name collision, not a loading problem. I'll rename the new classes to a component-specific name, update the test selectors, and re-run the checks."
+        },
+        {
+          "document": "e9215fd70c64",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 272,
+          "end": 308,
+          "already_matched": false,
+          "context": "set in the isolated Neo4j seed. I did not use the admin UI, because none exists for this. This is a seed and API boundary, not a UI workflow.\n- ✅ **Test fixtures:** two more local-only teams cover the no-logo and missing-logo states. Their badge URLs point at no file, so the 404 is rea"
+        },
+        {
+          "document": "b82246ce1cd7",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 213,
+          "end": 272,
+          "already_matched": false,
+          "context": "uring its first dependency optimisation, so the Creator shell never mounted the switcher. That is a readiness problem in the launched dev server, not a product bug. Next I'll check the earlier cutter failure, where the click didn't navigate, for the same signature."
+        },
+        {
+          "document": "332db4acd1e1",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 37,
+          "end": 82,
+          "already_matched": true,
+          "context": "### Findings\n💡 **The cutter failures were a cold-start problem, not a product bug.** A freshly started Vite server optimises dependencies on first use, aborts module requests, and the cutter page renders blank. The readiness gate now loads ea"
+        },
+        {
+          "document": "3d04d5ddad2d",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 203,
+          "end": 259,
+          "already_matched": false,
+          "context": "dy timed out at 15 seconds, and the page was waiting for its timeline to become ready. So this was a slow route change and a slow cutter load, not a dead click. I'll record that precisely in the README limitations, and document the namespace variables while the diagnostic run continues."
+        },
+        {
+          "document": "044badf0ddb9",
+          "rule": "template.residual-verification",
+          "start": 74,
+          "end": 91,
+          "already_matched": false,
+          "context": "The browser API findings held up. Browser latency and classifier accuracy remain unverified."
+        },
+        {
+          "document": "3cb0dd488ef3",
+          "rule": "template.evidence-scope-contrast",
+          "start": 2,
+          "end": 63,
+          "already_matched": false,
+          "context": "**That session established export shaking; it did not establish a preview/export mismatch. My previous answer gave hypothetical problems too much weight.**"
+        },
+        {
+          "document": "52dcacabdb53",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 0,
+          "end": 37,
+          "already_matched": false,
+          "context": "This is an example of correction, not a rule to remove every repeated picture: genuine static scenes and gaps must keep their duration."
+        },
+        {
+          "document": "a2039289936e",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 9,
+          "end": 46,
+          "already_matched": false,
+          "context": "However, these callbacks are observations, not a complete list of every source picture:"
+        },
+        {
+          "document": "67518a1cf765",
+          "rule": "template.evidence-scope-contrast",
+          "start": 105,
+          "end": 178,
+          "already_matched": false,
+          "context": "otage candidate preserves the crop path and reduces counted scene reversals from 21 to 2. That passes the registered numerical improvement test, but does not prove shaking is eliminated. The browser agent is now checking whether preview can reproduce the same pictures and independently calculate the same crop rectangles.\n"
+        },
+        {
+          "document": "b4624036d5c9",
+          "rule": "template.evidence-scope-contrast",
+          "start": 0,
+          "end": 93,
+          "already_matched": false,
+          "context": "That establishes a working mechanism and a local numerical improvement. It does not establish complete shake removal."
+        },
+        {
+          "document": "fc37f0823ed4",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 9,
+          "end": 48,
+          "already_matched": true,
+          "context": "was also a history lookup, not a test execution."
+        },
+        {
+          "document": "f108afd02fa2",
+          "rule": "template.residual-verification",
+          "start": 194,
+          "end": 211,
+          "already_matched": false,
+          "context": " family associations, Lull behavior, duration boundaries, render completion, and playback remain unverified. No data, shared browser state, product code, or scenario selectors were changed."
+        },
+        {
+          "document": "5b79281902ba",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 0,
+          "end": 69,
+          "already_matched": false,
+          "context": "These are illustrative values showing the serialization behavior, not a recovered request from this incident."
+        },
+        {
+          "document": "e9c5659991ed",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 76,
+          "end": 104,
+          "already_matched": false,
+          "context": "I reviewed current NEXT `dev` at `17ac3ff89`, including the relevant tests. This was a source audit, not runtime verification."
+        },
+        {
+          "document": "bef1bb316334",
+          "rule": "template.residual-verification",
+          "start": 138,
+          "end": 155,
+          "already_matched": false,
+          "context": "ve ingestion and some interpolation, manual-seek, legacy-data and failure-injection cases remain unverified; I have not marked them as passed."
+        }
+      ],
+      "findings_by_rule": {
+        "template.is-a-x-not-a-y": 21,
+        "template.residual-verification": 17,
+        "template.evidence-scope-contrast": 8
+      },
+      "matched_documents": 46,
+      "new_findings": 40
+    },
+    "rust/historical-human": {
+      "documents": 512,
+      "prose_words": 741422,
+      "findings": [
+        {
+          "document": "text/0040-libstd-facade.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 9572,
+          "end": 9608,
+          "already_matched": false,
+          "context": " The current Gc pointers would move to libgc if possible, or otherwise\nlibrustrt for now (they're feature gated currently, not super pressing).\n\nPrimarily, this library assumes that an allocation failure should trigger a\nfailure. This makes the library not suitable for use in a kernel,"
+        },
+        {
+          "document": "text/0040-libstd-facade.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 14199,
+          "end": 14258,
+          "already_matched": false,
+          "context": "uantities of\ndocumentation in terms of navigation, implemented traits, etc. Additionally,\nthese reexports are meant to be implementation details, not facets of the api.\nFor this reason, rustdoc would have to change in how it renders documentation\nfor libstd.\n\nFirst, rustdoc would consider a cross-crate reexp"
+        },
+        {
+          "document": "text/0218-empty-struct-with-braces.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 7287,
+          "end": 7349,
+          "already_matched": false,
+          "context": "e for that; I think tuple-structs are\nless frequently used (especially with many fields); they are largely\nfor ad-hoc data such as newtype wrappers, not for code generators.\n\nNote that we should not attempt to generalize this RFC as proposed to\ninclude tuple structs, i.e. so that given `struct S0 {}`, the\nexpre"
+        },
+        {
+          "document": "text/0980-read-exact.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 11294,
+          "end": 11380,
+          "already_matched": false,
+          "context": "native are:\n\n* If the caller has an use for the partially written buffer contents,\n  then it's treating the \"buffer partially filled\" case as an\n  alternative success case, not as a failure case. This is not a good\n  match for the semantics of an `Err` return.\n* Determining that the buffer cannot be completely filled can in some\n  cas"
+        },
+        {
+          "document": "text/1048-rename-soft-link-to-symlink.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 8867,
+          "end": 8884,
+          "already_matched": true,
+          "context": " other operations for creating a file or\ndirectory (`open`, `create`, `create_dir`, etc), it is a noun, not a verb.\nWhen used as a verb, it would be called \"symbolically link\", but that sounds\nquite odd in the context of an API: `symbolically_link(\"a\", \"b\")`.  \"symli"
+        },
+        {
+          "document": "text/1105-api-evolution.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 11344,
+          "end": 11519,
+          "already_matched": false,
+          "context": "em.\n\nAdding any item without a default will immediately break all trait implementations.\n\nIt's possible that in the future we will allow some kind of\n\"[sealing](#thoughts-on-possible-language-changes-unofficial)\" to say that a trait can only be used as a bound, not\nto provide new implementations; such a trait *would* allow arbitrary items to be\nadded.\n\n#### Major change: any non-trivial change to item signatures.\n\nBecause"
+        },
+        {
+          "document": "text/1211-mir.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 9691,
+          "end": 9709,
+          "already_matched": true,
+          "context": "ing\n   else that will drive later analyses, and this representation should\n   be based on a CFG, not a tree.\n2. This representation should be explicitly minimal and not attempt to retain\n   the original syntactic structure, though it should be possible to recover enou"
+        },
+        {
+          "document": "text/1317-ide.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 13210,
+          "end": 13264,
+          "already_matched": false,
+          "context": "t sure how to address this. It might require the RLS to be able to operate\nin UTF16 mode. This is only a problem with byte offsets in spans, not with\nrow/column data (the RLS will supply both). It may be possible for Visual Studio\nto just use the row/column data, or convert inefficiently to UTF16. I gue"
+        },
+        {
+          "document": "text/1510-cdylib.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 2235,
+          "end": 2275,
+          "already_matched": false,
+          "context": " from knowing that a function is otherwise private.\n* We can't run LTO for dylibs because those are intended for end products, not\n  intermediate ones like (1) is.\n\nThe purpose of this RFC is to solve these drawbacks with a new crate-type to\nrepresent the more rarely used form of dynamic l"
+        },
+        {
+          "document": "text/1574-more-api-documentation-conventions.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 3992,
+          "end": 4016,
+          "already_matched": false,
+          "context": " of my [ref_slice] crate, because it’s small, but I’m not claiming the code\nis good here. It’s about the docs, not the code.\n\n[ref_slice]: https://crates.io/crates/ref_slice\n\nIn lib.rs:\n\n```rust\n//! Turning references into slices\n//!\n//! This crate contains several utility "
+        },
+        {
+          "document": "text/1574-more-api-documentation-conventions.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 13050,
+          "end": 13074,
+          "already_matched": false,
+          "context": " of my [ref_slice] crate, because it’s small, but I’m not claiming the code\nis good here. It’s about the docs, not the code.\n\n[ref_slice]: https://crates.io/crates/ref_slice\n\nIn lib.rs:\n\n```rust\n//! Turning references into slices\n//!\n//! This crate contains several utility "
+        },
+        {
+          "document": "text/1607-style-rfcs.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 9566,
+          "end": 9594,
+          "already_matched": false,
+          "context": "a: 42, b: 34 };\n> let y = Foo {\n>     a: 42,\n>     b: 34,\n>     c: 1000\n> };\n> ```\n\n(Note this is just an example, not a proposed guideline).\n\nThe repository in embryonic form lives at [nrc/fmt-rfcs](https://github.com/nrc/fmt-rfcs).\nIt illustrates what [issues](https://github."
+        },
+        {
+          "document": "text/1618-ergonomic-format-args.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 1567,
+          "end": 1615,
+          "already_matched": false,
+          "context": " is done during both compile-time (expansion-time to be pedantic)\nand runtime in Rust. As we are concerned with format string parsing, not\noutputting, this RFC only touches the compile-time side of the existing\nformatting mechanism which is `libsyntax_ext` and `libfmt_macros`.\n\nBefore continuing w"
+        },
+        {
+          "document": "text/2103-tool-attributes.md",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 10272,
+          "end": 10290,
+          "already_matched": true,
+          "context": "heme does not allow tools or macros to use custom top-level\nattributes (I consider this a feature, not a bug, but others may differ).\n\nSome tools are clearly given special treatment.\n\nWe permit some useless attributes without warning from the compiler (e.g.,\n`#[rustfm"
+        }
+      ],
+      "findings_by_rule": {
+        "template.is-a-x-not-a-y": 14
+      },
+      "matched_documents": 12,
+      "new_findings": 11
+    },
+    "ghostbuster/essay/human": {
+      "documents": 100,
+      "prose_words": 58383,
+      "findings": [
+        {
+          "document": "essay/human/181.txt",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 5094,
+          "end": 5135,
+          "already_matched": false,
+          "context": "Skorin-Kapov 121). Scenes are edited to show the blunt colors and mists, emphasizing that those are the visions in Noah’s head, not the reality; then, he consults with his grandfather about his visions. After that, Noah starts to build his ark, where he, his family, and animals will survive"
+        }
+      ],
+      "findings_by_rule": {
+        "template.is-a-x-not-a-y": 1
+      },
+      "matched_documents": 1,
+      "new_findings": 1
+    },
+    "ghostbuster/reuter/human": {
+      "documents": 100,
+      "prose_words": 46945,
+      "findings": [
+        {
+          "document": "reuter/human/AaronPressman/13.txt",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 4257,
+          "end": 4307,
+          "already_matched": false,
+          "context": "ecognising an \"important public policy dispute\" underlying the case, the court suggested \"these arguments are addressed to the Congress, not the courts.\""
+        }
+      ],
+      "findings_by_rule": {
+        "template.is-a-x-not-a-y": 1
+      },
+      "matched_documents": 1,
+      "new_findings": 1
+    },
+    "ghostbuster/wp/human": {
+      "documents": 100,
+      "prose_words": 58277,
+      "findings": [
+        {
+          "document": "wp/human/123.txt",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 1911,
+          "end": 1931,
+          "already_matched": false,
+          "context": "and I hate to put it this way, you know – mattered. We shot the breeze, yeah, but it was… it was scripted, not improv. There was the weather, the kids, the economy, but he was nowhere in the middle of it. He used to make me laugh my lungs out at every other word when we"
+        },
+        {
+          "document": "wp/human/133.txt",
+          "rule": "template.is-a-x-not-a-y",
+          "start": 748,
+          "end": 781,
+          "already_matched": true,
+          "context": "e when he would learn the true extent of his strength. But he was in no rush to find out. He was just a charitable guy, not a hero. The next Monday, He had saved the life of an excavation crew when the ground beneath them gave way. Lifted the excavator straight up while the other me"
+        }
+      ],
+      "findings_by_rule": {
+        "template.is-a-x-not-a-y": 2
+      },
+      "matched_documents": 2,
+      "new_findings": 1
+    }
+  }
+}
