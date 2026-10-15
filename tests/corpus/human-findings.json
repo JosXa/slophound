@@ -1,0 +1,34 @@
+{
+  "rfc1925-networking-truths.md": [
+    {
+      "rule": "template.contrastive-negation",
+      "text": "This memo provides information for the Internet community. This memo does\nnot specify an Internet standard of any kind."
+    },
+    {
+      "rule": "template.contrastive-negation",
+      "text": "This memo documents the fundamental truths of networking for the Internet\ncommunity. This memo does not recommend standards for the Internet."
+    },
+    {
+      "rule": "template.contrastive-negation",
+      "text": "Trying to speed this up *might* make it slower, but it\nwon't make it happen any quicker."
+    }
+  ],
+  "twain-how-to-tell-a-story.md": [
+    {
+      "rule": "template.contrastive-negation",
+      "text": "The art of telling a humorous\nstory--understand, I mean by word of mouth, not print--was created in\nAmerica, and has remained at home."
+    }
+  ],
+  "unslop-readme.md": [
+    {
+      "rule": "template.contrastive-negation",
+      "text": "I wrote this on a Sunday because I was annoyed. It is not battle-tested."
+    }
+  ],
+  "unslop-technical-explainer.md": [
+    {
+      "rule": "template.contrastive-negation",
+      "text": "Feels clean. It is not clean."
+    }
+  ]
+}

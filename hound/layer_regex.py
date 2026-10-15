@@ -13,6 +13,7 @@ import re
 from .masking import Document
 from .model import Finding, Rule
 from .sentences import containing_sentence, sentence_spans
+from .constructions import contrastive_negation
 
 _compiled: dict[str, re.Pattern] = {}
 
@@ -56,6 +57,9 @@ def run(doc: Document, rules: list[Rule], get_nlp=None) -> list[Finding]:
         return any(b.start <= offset < b.end for b in headings)
 
     for rule in rules:
+        if rule.construction:
+            findings.extend(Finding(rule, start, end) for start, end in contrastive_negation(doc))
+            continue
         text = doc.masked if rule.category == "punct" else doc.prose
         regex = _compile(rule.pattern)
         unless = _compile(rule.unless, re.I) if rule.unless else None

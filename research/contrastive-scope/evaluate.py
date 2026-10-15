@@ -5,7 +5,6 @@ paths in the order rust-lang/rfcs, vivek3141/ghostbuster-data.
 """
 
 from collections import Counter
-from dataclasses import replace
 import io
 import json
 from pathlib import Path
@@ -17,15 +16,17 @@ import tomllib
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from hound.engine import Engine
-from hound.loader import load_rules
+from hound.loader import load_rules, _build_rule
 from hound.masking import build_document
 
 HERE = Path(__file__).resolve().parent
 RULE_IDS = {
-    "template.is-a-x-not-a-y",
-    "template.evidence-scope-contrast",
+    "template.contrastive-negation",
     "template.residual-verification",
-    "template.abstract-benefit-contrast",
+}
+PREVIOUS_RULE_IDS = {
+    "template.is-a-x-not-a-y", "template.evidence-scope-contrast",
+    "template.residual-verification", "template.abstract-benefit-contrast",
 }
 RUST_REV = "16f3bc024bdef9db7502ffbefeb602c37cee20bf"
 GHOST_REV = "86ebd72590556a81622986fab736ab9227a948af"
@@ -45,15 +46,12 @@ def evaluate(rust, ghost, baseline):
     before = tomllib.loads(subprocess.check_output(
         ["git", "-C", str(root), "show", f"{revision}:rules/template.toml"], text=True,
     ))
-    old_rules = {rule["id"]: rule for rule in before["rule"]}
     rules = [rule for rule in load_rules() if rule.id in RULE_IDS]
     engines = {rule.id: Engine([rule]) for rule in rules}
-    baseline_engines = {
-        rule.id: Engine([replace(rule, pattern=old_rules[rule.id]["pattern"],
-                                 unless=old_rules[rule.id].get("unless"),
-                                 sentence_start=old_rules[rule.id].get("sentence_start", False))])
-        for rule in rules if rule.id in old_rules
-    }
+    baseline_engine = Engine([
+        _build_rule(raw, "template", Path("baseline/template.toml"))
+        for raw in before["rule"] if raw["id"] in PREVIOUS_RULE_IDS | RULE_IDS
+    ])
     groups = {}
 
     def add(group, name, text, metadata=None):
@@ -61,8 +59,8 @@ def evaluate(rust, ghost, baseline):
         doc = build_document(name, text)
         result["documents"] += 1
         result["prose_words"] += len(re.findall(r"\b[A-Za-z]+\b", doc.prose))
+        previous = baseline_engine.lint_deterministic(doc)
         for rule_id, engine in engines.items():
-            previous = baseline_engines[rule_id].lint_deterministic(doc) if rule_id in baseline_engines else []
             for finding in engine.lint_deterministic(doc):
                 result["findings"].append({
                     "document": name,

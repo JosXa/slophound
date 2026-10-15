@@ -44,6 +44,8 @@ class Rule:
     source_file: Path
     # Regex layer.
     pattern: str | None = None
+    # Deterministic token construction, as an alternative to a template regex.
+    construction: str | None = None
     # Require the match to start a sentence, rather than merely a wrapped line.
     sentence_start: bool = False
     # Full-sentence regex candidate with a named "prefix" group that must parse

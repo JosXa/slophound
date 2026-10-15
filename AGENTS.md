@@ -16,7 +16,7 @@ Python scripts run through `uv`; rules in TOML.
 
 Agents cannot see the slop they wrote. The same model that produced `this buys us a week of headroom` will, on review, read it as perfectly fine prose. Asking it to self-correct from a prose checklist spends reasoning budget on a task that is mostly pattern matching, and the result depends on how attentive the model happens to be that turn.
 
-A deterministic linter removes the judgement call. It produces the same findings for the same text on every run. Red findings need a fix. A green report means the checks passed. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. We don't preclude eventually adding an LLM to the mix, but for now it remains a deterministic set of NLP tools that report typical AI-isms.
+A deterministic linter removes the judgement call. It produces the same findings for the same text on every run. Red findings need a fix. A green report means the checks passed. The author agent runs slophound, gets a list of findings with locations and instructions, applies the fixes, reruns. The core uses deterministic NLP tools to report typical AI-isms.
 
 The goal is text that people do not mind reading. Whether a machine wrote it is nobody's business.
 
@@ -34,7 +34,7 @@ Deterministic only. Same input, same output, every run, on every machine.
 
 Detection runs in three layers, ordered from cheapest to most expensive:
 
-1. Regex for fixed phrases and sentence templates ("It's not X. It's Y.").
+1. Regex for fixed phrases and bounded templates, plus token scanning for general sentence constructions such as `X, not Y`.
 2. Part-of-speech and dependency parsing for constructions that regex cannot separate from legitimate use. "The worker holds a mutex" passes while "that holds even under load" fires. The difference is grammatical, so the rule is expressed grammatically.
 3. Document-level statistics for rhythm and repetition: sentence-length uniformity, repeated paragraph openers, triad density, em-dash density.
 
@@ -42,7 +42,7 @@ Layer two uses established NLP libraries. They must load quickly on demand and r
 
 The core must produce deterministic, explainable findings. It excludes language-model scoring, perplexity detectors, and external services.
 
-[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the sole exception and runs outside the core: it answers typed yes/no, choice, and score questions about a sentence and generates no text. Use it for checks that cannot be expressed deterministically (is this comparison a borrowed metaphor, is this coined label defined anywhere), or as the decider for edge cases that spaCy and the other NLP tools cannot settle (is "database connection pool" one established term or three stacked nouns). Everything that a regex, a parse, or a count can decide stays in the deterministic layers. Jev runs whenever a key is configured and is silent when none is. It never creates a finding. It decides whether a deterministic finding stands, at any severity. A rule declares the question it wants asked in its TOML. When the parse alone would only measure register, as with passive voice, the rule marks its question as required: it then reports only findings that Jev has answered, and stays silent without a key.
+[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the sole exception and runs outside the core: it answers typed yes/no, choice, and score questions about a sentence and generates no text. Use it for checks that cannot be expressed deterministically (is this comparison a borrowed metaphor, is this coined label defined anywhere), or as the decider for edge cases that spaCy and the other NLP tools cannot settle (is "database connection pool" one established term or three stacked nouns). Everything that a regex, a parse, or a count can decide stays in the deterministic layers. Jev runs whenever a key is configured and is silent when none is. Its sole role is deciding whether an existing deterministic finding stands, at any severity. A rule declares the question it wants asked in its TOML. When the parse alone would only measure register, as with passive voice, the rule marks its question as required: it then reports only findings that Jev has answered, and stays silent without a key.
 
 ### Rules
 
@@ -62,6 +62,8 @@ Human-readable, modelled on eslint, rustc, and Bun: file, line, column, severity
 Exit code 0 when there are no bites, 1 when there is at least one bite, 2 when the tool itself failed. Barks and sniffs never change the exit code.
 
 ### False positives
+
+Corrective contrasts and paired negated follow-ups are prohibited constructions, including factual technical distinctions. Rewrite them while preserving the facts, limitations, and required checks. Human authorship does not exempt a construction from this policy.
 
 There is no ignore file and there is no inline suppression comment. Documents are one-off deliverables, and scattering linter directives through them is its own kind of slop.
 

@@ -119,6 +119,16 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
     rule.nominal_prefix = nominal_prefix
 
     if category in REGEX_CATEGORIES:
+        construction = raw.get("construction")
+        if construction is not None:
+            if category != "template" or construction != "contrastive-negation":
+                raise RuleError(f"{where}: unknown template construction {construction!r}")
+            if any(key in raw for key in ("pattern", "unless", "sentence_start", "nominal_prefix", "heading_only")):
+                raise RuleError(f"{where}: construction cannot be combined with regex options")
+            rule.construction = construction
+            if "jev_veto" in raw:
+                rule.jev_veto = _build_jev_veto(raw["jev_veto"], where)
+            return rule
         pattern = raw.get("pattern")
         if not isinstance(pattern, str):
             raise RuleError(f"{where}: pattern (regex string) is required")

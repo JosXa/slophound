@@ -108,8 +108,8 @@ slophound get-corpus --output-dir /tmp/slophound-examples
 The default is `.slophound/example-data/` relative to your current directory,
 ignored by Git in this checkout. Custom locations are your responsibility.
 The no-option command downloads 168 frozen examples: 166 recorded assistant messages under
-`ai/trace-commons/` and two human-authored PEPs under `human/`. It does not
-run linting, load the NLP model, look up a Jev key, or generate text.
+`ai/trace-commons/` and two human-authored PEPs under `human/`.
+Linting, NLP loading, Jev key lookup, and text generation stay outside this command.
 Package installation still installs the normal linter dependencies.
 
 The AI source is [Trace Commons agent-traces](https://huggingface.co/datasets/trace-commons/agent-traces),
@@ -118,17 +118,17 @@ previously reviewed complete messages, grouped by native message ID, with
 exactly one visible text block. Raw sessions stay in memory; user messages,
 tool results, thinking blocks, and rejected text are never cached. The
 CC-BY-4.0 dataset notice is downloaded unchanged to `notices/trace-commons.md`.
-Contributor certification supplies the rights basis, not independent proof
-of ownership. Privacy filtering is conservative but cannot prove absence of
-all sensitive information. Models and message locations are in the inventory.
+Contributor certification supplies the rights basis. Ownership has no independent
+verification. Privacy filtering may miss sensitive information.
+Models and message locations are in the inventory.
 
 The human examples are Tim Peters's PEP 20 and David Goodger and Guido van
 Rossum's PEP 257 at Python PEP commit
 `475d6cdf8caf61cfe02ec527f84d9489566349e6` (2019-12-31). Full original bytes,
 including authors' public contact metadata and embedded public-domain notices,
-are preserved. These historical documents form a small human baseline, not a
-representative sample of current engineering writing. Neither group is a
-lint-clean gold standard. Authorship labels come from source records, not a classifier result;
+are preserved. These historical documents form a small human baseline with limited
+coverage of current engineering writing. Neither group is a
+lint-clean gold standard. Authorship labels come from source records;
 other documentation with unknown or assisted authorship is excluded from the default.
 
 Use the offline catalogue to inspect contents, purposes, authorship, licences,
@@ -145,7 +145,7 @@ slophound get-corpus --purpose technical-false-positives
 Explicit selections use `<dataset>/limit-<N>/` directories, each with its own
 inventory, inventory digest, and downloaded notices. Different selections and
 limits coexist. `--limit` accepts 1 through 10000 and counts complete items per
-dataset, including PEPs and technical documentation; it never truncates bytes.
+dataset, including PEPs and technical documentation. Each item retains its full bytes.
 The selective default is 1000. Eligible yield may be lower: nonempty partial
 results succeed with their count and stopping reason; zero yield or fetch errors
 exit 2 without claiming success. With no options, the original curated quickstart
@@ -158,7 +158,7 @@ a native snapshot pin. `llm-jp-arena` uses a native revision- and hash-pinned
 JSONL containing 990 paired conversations, retaining eligible assistant answers
 and side-specific model attribution. Both download original dataset cards and
 write attribution notices; output rights depend on source and model terms.
-Privacy screens are conservative heuristics, not clearance. For example:
+Privacy screens use conservative heuristics and may miss sensitive content. For example:
 
 ```sh
 slophound get-corpus --dataset wildchat --limit 10
@@ -166,33 +166,33 @@ slophound get-corpus --dataset llm-jp-arena --limit 10
 ```
 
 The installed Nebius adapter has no verified eligible yield: inspected rows were
-tool-call dominated. Its catalogue entry is not downloadable.
+tool-call dominated. Downloads are disabled for that catalogue entry.
 
-`trace-commons-curated` is the reproducible 166-message selection, **not the
-whole Trace Commons collection**. `trace-commons` scans all 25 pinned native
+`trace-commons-curated` contains a reproducible selection of 166 messages.
+`trace-commons` scans all 25 pinned native
 Claude Code sources in the installed source inventory, without the curated
 166-message cap. Its inventory reports the runtime eligible and selected counts
-for those sources, not an upstream total. Selection is deterministic in source
-and the order of messages within each native source, not randomized or representative.
+for those sources. The upstream total is outside this count. Selection follows a
+deterministic source and message order, which provides no representative sampling guarantee.
 The filter excludes an entire message if it contains quotations, code payloads,
 or recognizable sensitive content. New selections are not manually reviewed. Assistant text is retained
 whole and unchanged, alongside the original model strings. Native formats other
 than Claude Code are not supported by this adapter.
 
 `pytest-docs` (42 files) and `click-docs` (32 files) retain every frozen URL and
-hash. Their authorship is unknown-human-or-assisted: use them for technical
-register false positives, not gold human prose. Plain-writing guidelines remain
-manual/catalogue-only until per-asset rights are resolved; repository MIT terms
-do not blanket-license quoted assets, especially ND material. Other listed
+hash. Their authorship is unknown-human-or-assisted: use them to check technical
+register false positives. Human-authorship studies require separately attributed prose.
+Plain-writing guidelines remain manual/catalogue-only until per-asset rights are resolved.
+Quoted assets require separate rights checks, especially ND material. Other listed
 sources explicitly report unavailable, not-generated-output, or gated status
-until real adapters are installed. No access agreements are accepted or keys
-requested. Purpose labels are suggestions, not a quality certification.
+until real adapters are installed. The downloader leaves access agreements and key requests
+to the operator. Purpose labels suggest uses without certifying quality.
 
 `inventory.json` records source URLs, revisions, authors or models, extraction
 locations, licences, byte lengths, and SHA-256 hashes. Only metadata ships in
 Git; example prose and upstream notices are downloaded on demand. Existing
 managed files are hash-checked before network access. A complete output tree
-works offline; corrupt files cause exit 2 and are never overwritten. First-run
+works offline. Corrupt files cause exit 2 and stay unchanged. First-run
 source or network failures write no examples. A disk failure may leave verified
 files that a later run can resume. Source reads use a 30-second socket timeout,
 20 MB per-source ceiling, and 100 MB aggregate source ceiling. Requests are
