@@ -165,6 +165,55 @@ class ContrastiveScopeTests(unittest.TestCase):
         engine.lint_deterministic(build_document("example.md", "Widgets emit amber, not cobalt."))
         self.assertIsNone(engine._nlp)
 
+    def test_introductory_adverbs_do_not_supply_an_alternative(self):
+        for text in (
+            "Therefore, not every person is capable of performing the functions of a supervisor.",
+            "Consequently, not all requests reach the worker.",
+            "Unfortunately, not every backup can be restored.",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual([], self.findings(text))
+
+    def test_supplementary_participles_describe_the_subject(self):
+        for text in (
+            "The reptiles, not knowing what to, simply watched along with the crowd as a giant holoscreen appread in the sky.",
+            "The worker, not receiving a response, tried again.",
+            "The guards, not recognizing the visitor, quietly closed the gate.",
+            "She, not having a key, waited outside.",
+            "The worker, not receiving a response, waited but stayed calm.",
+            "The worker, not\nreceiving a response,\ntried again.",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual([], self.findings(text))
+
+    def test_negated_cessation_asserts_continuation(self):
+        for text in (
+            "I may be a demon, Ascalon, but I never stopped being Uriel.",
+            "She moved away, but she never stopped caring about them.",
+            "The interface changed, but it has not stopped serving requests.",
+            "The device is old, but it never ceased to function.",
+            "The storm ended. It never stopped raining in the hills.",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual([], self.findings(text))
+
+    def test_similar_constructions_still_reject_alternatives(self):
+        for text in (
+            "Quickly, not slowly, turn the handle.",
+            "Today, not tomorrow, is the deadline.",
+            "The worker is waiting, not receiving a response.",
+            "Waiting, not receiving, consumed the time.",
+            "The recording, not the broadcast, contains the error.",
+            "This may prove extraction, but it does not validate recovery.",
+            "The process finished, but it never stopped the worker.",
+            "The service is live, but it never stopped crashing and it cannot validate signatures.",
+            "The worker, not receiving a response, tried again, not once but twice.",
+            "It never stopped working, but it does not validate recovery.",
+            "The device is old, but it never stopped not responding.",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(self.findings(text))
+
     def test_human_findings_are_assertions_not_suppressions(self):
         from unittest.mock import patch
         from hound import selftest

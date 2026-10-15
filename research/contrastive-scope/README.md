@@ -56,8 +56,9 @@ recognizes these constructions with arbitrary subjects, predicates, and compleme
   demonstrative and negates its opening claim.
 
 Matching depends on grammatical markers such as `not`, `but`, contractions,
-and punctuation. Technical nouns, evidence verbs, and abstract-noun suffixes
-have no special treatment. Statistical parsing and model calls are unnecessary.
+and punctuation, with dictionary inflections used to recognize a few grammatical
+exceptions. Technical nouns, evidence verbs, and abstract-noun suffixes have no
+special treatment. Statistical parsing and model calls are unnecessary.
 The scanner retains sentence offsets, respects Markdown block boundaries and
 masked code, and handles line wrapping. Ordinary independent negative reports
 still pass.
@@ -71,6 +72,33 @@ Both rules report bites. A factual correction requires a rewrite that preserves
 its consequential distinction, including units, mutation behavior, permissions,
 prices, and missing checks. The abstract-benefit example now receives a bite.
 
+### Descriptive clauses and continued actions
+
+The operator identified three false positives in the broader scan:
+
+| Source | Accepted excerpt | Grammatical role |
+| --- | --- | --- |
+| [Human essay](https://github.com/vivek3141/ghostbuster-data/blob/86ebd72590556a81622986fab736ab9227a948af/essay/human/1000.txt) | `Therefore, not every person is capable of performing the functions of a supervisor.` | An introductory adverb precedes one negative assertion. |
+| [Human story](https://github.com/vivek3141/ghostbuster-data/blob/86ebd72590556a81622986fab736ab9227a948af/wp/human/10.txt) | `The reptiles, not knowing what to, simply watched along with the crowd as a giant holoscreen appread in the sky.` | A supplementary participial clause describes the subject. |
+| [Human dialogue](https://github.com/vivek3141/ghostbuster-data/blob/86ebd72590556a81622986fab736ab9227a948af/wp/human/102.txt) | `I may be a demon, Ascalon, but I never stopped being Uriel.` | Negated cessation asserts continued identity. |
+
+The scanner checks the surrounding construction. The subject supplement must
+have a closing comma and a following finite predicate. A preceding gerund or
+progressive verb retains the contrast match, as in `Waiting, not receiving, consumed the time.`
+An introductory adverb needs a following assertion, which
+preserves the match in `Quickly, not slowly, turn the handle.`
+
+Continuation uses the aspectual verbs `stop` and `cease` with an activity
+complement. Their inflections and arbitrary activity verbs share the same
+handling. A noun object, as in `never stopped the worker`, retains its negative
+meaning. Additional rejected alternatives elsewhere in the sentence still fire.
+This handles the reported continuation frame. Other concessions can still need
+semantic review.
+
+Lemminflect supplies dictionary entries and inflections only. The scanner uses
+neither statistical part-of-speech tagging nor predictions for unknown words.
+Ambiguous or unsupported shapes retain the existing detection behavior.
+
 ## Measurement
 
 [evaluation.json](evaluation.json) records the full findings, source revisions,
@@ -81,22 +109,27 @@ alone so overlapping findings cannot hide a match.
 | --- | ---: | ---: | ---: | ---: |
 | Historical examples | 93 | 4,418 | 111 | 60 |
 | Historical comparison controls | 105 | 4,959 | 41 | 39 |
-| Rust RFCs | 512 | 741,422 | 1,588 | 1,574 |
-| Ghostbuster human essays | 100 | 58,383 | 59 | 58 |
+| Rust RFCs | 512 | 741,422 | 1,579 | 1,565 |
+| Ghostbuster human essays | 100 | 58,383 | 57 | 56 |
 | Ghostbuster human Reuters | 100 | 46,945 | 76 | 75 |
-| Ghostbuster human stories | 100 | 58,277 | 144 | 142 |
+| Ghostbuster human stories | 100 | 58,277 | 142 | 140 |
 
 The targeted rules cover 91 of the 93 historical examples, compared with 51 in
 the preceding implementation. Multiple findings can occur in one excerpt.
 The two remaining paragraphs use longer causal qualifications with `so` and
 embedded negative clauses outside the scanner's constructions.
 
-The broader policy produces 1,867 findings across 550 of 812 external human
+The broader policy produces 1,854 findings across 548 of 812 external human
 documents. These are raw match counts, with sampled contexts inspected for
 accidental grammatical matches. Human and model-authored writing follow the same
 policy. Evaluating authorship or precision requires separate labeled assessments.
 The control labels preserve the initial narrow
 review, so matches in that group are expected after the policy change.
+
+The grammatical corrections removed 13 external findings from the previous
+scan. All removed findings were inspected. They include the three reported false
+positives and ten introductory-adverb cases. Historical coverage and the
+eighteen previously approved examples remain unchanged.
 
 The repository's original human fixtures retain their text. Six exact positive
 spans are recorded in [human-findings.json](../../tests/corpus/human-findings.json).

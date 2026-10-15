@@ -1363,14 +1363,6 @@
         {
           "document": "text/0019-opt-in-builtin-traits.md",
           "rule": "template.contrastive-negation",
-          "start": 17690,
-          "end": 17796,
-          "already_matched": false,
-          "context": "ay change, the user has no direct access and so `Rc<T>`\nis still logically snapshotable.  However, not all `Rc` instances are\nsnapshottable -- in particular, something like `Rc<Cell<int>>` is not.\n\n    trait Snapshot { }\n    impl Snapshot for .. { }\n    \n    // In general, anything that can reach interior mutability is not\n    // snapshotable.\n    impl<T"
-        },
-        {
-          "document": "text/0019-opt-in-builtin-traits.md",
-          "rule": "template.contrastive-negation",
           "start": 19068,
           "end": 19336,
           "already_matched": false,
@@ -2711,14 +2703,6 @@
           "end": 6310,
           "already_matched": false,
           "context": "ory, but otherwise it must be placed in mutable memory.\n\n`mut` statics may have any type. All access is considered unsafe.\nThey may not be placed in read-only memory.\n\n## Globals referencing Globals\n\n### const => const\n\nIt is possible to create a `const` or a `static` which references another\n`const` or another `static` by i"
-        },
-        {
-          "document": "text/0246-const-vs-static.md",
-          "rule": "template.contrastive-negation",
-          "start": 7941,
-          "end": 8057,
-          "already_matched": false,
-          "context": "` to reference another `static` by value. It is\nrequired that all references be borrowed. Additionally, not all kinds of borrows\nare allowed, only explicitly taking the address of another static is allowed.\nFor example, interior borrows of fields and elements or accessing elements of an\narray are both disallowed.\n\nIf a by-value reference were allowed, then this so"
         },
         {
           "document": "text/0246-const-vs-static.md",
@@ -4187,14 +4171,6 @@
         {
           "document": "text/0736-privacy-respecting-fru.md",
           "rule": "template.contrastive-negation",
-          "start": 10209,
-          "end": 10288,
-          "already_matched": false,
-          "context": "that makes\n     use of FRU, since they would have to start implementing\n     `FunUpdate`. Thus, not simple to implement for the libraries and\n     the overall ecosystem.  What other designs have been considered?\n     What is the impact of not doing this?\n\n  4. Adopt this RFC, but add a builtin `HygienicFunUpdate` trait that\n   "
-        },
-        {
-          "document": "text/0736-privacy-respecting-fru.md",
-          "rule": "template.contrastive-negation",
           "start": 10683,
           "end": 10806,
           "already_matched": false,
@@ -5175,14 +5151,6 @@
           "end": 324,
           "already_matched": false,
           "context": "Issue: [rust-lang/rust#28235](https://github.com/rust-lang/rust/issues/28236)\n\n# Summary\n\nAllow equality, but not order, comparisons between fat raw pointers\nof the same type.\n\n# Motivation\n\nCurrently, fat raw pointers can't be compared via either PartialEq or\nPartialOrd (currently this causes an ICE). It seems to me that a primitive"
-        },
-        {
-          "document": "text/1152-slice-string-symmetry.md",
-          "rule": "template.contrastive-negation",
-          "start": 545,
-          "end": 626,
-          "already_matched": false,
-          "context": "lar types. Many methods are already\nshared between the two types due to their similarity. However, not all methods\nare shared between the types, even though many could be. This is a little\nunexpected and inconsistent. Because of that, this RFC proposes to remedy this\nby adding a few methods to strings to even out these two types’"
         },
         {
           "document": "text/1156-adjust-default-object-bounds.md",
@@ -7779,14 +7747,6 @@
         {
           "document": "text/1824-crates.io-default-ranking.md",
           "rule": "template.contrastive-negation",
-          "start": 26622,
-          "end": 26907,
-          "already_matched": false,
-          "context": "ates, it should generate an order for the crates that aligns with the\ncommunity ordering. Also, not everyone will agree with the crates.io ranking,\nso we should display other information and provide alternate filtering and\nsorting mechanisms so that people who prioritize different attributes than the\nmajority of the community will be able to find what they are looking for.\n\n## Factors considered when ranking crates\n\nThe following table shows the top 25 mentioned factors for the two free answer\nsections. We asked both \"Please expl"
-        },
-        {
-          "document": "text/1824-crates.io-default-ranking.md",
-          "rule": "template.contrastive-negation",
           "start": 27171,
           "end": 27503,
           "already_matched": false,
@@ -9571,14 +9531,6 @@
         {
           "document": "text/2116-alloc-me-maybe.md",
           "rule": "template.contrastive-negation",
-          "start": 22670,
-          "end": 22716,
-          "already_matched": false,
-          "context": "ifference here would be a bit exacerbated by exposing the CapacityOverflow variant here.\n\nAgain, not proposed to avoid rocking the boat.\n\n\n\n\n## CollectionAllocErr\n\nThere were a few different possible designs for CollectionAllocErr:\n\n* Just make it AllocErr\n* Remove the payload from the AllocErr "
-        },
-        {
-          "document": "text/2116-alloc-me-maybe.md",
-          "rule": "template.contrastive-negation",
           "start": 23121,
           "end": 23442,
           "already_matched": false,
@@ -11359,14 +11311,6 @@
           "end": 11817,
           "already_matched": false,
           "context": "ent, as we traverse\nthe path, once we hit a `union`, we stop adding further auto-derefs.  So with\n`s: Struct` and `u: Union`, when encountering `s.u.f.x`, auto-deref *does*\nhappen on `s`, but not on `s.u` or any of the later components.\n\nNotice that this relies crucially on the only field of `ManuallyDrop` being\nprivate!  If we could project directly through that field, no `DerefMut` would\nbe "
-        },
-        {
-          "document": "text/2514-union-initialization-and-drop.md",
-          "rule": "template.contrastive-negation",
-          "start": 12738,
-          "end": 12906,
-          "already_matched": false,
-          "context": ", the\ncompiler fundamentally cannot know what part of the union is properly\ninitialized.  Unfortunately, not having any initialization tracking is not an\noption when non-`Copy` fields are involved: We have to decide if moving out of a\nunion field is allowed.\n\n# Rationale and alternatives\n[rationale-and-alternatives]: #rationale-and-alternatives\n\nRuling out fields with drop glue does not, in fact, reduce the express"
         },
         {
           "document": "text/2514-union-initialization-and-drop.md",
@@ -13291,14 +13235,6 @@
         {
           "document": "text/3037-roadmap-2021.md",
           "rule": "template.contrastive-negation",
-          "start": 8877,
-          "end": 8947,
-          "already_matched": false,
-          "context": "estions or feedback. This may be a team lead, but could also just be a point of contact.\n\nCurrently, not all teams have such a clearly defined point of contact. This makes it hard for people seeking to interface with the team to establish communications, especially when they don’t currently know Rust’s governance.\n\nThi"
-        },
-        {
-          "document": "text/3037-roadmap-2021.md",
-          "rule": "template.contrastive-negation",
           "start": 9370,
           "end": 9495,
           "already_matched": false,
@@ -13715,14 +13651,6 @@
         {
           "document": "text/3128-io-safety.md",
           "rule": "template.contrastive-negation",
-          "start": 6071,
-          "end": 6169,
-          "already_matched": false,
-          "context": " interfaces, beyond the\nintroduction of some new types and traits and new impls for them. Initially,\nnot all of the Rust ecosystem will support I/O safety though; adoption will\nbe gradual.\n\n## `OwnedFd` and `BorrowedFd<'fd>`\n\nThese two types are conceptual replacements for `RawFd`, and represent owned\nand borrowed handle values. `OwnedFd` owns a "
-        },
-        {
-          "document": "text/3128-io-safety.md",
-          "rule": "template.contrastive-negation",
           "start": 11665,
           "end": 11890,
           "already_matched": false,
@@ -13954,10 +13882,10 @@
         }
       ],
       "findings_by_rule": {
-        "template.contrastive-negation": 1588
+        "template.contrastive-negation": 1579
       },
-      "matched_documents": 401,
-      "new_findings": 1574
+      "matched_documents": 400,
+      "new_findings": 1565
     },
     "ghostbuster/essay/human": {
       "documents": 100,
@@ -13986,14 +13914,6 @@
           "end": 3980,
           "already_matched": false,
           "context": "ays a crucial role in the successful or negative adaptation of students or new employees. Supervisors must not only have the appropriate skills, knowledge or experience, but also be able to communicate them correctly and on time to students and new employees. Therefore, not every person is capable of performing the functions of a supervisor. In addition to excellent proficiency in occupational skills, supervisors mu"
-        },
-        {
-          "document": "essay/human/1000.txt",
-          "rule": "template.contrastive-negation",
-          "start": 3981,
-          "end": 4064,
-          "already_matched": false,
-          "context": "but also be able to communicate them correctly and on time to students and new employees. Therefore, not every person is capable of performing the functions of a supervisor. In addition to excellent proficiency in occupational skills, supervisors must possess versatile knowledge, be carriers of the key values of corporate culture, "
         },
         {
           "document": "essay/human/105.txt",
@@ -14340,14 +14260,6 @@
           "context": " there is a high probability that their employee abuses drugs and is a pathological liar. As a result, the company decides not to promote but to fire the worker. The depressed worker refers to an ethical counselor to seek help.\nFirst, as an ethical counselor, it is crucial to identify the problem or a dilemma correctly "
         },
         {
-          "document": "essay/human/164.txt",
-          "rule": "template.contrastive-negation",
-          "start": 3378,
-          "end": 3440,
-          "already_matched": false,
-          "context": "arge databases, modern sociologists can describe current trends in the healthcare sector. However, not only socioeconomic status as such affects health. An important aspect that partially affects socioeconomic status is the ecology of the territory where people live. I want to touch upon this topic separately s"
-        },
-        {
           "document": "essay/human/172.txt",
           "rule": "template.contrastive-negation",
           "start": 1107,
@@ -14437,10 +14349,10 @@
         }
       ],
       "findings_by_rule": {
-        "template.contrastive-negation": 59
+        "template.contrastive-negation": 57
       },
-      "matched_documents": 35,
-      "new_findings": 58
+      "matched_documents": 34,
+      "new_findings": 56
     },
     "ghostbuster/reuter/human": {
       "documents": 100,
@@ -15068,14 +14980,6 @@
         {
           "document": "wp/human/10.txt",
           "rule": "template.contrastive-negation",
-          "start": 1319,
-          "end": 1431,
-          "already_matched": false,
-          "context": "ding waves of what appeared to be odd looking silver chariots towards the gathered crowd.\nThe reptiles, not knowing what to, simply watched along with the crowd as a giant holoscreen appread in the sky.\nThe creature that appeared tall, sleek and had grey, almost silverish skin.\n'Organics of Joo'el. We must utilies your planet to halt the Grox advance. This pro"
-        },
-        {
-          "document": "wp/human/10.txt",
-          "rule": "template.contrastive-negation",
           "start": 2431,
           "end": 2550,
           "already_matched": false,
@@ -15136,14 +15040,6 @@
           "end": 1945,
           "already_matched": false,
           "context": "lk to me, Blasphemer! You betrayed HIM! You betrayed me!\"\n\"Ascalon you know why I did it. I explained it to you but you were so deep in that tyrant's pocket you wouldn't listen.\"\n\"You dare to call HIM a tyrant? You, who worship The morning star?!\"\n\"He's lied to you, Ascalon. Or at least he would, if he didn't rewrite the truth every tim"
-        },
-        {
-          "document": "wp/human/102.txt",
-          "rule": "template.contrastive-negation",
-          "start": 2790,
-          "end": 2865,
-          "already_matched": false,
-          "context": "sure in your anguish? Did you think I reveled in throwing aeons of joy away?\"\n\"Of course! Only a demon-\"\n\"I may be a demon, Ascalon, but I never stopped being Uriel. I don't know how you deal with it. How can you call it free will if he makes all the choices for you?\"\n\"Freedom is the liberty to do what you were meant to.\"\n\""
         },
         {
           "document": "wp/human/102.txt",
@@ -16219,10 +16115,10 @@
         }
       ],
       "findings_by_rule": {
-        "template.contrastive-negation": 144
+        "template.contrastive-negation": 142
       },
       "matched_documents": 62,
-      "new_findings": 142
+      "new_findings": 140
     }
   }
 }
