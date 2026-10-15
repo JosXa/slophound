@@ -27,6 +27,8 @@ cache-keys = [
   { file = "MANIFEST.in" },
   { file = "README.md" },
   { file = "hound/**/*.py" },
+  { file = "hound/example_catalog.json" },
+  { file = "hound/dataset_catalog.json" },
   { file = "rules/*.py" },
   { file = "rules/*.toml" },
   { file = "tests/corpus/**/*.md" },
@@ -41,5 +43,6 @@ hound = "hound"
 "hound.corpus" = "tests/corpus"
 
 [tool.setuptools.package-data]
+hound = ["example_catalog.json", "dataset_catalog.json"]
 "hound.rules" = ["*.toml"]
 "hound.corpus" = ["generated/*.md", "human/*.md"]

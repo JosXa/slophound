@@ -115,6 +115,10 @@ def read_input(path: str) -> tuple[str, str]:
 def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
+    if argv and argv[0] == "get-corpus":
+        from .example_data import main as example_data_main
+
+        return example_data_main(argv[1:])
     if argv and argv[0] == "auth":
         return auth_main(argv[1:])
     parser = build_parser()
