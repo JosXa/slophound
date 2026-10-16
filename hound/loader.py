@@ -19,6 +19,7 @@ from .model import (
     SEVERITY_ALIASES,
     SPACY_CATEGORIES,
     JevVeto,
+    JevReference,
     Rule,
 )
 
@@ -117,13 +118,34 @@ def _build_rule(raw: dict, category: str, path: Path) -> Rule:
     if nominal_prefix and category != "phrase":
         raise RuleError(f"{where}: nominal_prefix is for phrase rules")
     rule.nominal_prefix = nominal_prefix
+    opening_reference = raw.get("opening_reference", False)
+    if not isinstance(opening_reference, bool):
+        raise RuleError(f"{where}: opening_reference must be a boolean")
+    if opening_reference and category not in REGEX_CATEGORIES + SPACY_CATEGORIES:
+        raise RuleError(f"{where}: opening_reference requires a regex or parser rule")
+    rule.opening_reference = opening_reference
 
-    if category in REGEX_CATEGORIES:
+    if 'reference_check' in raw:
+        check = raw['reference_check']
+        if category != 'noun' or not isinstance(check, dict) or set(check) != {'instructions', 'criteria', 'confidence_floor'}:
+            raise RuleError(f'{where}: reference_check needs instructions, criteria, confidence_floor on a noun rule')
+        criteria = check['criteria']
+        if not isinstance(criteria, dict) or set(criteria) != {'clear', 'unclear', 'uncertain'}:
+            raise RuleError(f'{where}: reference_check.criteria needs clear, unclear, uncertain')
+        if any(not isinstance(s, str) or not s.strip() for s in [check['instructions'], *criteria.values()]):
+            raise RuleError(f'{where}: reference_check descriptions must be nonempty strings')
+        floor = check['confidence_floor']
+        if type(floor) not in (int, float) or not 0.5 < floor <= 1:
+            raise RuleError(f'{where}: reference_check.confidence_floor must be greater than 0.5 and at most 1')
+        if any(k in raw for k in ('dependency', 'jev_veto', 'opening_reference')):
+            raise RuleError(f'{where}: reference_check cannot also declare a dependency, veto or opening-only gate')
+        rule.reference_check = JevReference(check['instructions'], criteria, float(floor))
+    elif category in REGEX_CATEGORIES:
         construction = raw.get("construction")
         if construction is not None:
             if category != "template" or construction != "contrastive-negation":
                 raise RuleError(f"{where}: unknown template construction {construction!r}")
-            if any(key in raw for key in ("pattern", "unless", "sentence_start", "nominal_prefix", "heading_only")):
+            if any(key in raw for key in ("pattern", "unless", "sentence_start", "nominal_prefix", "heading_only", "opening_reference")):
                 raise RuleError(f"{where}: construction cannot be combined with regex options")
             rule.construction = construction
             if "jev_veto" in raw:

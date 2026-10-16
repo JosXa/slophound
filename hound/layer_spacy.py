@@ -18,6 +18,7 @@ import warnings
 
 from .masking import Document
 from .model import SEVERITIES, Finding, Rule
+from .references import opening_reference_candidate
 from .sentences import containing_sentence, sentence_spans
 
 _MODEL_BY_LANG = {
@@ -99,6 +100,8 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
                 continue
             start = block.start + min(t.idx for t in tokens)
             end = block.start + max(t.idx + len(t.text) for t in tokens)
+            if rule.opening_reference and not opening_reference_candidate(doc, start):
+                continue
             if rule.match_unless and re.search(rule.match_unless, doc.prose[start:end], re.I):
                 continue
             if rule.unless:

@@ -10,6 +10,28 @@
 #
 # Fields per [[rule]]: see rules/verb.toml. The same DependencyMatcher syntax
 # applies. Severity, message, example and acceptable are required.
+# A reference_check table replaces dependency detection with parser noun chunks
+# and standalone demonstratives, only under --check-references. It requires
+# instructions, confidence_floor, and clear/unclear/uncertain criteria. It cannot
+# also use dependency, opening_reference, or jev_veto. Examples test candidates,
+# not semantic verdicts; offline judgment tests live in test_reference_check.py.
+
+# Experimental: confidence 0.8 is a provisional policy, not calibrated accuracy.
+[[rule]]
+id = "noun.unclear-reference"
+severity = "bark"
+message = "The reader has to guess what this refers to. Name or explain it."
+example = ["Record request durations in the histogram. The monitoring system computes p95.", "This removes the bottleneck."]
+acceptable = ["Record request durations in a histogram.", "Prometheus computes p95."]
+most_common_in = ["constructed technical examples; experimental Jev review"]
+
+[rule.reference_check]
+confidence_floor = 0.8
+instructions = "Can the reader identify the specific referent of the selected reference from the whole paragraph, preceding reader-visible context, and heading? Read the entire paragraph, including later explanations. A topical heading alone need not identify a particular component. Do not infer an ambiguity merely because the reference contains the or a demonstrative."
+criteria.clear = "The referent is introduced, named, explained later in this paragraph, recoverable through ordinary bridging, or an ordinary generic/shared concept (the sun, the user, the operating system in a conventional generic explanation). The reader need not guess which specific thing is meant."
+criteria.unclear = "A specific referent is assumed but neither the supplied context nor the complete paragraph identifies it, and there is positive evidence that the reader must guess what the writer means."
+criteria.uncertain = "The parser-selected span is not actually a reference, its meaning is uncertain, evidence conflicts, or context_truncated is true and omitted context could establish the referent. Missing truncated context is not evidence of ambiguity."
+
 #
 # How the parse looks: spaCy attaches each modifier noun to its head with the
 # dependency "compound". The head of the cluster is the noun that is not itself

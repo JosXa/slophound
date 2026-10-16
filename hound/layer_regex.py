@@ -12,6 +12,7 @@ import re
 
 from .masking import Document
 from .model import Finding, Rule
+from .references import opening_reference_candidate
 from .sentences import containing_sentence, sentence_spans
 from .constructions import contrastive_negation
 
@@ -67,6 +68,8 @@ def run(doc: Document, rules: list[Rule], get_nlp=None) -> list[Finding]:
             if m.end() == m.start():
                 continue
             start, end = offset + m.start(), offset + m.end()
+            if rule.opening_reference and not opening_reference_candidate(doc, start):
+                continue
             # Wrapped prose belongs together; separate paragraphs and list items
             # must not supply opposite halves of one sentence template.
             if rule.category == "template" and not any(

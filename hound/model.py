@@ -33,6 +33,13 @@ class JevVeto:
     required: bool = False
 
 
+@dataclass(frozen=True)
+class JevReference:
+    instructions: str
+    criteria: dict[str, str]
+    confidence_floor: float
+
+
 @dataclass
 class Rule:
     id: str
@@ -51,6 +58,8 @@ class Rule:
     # Full-sentence regex candidate with a named "prefix" group that must parse
     # as a noun phrase. Load the parser only after the regex matches.
     nominal_prefix: bool = False
+    # Restrict a reference candidate to an unintroduced document-opening claim.
+    opening_reference: bool = False
     # spaCy layer: a DependencyMatcher pattern (list of node dicts).
     dependency: list[list[dict]] | None = None  # one or more DependencyMatcher patterns
     # Extra regex that must NOT match the matched sentence.
@@ -73,6 +82,8 @@ class Rule:
     heading_only: bool = False
     # A high-confidence yes can remove a sniff after deterministic detection.
     jev_veto: JevVeto | None = None
+    # Explicit opt-in paragraph reference review, not a sentence-level veto.
+    reference_check: JevReference | None = None
     # Short reminder after the full message has appeared in the current report.
     repeat_message: str | None = None
 

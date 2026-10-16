@@ -243,7 +243,8 @@ class ContrastiveScopeTests(unittest.TestCase):
                    example=["A, not B."], acceptable=["A."],
                    construction="contrastive-negation")
         for extra in ({"pattern": "not"}, {"unless": "type"},
-                      {"sentence_start": True}, {"construction": "unknown"}):
+                      {"sentence_start": True}, {"opening_reference": True},
+                      {"construction": "unknown"}):
             with self.subTest(extra=extra), self.assertRaises(RuleError):
                 _build_rule(raw | extra, "template", Path("test.toml"))
 
