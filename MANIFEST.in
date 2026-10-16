@@ -6,8 +6,11 @@ include slophound
 recursive-include docs *.md
 recursive-include skills *.md
 recursive-include hound *.py
+include hound/example_catalog.json
+include hound/dataset_catalog.json
+include tests/test_dataset_catalog.py
 recursive-include rules *.py *.toml
-recursive-include tests/corpus *.py *.md
+recursive-include tests/corpus *.py *.md *.json
 include tests/test_distribution.py
 include tests/test_report.py
 include tests/test_jev.py

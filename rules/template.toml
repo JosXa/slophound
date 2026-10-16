@@ -8,6 +8,10 @@
 # Same fields as rules/phrase.toml. Templates never run inside headings.
 # Rules run on the prose view: typographic quotes are already straight, so
 # only `'` needs handling in patterns.
+# `construction = "contrastive-negation"` uses the token scanner in
+# hound/constructions.py instead of a regex. It recognizes negated alternatives
+# across arbitrary subjects and predicates, including factual corrections.
+# Construction rules cannot specify regex options.
 
 [[rule]]
 id = "template.not-x-but-y"
@@ -277,22 +281,87 @@ acceptable = [
 most_common_in = ["claude", "gpt"]
 
 [[rule]]
-id = "template.is-a-x-not-a-y"
+id = "template.contrastive-negation"
 severity = "bite"
-pattern = "\\b(is|was|are|were|becomes?|remains?) (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?, not (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?[.,;]|\\b(a|an) [a-z][a-z-]*( [a-z][a-z-]*)?, not (a|an) [a-z][a-z-]*( [a-z][a-z-]*)?\\.|\\bfeature, not a bug\\b|\\bbug, not a feature\\b"
-unless = "\\b(is|was) (a|an) (int|integer|string|float|list|dict|array|byte|boolean|bool|char|struct|class|enum|pointer|reference|copy|view|tuple|set|map)\\b|\\bdeferral is a decision, not an omission\\b"
-message = "\"X is a N, not a M\" rejects a meaning that the reader did not assume. State what X is. Mention the alternative only if someone proposed it."
+construction = "contrastive-negation"
+message = "The passage pairs a claim with a rejected alternative or a negated follow-up (\"X, not Y\", \"X, but not Y\", or \"X. It does not Y\"). State the facts directly. Preserve consequential distinctions and missing checks in separate factual sentences or an explicit next action. Technical corrections also require a rewrite; changing the subject or verb does not fix the construction."
 example = [
   "The linter is a gate, not a suggestion.",
   "This is a build step, not an output.",
   "Determinism is a feature, not a bug.",
+  "These are separate results, not one combined live timing pass.",
+  "These are illustrative values showing the serialization behavior, not a recovered request from this incident.",
+  "This was a source audit, not runtime verification.",
+  "They're separate results, not one combined live timing pass.",
+  "However, these callbacks are observations, not a complete list of every source picture:",
+  "The recorded state is a starting point, not proof of current readiness.",
+  "The list below is the minimum scope, not the complete checklist.",
+  "The timeout is measured in milliseconds, not seconds.",
+  "This command deletes the local branch, not the remote branch.",
+  "The function returns a copy, not a reference.",
+  "The permission applies to this folder, not its descendants.",
+  "The invoice total is €120, not €120 per user.",
+  "The lock, not the cache, causes the stall.",
+  "The test confirms that expired tokens are rejected, but does not check revoked tokens.",
+  "The backup completed, but restoration has not been tested.",
+  "Buffering helps readiness, not identifiability.",
+  "This establishes bounded numerical improvement, not shake removal, browser parity or audio alignment.",
+  "That establishes a working mechanism and a local numerical improvement. It does not establish complete shake removal.",
+  "That session established export shaking; it did not establish a preview/export mismatch.",
+  "This establishes the fixed scene's source, integer geometry, encoded association and scoped audio phase; it does not validate production's selection filtering or accept the conditional retiming policy.",
+  "The evidence supports continuous crop evaluation, but matching that clock does not prove picture parity or shake removal.",
+  "The value is a string, not a number, so the comparison fails.",
+  "Deferral is a decision, not an omission.",
+  "These are concrete types, not variables.",
+  "The prepared video is part of the current unshipped implementation, not a requirement of your timestamp approach.",
+  "The team names and fixture ID above are examples, not the identified fixture for this job.",
+  "They express domain outcomes, not clicks, and each one is tagged for selection.",
+  "This establishes a connection. It does not validate user input.",
 ]
 acceptable = [
   "The linter blocks the commit when it finds a violation.",
-  "The value is a string, not a number, so the comparison fails.",
-  "Deferral is a decision, not an omission.",
+  "These results came from separate runs.",
+  "These are the results. We have not tested recovery.",
+  "The recorded state shows the last completed run. Check the current run before deploying.",
+  "Start with the checks below and add cases from the full diff.",
+  "The test counted two reversals. I did not compare browser screenshots, so preview parity needs another test.",
+  "This does not validate user input.",
+  "The logs do not establish which request acquired the lock.",
+  "The evidence supports continuous crop evaluation. We did not compare the browser and exported pictures.",
+  "The timeout uses milliseconds.",
+  "This command deletes the local branch. The remote branch stays.",
+  "The function returns an independent copy.",
+  "The test covers expired tokens. Add a test for revoked tokens.",
+  "Test restoration before relying on this backup.",
+  "If the flag is not set, the job is skipped.",
+  "The cache is small but fast.",
+  "Replication improves availability from 99% to 99.9%.",
+  "Therefore, not every person is capable of performing the functions of a supervisor.",
+  "The reptiles, not knowing what to, simply watched along with the crowd as a giant holoscreen appread in the sky.",
+  "I may be a demon, Ascalon, but I never stopped being Uriel.",
 ]
-most_common_in = ["claude"]
+most_common_in = ["claude", "gpt"]
+
+[[rule]]
+id = "template.residual-verification"
+severity = "bite"
+# The history repeatedly appends these impersonal status verdicts after a result.
+# Keep the missing verification, but require an explicit check or action.
+pattern = '\bremains?[ \t\n]+(?:untested|unproved|unproven|unverified|unvalidated|unconfirmed)\b'
+message = "The report appends an impersonal verification verdict (\"X remains untested/unproved\"). Name the missing check and who has not performed it, for example \"I did not test browser recovery\". Keep the limitation and explain its consequence when relevant; do not replace the status adjective with another vague verdict."
+example = [
+  "The representation and crop rendering pass this control; runtime browser gap recovery remains untested.",
+  "Individual verification costs and physical refresh remain unproved.",
+  "The browser API findings held up. Browser latency and classifier accuracy remain unverified.",
+  "Original-recording parity remains unproven.",
+]
+acceptable = [
+  "I did not test runtime browser gap recovery.",
+  "The cause remains unclear because the server did not record the lock owner.",
+  "The test remains disabled until the fixture is available.",
+  "We have not verified browser latency or classifier accuracy.",
+]
+most_common_in = ["gpt"]
 
 [[rule]]
 id = "template.parenthetical-hedge"

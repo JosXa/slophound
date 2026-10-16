@@ -2,7 +2,7 @@
 
 Sources for finding prose patterns, reproducing findings, and measuring false positives. Prioritize complete technical documents: READMEs, design proposals, specifications, and explanatory pages under `docs/`. Blog posts provide a useful secondary register. Follow [Adding rules](docs/adding-rules.md) when turning an observation into a rule.
 
-AI detection datasets are useful because they supply generated text alongside human writing, often with generator and domain labels. Their authorship labels do not establish whether a sentence needs editing. Slophound needs evidence that a construction is tiresome in context and that a proposed rule preserves legitimate uses.
+AI detection datasets are useful because they supply generated text alongside human writing, often with generator and domain labels. Evaluate writing quality separately from authorship. Slophound needs evidence that a construction is tiresome in context and that a proposed rule preserves legitimate uses.
 
 ## Choosing a source
 
@@ -19,7 +19,7 @@ AI detection datasets are useful because they supply generated text alongside hu
 
 - Human source texts and model generations span explanatory writing, news, reviews, and other domains. Generator families include OpenAI, Llama, Mistral, MPT, and Cohere. The published model list does not include Claude.
 - CSV fields include `generation`, `prompt`, `model`, `domain`, `source_id`, `adv_source_id`, `attack`, and decoding settings. Use the labeled splits for attribution. The benchmark test split withholds labels.
-- Useful for measuring whether a phrase or grammatical construction persists across models, and whether it also occurs in human text from the same domain. Group related generations by source when dividing discovery and evaluation samples. Attack variants are dependent copies, not independent examples.
+- Useful for measuring whether a phrase or grammatical construction persists across models, and whether it also occurs in human text from the same domain. Group related generations by source when dividing discovery and evaluation samples. Count attack variants as dependent copies of their source.
 - The Hugging Face card declares MIT. Preserve source identifiers and check the underlying text terms before copying examples into the test corpus. The `code` domain does not establish coverage of prose documentation.
 
 ### M4 and its benchmark extensions
@@ -29,7 +29,7 @@ AI detection datasets are useful because they supply generated text alongside hu
 - Covers Wikipedia, Reddit, academic material, instructional writing, and multiple languages. Original generators include ChatGPT, Davinci, Cohere, Dolly, BLOOMZ, Flan-T5, and Llama. Treat each extension as a distinct release with its own model inventory.
 - Original JSONL records expose `prompt`, `human_text`, `machine_text`, `model`, `source`, and `source_ID`. This supports comparisons that retain the source and generation context.
 - Useful for checking whether a candidate is specific to generated prose or merely common in an academic or instructional register. Keep language, domain, and generator separate in results.
-- Follow the release's access and source terms. Availability can differ between the original collection and extensions. The [SemEval mirror](https://huggingface.co/datasets/d0rj/SemEval2024-task8) identifies itself as unofficial. Its packaging and license declaration do not replace upstream documentation.
+- Follow the release's access and source terms. Availability can differ between the original collection and extensions. The [SemEval mirror](https://huggingface.co/datasets/d0rj/SemEval2024-task8) identifies itself as unofficial. Consult upstream documentation for authoritative packaging and license information.
 
 ### MAGE
 
@@ -55,8 +55,8 @@ AI detection datasets are useful because they supply generated text alongside hu
 
 - Human essays, Reuters articles, and creative writing, with GPT-3.5 Turbo generations and a separate Claude evaluation collection. The paper describes documents of several hundred words and attempts to match generation length to human sources.
 - Useful for sentence rhythm, paragraph repetition, and comparing older Claude prose with human examples. The cited collection description names Claude without establishing a modern Claude model version.
-- Use the document text. Files named for Ada and Davinci under `logprobs` hold scoring output. Those names do not identify the generator of the document.
-- Prompts for some domains were reconstructed from human documents. This is not technical Markdown, and reconstructed prompts are a confound. Check the data release and original source terms because the paper's license alone does not license its source texts.
+- Use the document text. Files named for Ada and Davinci under `logprobs` hold scoring output. Determine the document's generator from its source metadata.
+- Prompts for some domains were reconstructed from human documents, which introduces a confound. The collection covers essays, news, and fiction. Check the data release and original source terms because the paper's license alone does not license its source texts.
 
 ### MULTITuDE and MULTITuDEv2
 
@@ -72,7 +72,7 @@ AI detection datasets are useful because they supply generated text alongside hu
 [Dataset and component inventory](https://huggingface.co/datasets/artem9k/ai-text-detection-pile).
 
 - Aggregates longer human and generated text from sources including WritingPrompts, WebText, HC3, and instruction datasets. Generator families include GPT-2, GPT-3, GPT-J, and ChatGPT.
-- Useful for broad example searches. The documented schema exposes text and a human/AI source label. It does not promise a generator identifier for every row. Use the original component dataset when attribution matters.
+- Useful for broad example searches. The documented schema exposes text and a human/AI source label. Generator identifiers may be absent. Use the original component dataset when attribution matters.
 - Deduplicate against HC3 and other components before combining corpora. Scraped responses and incomplete component documentation weaken attribution. The card declares MIT, with source terms requiring separate review for redistribution.
 
 ## Conversation and instruction collections
@@ -109,11 +109,11 @@ These sources can supply generated documentation, but require filtering and insp
 
 - Multiple model completions per instruction, with `model`, `response`, `principle`, and `custom_system_prompt` in each completion. The documented pool includes GPT, Bard, and several open model families, without Claude.
 - Useful for investigating how instructions change wording across models. The supplied system prompts deliberately vary behavior, so compare them alongside the model labels.
-- Ratings and written critiques come from GPT-4. They are not human style judgments. Check the selected release's license and the terms of its component prompt datasets.
+- Ratings and written critiques express GPT-4's judgments. Check the selected release's license and the terms of its component prompt datasets.
 
 ## Coding-agent trajectories
 
-These collections record work in software repositories. They can contain generated Markdown in tool calls or patches, but a trajectory is not itself a finished document. Confirm file types and prose lengths before claiming documentation coverage. Separate model messages from tool results that reproduce existing repository text.
+These collections record work in software repositories. Extract finished Markdown documents from their tool calls or patches. Confirm file types and prose lengths before claiming documentation coverage. Separate model messages from tool results that reproduce existing repository text.
 
 ### SWE-smith trajectories
 
@@ -149,7 +149,7 @@ The publisher identifies Qwen2.5 and Llama3 generation, with `model_name`, `traj
 
 [ThoughtWorks agentic coding trajectories](https://huggingface.co/datasets/thoughtworks/agentic-coding-trajectories) exposes `source_dataset`, `recorded_model`, and `messages_json`. Its Claude 3.7 material derives from SWE-smith, so it supplies another representation rather than independent evidence. Its `derivative-multi-source` terms require following the upstream licenses.
 
-The [SWE-bench Pro trajectory export](https://huggingface.co/datasets/tarsur385/swebench-pro-top5-trajectories) reports Claude 4 and 4.5 Sonnet among its model labels. This is a third-party export with no declared card license, and its publisher says tool commands were not retained. It can support message searches, but cannot establish the complete Markdown files written by the agent.
+The [SWE-bench Pro trajectory export](https://huggingface.co/datasets/tarsur385/swebench-pro-top5-trajectories) reports Claude 4 and 4.5 Sonnet among its model labels. This is a third-party export with no declared card license, and its publisher says tool commands were not retained. Use it for message searches. Reconstructing complete Markdown files requires another source with tool commands.
 
 ## Human and reference technical documentation
 
@@ -177,7 +177,7 @@ Protocol specifications and technical explanations provide examples of legitimat
 2. Select complete documents with enough prose for the metric. Count prose after code, tables, and quoted material are excluded. Keep the original Markdown for reproducing locations and masking failures.
 3. Match human and generated samples by subject, document purpose, and length. Report rates by domain and model, with denominators in prose words or sentences as appropriate.
 4. Deduplicate copied documents and group related prompts or source texts before creating a held-out evaluation set. Keep adversarial variants with their originals to avoid leakage.
-5. Read the matches. Save both the generated construction and legitimate human uses with their sources. A higher frequency in generated text is a reason to investigate, not sufficient grounds for a bite.
+5. Read the matches. Save both the generated construction and legitimate human uses with their sources. A higher frequency in generated text warrants investigation. Blocking a construction requires a supported rule or an explicit editorial policy.
 6. Measure false positives on technical documentation before choosing a severity or threshold. Follow the repository's rule examples and human corpus checks before shipping a change.
 
 Add sources here when their text, authorship evidence, and intended use can be described from primary documentation. Record uncertainty explicitly, and link to the release inventory for changing file lists or model coverage.

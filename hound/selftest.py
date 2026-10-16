@@ -6,8 +6,8 @@ Per rule:
 
 Corpus (`tests/corpus/`):
 - every file in `generated/` must produce at least one bite;
-- every file in `human/` must produce zero bites, and stays under a warning
-  density ceiling so grammar rules cannot drift into a word blacklist.
+- human files must match their explicitly reviewed bite expectations, and stay
+  under a warning density ceiling; unlisted files must produce zero bites.
 
 Extra checks: masking keeps offsets, output renders, and the repository's own
 Markdown passes.
@@ -16,6 +16,8 @@ Markdown passes.
 from __future__ import annotations
 
 import io
+import json
+from collections import Counter
 import sys
 import time
 import traceback
@@ -63,12 +65,15 @@ def check_rule(engine: Engine, rule: Rule) -> list[str]:
 
 def check_corpus(engine: Engine) -> list[str]:
     problems: list[str] = []
+    expected = json.loads((CORPUS / "human-findings.json").read_text(encoding="utf-8"))
     generated = sorted((CORPUS / "generated").glob("*.md"))
     human = sorted((CORPUS / "human").glob("*.md"))
     if not generated:
         problems.append("tests/corpus/generated has no files")
     if not human:
         problems.append("tests/corpus/human has no files")
+    for name in expected.keys() - {path.name for path in human}:
+        problems.append(f"human finding expectations refer to absent file {name}")
     for path in generated:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
         findings = engine.lint_deterministic(doc)
@@ -78,9 +83,12 @@ def check_corpus(engine: Engine) -> list[str]:
         doc = build_document(str(path), path.read_text(encoding="utf-8"))
         findings = engine.lint_deterministic(doc)
         bites = [f for f in findings if f.severity == BITE]
-        for f in bites:
-            line, col = doc.line_col(f.start)
-            problems.append(f"{path.relative_to(ROOT)}:{line}:{col}: human text hit {f.rule.id}: {doc.text[f.start:f.end]!r}")
+        actual = Counter((f.rule.id, doc.text[f.start:f.end]) for f in bites)
+        wanted = Counter((entry["rule"], entry["text"]) for entry in expected.get(path.name, []))
+        for (rule_id, text), count in (actual - wanted).items():
+            problems.append(f"{path.name}: {count} unexpected human finding(s) {rule_id}: {text!r}")
+        for (rule_id, text), count in (wanted - actual).items():
+            problems.append(f"{path.name}: {count} missing reviewed human finding(s) {rule_id}: {text!r}")
         # A rule with a required Jev check reports nothing until Jev answers, so
         # its raw candidates are not warnings a reader of this text would see.
         soft = [f for f in findings if f.severity != BITE and not (f.rule.jev_veto and f.rule.jev_veto.required)]

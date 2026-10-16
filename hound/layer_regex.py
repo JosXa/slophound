@@ -14,6 +14,7 @@ from .masking import Document
 from .model import Finding, Rule
 from .references import opening_reference_candidate
 from .sentences import containing_sentence, sentence_spans
+from .constructions import contrastive_negation
 
 _compiled: dict[str, re.Pattern] = {}
 
@@ -57,6 +58,9 @@ def run(doc: Document, rules: list[Rule], get_nlp=None) -> list[Finding]:
         return any(b.start <= offset < b.end for b in headings)
 
     for rule in rules:
+        if rule.construction:
+            findings.extend(Finding(rule, start, end) for start, end in contrastive_negation(doc))
+            continue
         text = doc.masked if rule.category == "punct" else doc.prose
         regex = _compile(rule.pattern)
         unless = _compile(rule.unless, re.I) if rule.unless else None
@@ -65,6 +69,12 @@ def run(doc: Document, rules: list[Rule], get_nlp=None) -> list[Finding]:
                 continue
             start, end = offset + m.start(), offset + m.end()
             if rule.opening_reference and not opening_reference_candidate(doc, start):
+                continue
+            # Wrapped prose belongs together; separate paragraphs and list items
+            # must not supply opposite halves of one sentence template.
+            if rule.category == "template" and not any(
+                block.start <= start and end <= block.end for block in doc.blocks
+            ):
                 continue
             if rule.sentence_start and start not in sentence_starts:
                 continue

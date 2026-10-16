@@ -11,7 +11,7 @@ A rule usually catches a construction a model produces where a person would have
 - Bare words are blacklists. `robust`, `never`, `sits`, `actually`, `framework` appear in human technical prose at the same rate as in generated prose. Gate a word with the company it keeps: `the shape of the problem`, `sits at the intersection of`, `buys us`. If the only pattern you can write is one word, you have a vocabulary preference and not a rule.
 - Register is not slop. Tests of passive voice, formal vocabulary (`commence`, `sufficient`), and long sentences flagged human and generated prose at the same rate. Those rules were deleted. If a candidate would flag good human writing as often as generated writing, drop it, or make it a required Jev check (see below) when a typed question separates the two. `verb.hidden-actor-passive` is the example: every passive is a candidate, and Jev keeps only passives that leave out a known actor.
 - One occurrence has to be wrong on its own for a phrase or template rule. If a construction is fine once but tiresome when repeated, it is a document statistic (`doc.*`), and the rule is a threshold on a metric in `hound/layer_doc.py`.
-- The example must come from somewhere. The best source is a sentence a model wrote, ideally one you or the user just caught. Upstream catalogs (unsloppify, unslop, antislop lists) are candidates to probe, never lists to paste: most of them are fiction register or bare words.
+- The example must come from somewhere. The best source is a sentence a model wrote, ideally one you or the user just caught. Probe candidates from upstream catalogs (unsloppify, unslop, antislop) individually: most belong to fiction registers or contain bare words.
 
 ## Which tier
 
@@ -25,7 +25,7 @@ Severity is a claim about confidence, so pick it by how the match is found.
 
 A phrase rule may be a bark when the family is broad and you cannot list every literal sense in `unless`. A verb rule is never a bite: `en_core_web_sm` mis-tags often enough (`lands` as a noun, `token` as a verb, `burns` as a noun) that a grammar finding must stay advisory. When two rules grade the same construction (`noun.cluster-four` and `noun.cluster-three`), the spaCy layer shadows the weaker finding within a category, so the stronger rule needs no exclusion for the weaker shape.
 
-Promote or demote a tier only after measuring noise (below), never from taste.
+Measure noise (below) before promoting or demoting a tier.
 
 ## Which layer
 
@@ -44,6 +44,13 @@ Cheapest layer that can separate the slop from the literal use:
 
    It prints `i text lemma pos tag dep head` per token from the same model the linter uses. Write the pattern against what the parser produces for your examples, then check each `acceptable` sentence parses differently. A pattern cannot say that a token lacks a child, so `anchor_without` drops a match whose first node has a subject, a by-agent, or another listed dependent. If the parser gets your best example wrong, fall back to a `phrase` rule for that surface form instead of fighting the parser.
 5. `doc` when only aggregate counts tell. Add the metric function to `hound/layer_doc.py` under the `@metric` decorator, document it in the `rules/doc.toml` header, then add the rule with `threshold` and `min_sentences` or `min_paragraphs` so short texts cannot trip it.
+
+For a surface template that varies across arbitrary content words, a deterministic
+token scanner may replace the regex. Declare `construction` in its TOML rule and
+implement matching in `hound/constructions.py`. Keep sentence and Markdown block
+boundaries, code masking, and source offsets. The scanner for
+`template.contrastive-negation` reports bites based on deterministic grammatical
+markers, with no statistical part-of-speech or dependency inference.
 
 ## Examples and acceptables
 
@@ -86,7 +93,14 @@ Run the candidate on real text with `--only <id> --no-footer` and read every hit
 printf 'One sentence to try.\n' | ./slophound --only phrase.new-rule --no-footer -
 ```
 
-Also run it on whatever human-written documents are at hand outside the repo (wiki exports, slide decks with `--disable-category doc`, older READMEs). The human corpus in `tests/corpus/human/` must stay at zero bites and under one bark per hundred words. `./slophound test` enforces that ceiling. If the candidate fires on human text, each hit becomes either an `acceptable` (and a tighter pattern) or evidence that the rule is a register preference and should go.
+Also run it on whatever human-written documents are at hand outside the repo (wiki exports, slide decks with `--disable-category doc`, older READMEs). The human corpus in `tests/corpus/human/` must stay at zero unexpected bites and under one bark per hundred words. `./slophound test` enforces that ceiling. Ordinarily, a human hit becomes an `acceptable` with a tighter pattern, or evidence that the rule is a register preference and should go.
+
+The explicit policy against corrective contrasts also applies to factual human
+writing. Preserve original corpus documents and record reviewed positive spans
+in `tests/corpus/human-findings.json`, with their rule IDs and exact text.
+Selftests require every recorded finding and reject additional findings.
+These expectations apply only to tests. Linting still reports every match.
+Measure and report external human matches as the cost of the editorial policy.
 
 The repo's own Markdown must pass with zero bites. When a new rule catches a sentence in `README.md` or `AGENTS.md`, fix the sentence, do not weaken the rule, unless the sentence is a false positive by the standard above.
 

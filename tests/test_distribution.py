@@ -119,6 +119,11 @@ class DistributionSmokeTest(unittest.TestCase):
         )
         self.assertIn("bite", regex_output)
         self.assertIn("phrase.load-bearing", regex_output)
+        contrast_output = self._uvx(
+            "--only", "template.contrastive-negation", "-", expected_returncode=1,
+            input_text="The timeout uses milliseconds, not seconds.\n",
+        )
+        self.assertIn("template.contrastive-negation", contrast_output)
         rule_locations = [
             Path(line.strip()) for line in regex_output.splitlines()
             if line.strip().replace("\\", "/").endswith("hound/rules/phrase.toml")
