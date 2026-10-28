@@ -106,6 +106,44 @@ acceptable = [
 ]
 
 [[rule]]
+id = "verb.pays-for"
+severity = "bark"
+message = "\"X pays for Y\" describes a runtime or design cost as a payment by a thing that cannot pay. Say what happens and what it costs (\"Each read opens a new connection, which adds two round trips\")."
+most_common_in = ["claude"]
+# Two alternative patterns: a software or process noun as the subject of
+# "pay" ("Each read pays for a new connection", "Every operation pays a
+# fresh probe"), or "pay" with a cost noun as its object ("pays the
+# overhead", "pays a round trip"). People, companies, and money nouns pay
+# literally, so the subject list leaves out ambiguous nouns such as client,
+# service, and user.
+dependency = [
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "pay", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { IN = ["read", "write", "request", "call", "query", "operation", "caller", "thread", "step", "change", "fix", "refactor", "rewrite", "design", "approach", "cache", "retry", "check", "layer", "abstraction", "lookup", "render", "frame", "build", "test", "startup", "path", "function", "method", "component", "connection", "reconnect", "update", "commit", "parse", "allocation", "pass", "iteration", "loop", "hop", "probe", "transaction", "job", "task", "worker", "handler", "module", "codepath", "wrapper", "indirection"] } } },
+  ],
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "pay", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["overhead", "latency", "penalty", "trip", "probe", "handshake", "reconnect", "allocation", "lookup", "syscall", "copy", "hop"] } } },
+  ],
+]
+example = [
+  "Each read after an idle period now pays for a new connection and registry round trips.",
+  "Every clipboard operation pays a fresh registry probe.",
+  "The retry pays for itself after two failures.",
+  "The extra check pays the overhead of a second query.",
+  "We pay a round trip on every cache miss.",
+]
+acceptable = [
+  "The company pays for lunch.",
+  "Insurance pays for the repair.",
+  "She pays the rent.",
+  "The customer pays for the license.",
+  "The client pays the invoice within thirty days.",
+  "The payment service pays out refunds every night.",
+  "Each read after an idle period opens a new connection, which adds two registry round trips.",
+]
+
+[[rule]]
 id = "verb.holds"
 severity = "bark"
 message = "\"that holds\" says that an argument is still valid but does not say what was tested. State the condition that was tested and what would make the argument fail."
