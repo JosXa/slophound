@@ -19,7 +19,7 @@ import httpx2
 from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
 
 from hound.cli import main
-from hound.config import ConfigError, config_path, read_jev_key, save_jev_key
+from hound.config import ConfigError, config_path, read_jev_base_url, read_jev_key, save_jev_key
 from hound.engine import Engine
 from hound.jev import JevClient, JevError
 from hound.loader import RuleError, _build_rule, load_rules
@@ -43,6 +43,7 @@ class IsolatedConfig(unittest.TestCase):
         self.enterContext(patch.dict(os.environ, {
             "TYPESAFE_API_KEY": "", "XDG_CONFIG_HOME": str(self.root),
             "APPDATA": str(self.root), "TYPESAFE_LOG_LEVEL": "",
+            "SLOPHOUND_JEV_BASE_URL": "",
         }))
         self.path = self.root / "slophound" / "config.toml"
 
@@ -119,6 +120,26 @@ class KeyStorage(IsolatedConfig):
             save_jev_key(KEY)
         self.assertEqual(original, self.path.read_text())
 
+    def test_base_url_defaults_and_overrides(self) -> None:
+        self.assertEqual("https://api.typesafe.ai", read_jev_base_url())
+        self.write_config('[jev]\nbase_url = "https://config.example/gateway/"\n')
+        self.assertEqual("https://config.example/gateway", read_jev_base_url())
+        with patch.dict(os.environ, {"SLOPHOUND_JEV_BASE_URL": " https://env.example "}):
+            self.assertEqual("https://env.example", read_jev_base_url())
+        with patch.dict(os.environ, {"TYPESAFE_BASE_URL": "https://sdk.example"}):
+            self.assertEqual("https://config.example/gateway", read_jev_base_url())
+
+    def test_bad_base_urls_are_rejected(self) -> None:
+        for value in ("http://plain.example", "api.example", "https://", "https://u:p@x.example",
+                      "https://x.example?q=1", "https://x.example#f", "https://[bad"):
+            with self.subTest(value=value), patch.dict(os.environ, {"SLOPHOUND_JEV_BASE_URL": value}):
+                with self.assertRaises(ConfigError) as error:
+                    read_jev_base_url()
+                self.assertNotIn("u:p", str(error.exception))
+        self.write_config("[jev]\nbase_url = 42\n")
+        with self.assertRaises(ConfigError):
+            read_jev_base_url()
+
     def test_failed_replace_keeps_old_key_and_removes_temp_file(self) -> None:
         save_jev_key("old-key")
         with patch("hound.config.os.replace", side_effect=OSError("secret error")):
@@ -166,6 +187,21 @@ class JevCalls(IsolatedConfig):
         self.assertEqual("jev-1.13.0", payload["model"])
         self.assertEqual("noul", payload["questions"]["cluster"]["type"])
         self.assertNotIn(KEY, repr(client))
+
+    def test_configured_base_url_receives_requests(self) -> None:
+        save_jev_key(KEY)
+        requests = []
+
+        def handle(request):
+            requests.append(request)
+            return httpx2.Response(200, json=RESPONSE)
+
+        self.transport(handle)
+        with patch.dict(os.environ, {"SLOPHOUND_JEV_BASE_URL": "https://gateway.example/typesafe/"}):
+            with JevClient() as client:
+                client.evaluate(state="text", questions=QUESTIONS)
+        self.assertEqual("https://gateway.example/typesafe/v1/systemone", str(requests[0].url))
+        self.assertEqual("Bearer " + KEY, requests[0].headers["Authorization"])
 
     def test_api_errors_are_sanitized_and_transient_failures_retried(self) -> None:
         save_jev_key(KEY)

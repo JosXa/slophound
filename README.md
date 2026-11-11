@@ -223,6 +223,8 @@ All harnesses use the same credential lookup:
 
 On macOS and Linux, the file is `$XDG_CONFIG_HOME/slophound/config.toml`, defaulting to `~/.config/slophound/config.toml`. On Windows, it is `%APPDATA%\slophound\config.toml`. The command stores the key as plaintext and creates the file with owner-only permissions on POSIX. It preserves other settings when replacing a key. Remove `jev.api_key` and unset `TYPESAFE_API_KEY` to disable access.
 
+Requests go to `https://api.typesafe.ai` by default. To send them to a gateway that serves the same System One API, set `SLOPHOUND_JEV_BASE_URL` or add `base_url` to the `[jev]` table. The environment wins over the file. Use an HTTPS URL, optionally with a path prefix, to which Slophound appends `/v1/systemone`. The SDK's own `TYPESAFE_BASE_URL` is ignored, so an unrelated override never receives your key.
+
 In normal linting without a key, Slophound runs the deterministic core with no Jev requests, results, warnings, or errors. This also applies when the stored key is blank. Credentials come from the environment and user config. A repository `.env` must be loaded by the caller.
 
 For each eligible finding, Slophound sends the matched text, the selected words, and the sentence or sentences containing them to TypeSafe. Requests contain at most six findings from the same paragraph or list item. Masked code and URLs stay masked, and context longer than 2,000 characters keeps its finding without a request. If credentials or a request fail, the document keeps its deterministic findings. Jev only removes findings, at whatever severity the rule carries. A bark it clears no longer fails `--strict`.

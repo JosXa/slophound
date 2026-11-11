@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
-from .config import read_jev_key
+from .config import read_jev_base_url, read_jev_key
 
 if TYPE_CHECKING:
     from typesafe_sdk import JSONContent, Question, SystemOneResponse, TypeSafeClient
@@ -26,6 +26,7 @@ class JevClient:
         self.model = model
         self.max_retries = max_retries
         self._key = read_jev_key()
+        self.base_url = read_jev_base_url() if self._key is not None else None
         self._client: TypeSafeClient | None = None
 
     @property
@@ -44,7 +45,7 @@ class JevClient:
                 self._client = TypeSafeClient(
                     api_key=self._key,
                     model=self.model,
-                    base_url="https://api.typesafe.ai",
+                    base_url=self.base_url,
                     timeout=5.0,
                     retry=RetryPolicy(max_retries=self.max_retries, timeout=10.0),
                 )

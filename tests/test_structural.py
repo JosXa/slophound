@@ -186,11 +186,12 @@ class StructuralTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.s.validate_response(raw)
 
-    def test_transport_uses_fixed_endpoint_timeout_and_blocks_redirects(self):
+    def test_transport_uses_default_endpoint_timeout_and_blocks_redirects(self):
         from unittest.mock import MagicMock
         transport = MagicMock()
         transport.open.return_value.__enter__.return_value.read.return_value = json.dumps(response()).encode()
-        with patch.object(self.s, "build_opener", return_value=transport) as build:
+        with patch.object(self.s, "build_opener", return_value=transport) as build, \
+                patch.object(self.s, "read_jev_base_url", return_value="https://api.typesafe.ai"):
             self.assertEqual(self.s.send_request(self.s.build_request("test"), "test-only", 7), response())
         req = transport.open.call_args.args[0]
         self.assertEqual(req.full_url, "https://api.typesafe.ai/v1/systemone")
@@ -199,6 +200,15 @@ class StructuralTests(unittest.TestCase):
         self.assertEqual(json.loads(req.data)["model"], "jev-1.13.0")
         self.assertIsNone(build.call_args.args[0].redirect_request(req, None, 302, "redirect", {}, "https://other.invalid"))
         transport.open.assert_called_once()
+
+    def test_transport_uses_configured_base_url(self):
+        from unittest.mock import MagicMock
+        transport = MagicMock()
+        transport.open.return_value.__enter__.return_value.read.return_value = json.dumps(response()).encode()
+        with patch.object(self.s, "build_opener", return_value=transport), \
+                patch.object(self.s, "read_jev_base_url", return_value="https://gateway.example/typesafe"):
+            self.s.send_request(self.s.build_request("test"), "test-only", 7)
+        self.assertEqual(transport.open.call_args.args[0].full_url, "https://gateway.example/typesafe/v1/systemone")
 
     def test_transport_rejects_oversize_response(self):
         from unittest.mock import MagicMock
