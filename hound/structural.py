@@ -11,10 +11,10 @@ import time
 from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from .config import read_jev_key
+from .config import read_jev_base_url, read_jev_key
 
 MODEL = "jev-1.13.0"
-ENDPOINT = "https://api.typesafe.ai/v1/systemone"
+SYSTEM_ONE_PATH = "/v1/systemone"
 MAX_CASES = 40
 MAX_TEXT_CHARS = 20000
 MAX_RESPONSE_BYTES = 1000000
@@ -139,7 +139,7 @@ class _NoRedirect(HTTPRedirectHandler):
 
 def send_request(request: dict, key: str, timeout: float) -> dict:
     """One HTTPS request, no redirects or retries; bounded socket operations."""
-    req = Request(ENDPOINT, data=json.dumps(request, allow_nan=False).encode("utf-8"),
+    req = Request(read_jev_base_url() + SYSTEM_ONE_PATH, data=json.dumps(request, allow_nan=False).encode("utf-8"),
                   headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"}, method="POST")
     with build_opener(_NoRedirect()).open(req, timeout=timeout) as response:
         body = response.read(MAX_RESPONSE_BYTES + 1)

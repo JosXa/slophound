@@ -39,20 +39,51 @@ def _validate_key(value: str) -> str:
     return key
 
 
-def read_jev_key() -> str | None:
-    """Environment first, then the user config; an absent or blank key is unset."""
-    environment = os.environ.get("TYPESAFE_API_KEY", "").strip()
-    if environment:
-        return _validate_key(environment)
+DEFAULT_JEV_BASE_URL = "https://api.typesafe.ai"
+
+
+def _jev_setting(name: str) -> str:
     try:
         config = tomllib.loads(_read_config())
     except tomllib.TOMLDecodeError:
         raise ConfigError("Invalid TOML in the slophound config file.") from None
     section = config.get("jev", {})
-    if not isinstance(section, dict) or not isinstance(section.get("api_key", ""), str):
-        raise ConfigError("The slophound config must store jev.api_key as a string in a [jev] table.")
-    value = section.get("api_key", "").strip()
+    if not isinstance(section, dict) or not isinstance(section.get(name, ""), str):
+        raise ConfigError(f"The slophound config must store jev.{name} as a string in a [jev] table.")
+    return section.get(name, "").strip()
+
+
+def read_jev_key() -> str | None:
+    """Environment first, then the user config; an absent or blank key is unset."""
+    environment = os.environ.get("TYPESAFE_API_KEY", "").strip()
+    if environment:
+        return _validate_key(environment)
+    value = _jev_setting("api_key")
     return _validate_key(value) if value else None
+
+
+def _validate_base_url(value: str) -> str:
+    from urllib.parse import urlsplit
+
+    try:
+        parts = urlsplit(value)
+        valid = parts.scheme == "https" and bool(parts.hostname)
+    except ValueError:
+        valid = False
+    if not valid or parts.username or parts.password or parts.query or parts.fragment:
+        raise ConfigError("The Jev base URL must be an https:// URL without credentials, query, or fragment.")
+    return value.rstrip("/")
+
+
+def read_jev_base_url() -> str:
+    """Environment first, then the user config; unset means the TypeSafe API.
+
+    SLOPHOUND_JEV_BASE_URL is deliberately separate from the SDK's own
+    TYPESAFE_BASE_URL, so an unrelated override never receives the key.
+    """
+    environment = os.environ.get("SLOPHOUND_JEV_BASE_URL", "").strip()
+    value = environment or _jev_setting("base_url")
+    return _validate_base_url(value) if value else DEFAULT_JEV_BASE_URL
 
 
 def save_jev_key(value: str) -> Path:
