@@ -9,7 +9,8 @@ import re
 # Normalised curly quotes share these delimiters; apostrophes inside words do not.
 _INLINE_QUOTES = re.compile(r'''"(?:\\[\s\S]|[^"\\])*"|(?<!\w)'(?:\\[\s\S]|[^'\\]|(?<=\w)'(?=\w)|(?<=s)'(?=[ \t]+[a-z]))*'(?!\w)''')
 from .reader_view import reader_view, visible_heading
-from .jev import DEFAULT_MODEL, JevClient
+from .decisions import open_decider
+from .jev import DEFAULT_MODEL
 from .model import Finding, Rule
 from .masking import Document, _blank_matches
 
@@ -104,14 +105,14 @@ BATCH_SIZE = 6
 MAX_REQUESTS = 40
 
 
-def reference_request(row: ReferenceParagraph, rule: Rule, indexes: list[int]) -> dict:
+def reference_request(row: ReferenceParagraph, rule: Rule, indexes: list[int], model: str = DEFAULT_MODEL) -> dict:
     """Inspect one SDK-native batch without credentials or network IO."""
     check = rule.reference_check
     if check is None or row.status != 'pending' or not 1 <= len(indexes) <= BATCH_SIZE:
         raise ValueError('a pending reference paragraph, reference rule, and 1 to 6 indexes are required')
     selected = [row.candidates[i] for i in indexes]
     return {
-        'model': DEFAULT_MODEL,
+        'model': model,
         'state': {'paragraph': row.paragraph, 'preceding_context': row.preceding_context,
                   'heading': row.heading, 'context_truncated': row.context_truncated,
                   'references': [{'text': c.text, 'start': c.start - row.start,
@@ -150,7 +151,7 @@ def _answer_status(answer, floor: float) -> str:
 def evaluate_reference_paragraphs(rows: list[ReferenceParagraph], rule: Rule, client) -> tuple[list[Finding], list[dict]]:
     """Decide only local candidates. At most 40 calls, six references per call.
 
-    Caller supplies a JevClient (use max_retries=0). Failures abstain, never
+    Caller supplies a decider from open_decider (use max_retries=0). Failures abstain, never
     retain an unreviewed candidate or rewrite its span. Outcome rows distinguish
     actual clear answers from skips, missing answers and failed requests.
     """
@@ -174,13 +175,13 @@ def evaluate_reference_paragraphs(rows: list[ReferenceParagraph], rule: Rule, cl
             elif requests >= MAX_REQUESTS:
                 status = 'request_budget'
             else:
-                request = reference_request(row, rule, indexes)
+                request = reference_request(row, rule, indexes, client.model)
                 requests += 1
                 try:
                     result = client.evaluate(state=request['state'], questions=request['questions'])
                     if result is None:
                         status = 'missing_response'
-                    elif result.model != DEFAULT_MODEL:
+                    elif result.model != client.model:
                         status = 'model_mismatch'
                         failed = True
                 except Exception:
@@ -209,7 +210,7 @@ def run(doc: Document, rule: Rule, nlp) -> tuple[list[Finding], list[dict]]:
     if not any(row.candidates for row in rows):
         return evaluate_reference_paragraphs(rows, rule, None)
     try:
-        with JevClient(max_retries=0) as client:
+        with open_decider(max_retries=0) as client:
             return evaluate_reference_paragraphs(rows, rule, client)
     except Exception:
         return [], [{'paragraph_start': row.start, 'status': 'credential_lookup_failed'}

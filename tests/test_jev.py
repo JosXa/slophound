@@ -19,7 +19,8 @@ import httpx2
 from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
 
 from hound.cli import main
-from hound.config import ConfigError, config_path, read_jev_key, save_jev_key
+from hound.config import ConfigError, config_path, read_decisions_config, read_jev_key, save_jev_key
+from hound.decisions import open_decider
 from hound.engine import Engine
 from hound.jev import JevClient, JevError
 from hound.loader import RuleError, _build_rule, load_rules
@@ -367,14 +368,15 @@ class AutomaticTermChecks(IsolatedConfig):
         self.assertEqual(ids, [key for r in requests for key in r["questions"]])
         self.assertIn("`items[0]`", requests[1]["questions"][ids[6]]["instructions"])
 
-    def test_only_sentence_context_and_unmasked_prose_are_sent(self) -> None:
+    def test_only_sentence_context_with_inline_code_is_sent(self) -> None:
         text = "Previous sentence. Check the **database**\nconnection pool with `secret-code`. Next sentence.\n"
         save_jev_key(KEY)
         requests = self.responses()
         self.assertEqual([], self.engine.lint(build_document("private-path.md", text)))
         payload = json.dumps(requests)
-        for excluded in ("Previous sentence", "Next sentence", "secret-code", "private-path.md"):
+        for excluded in ("Previous sentence", "Next sentence", "private-path.md"):
             self.assertNotIn(excluded, payload)
+        self.assertIn("`secret-code`", requests[0]["state"]["items"][0]["sentence"])
         self.assertEqual(["database", "connection", "pool"], requests[0]["state"]["items"][0]["tokens"])
 
     def test_discontinuous_match_keeps_intervening_words_in_context(self) -> None:
@@ -516,6 +518,61 @@ class RequiredChecks(IsolatedConfig):
         from hound.selftest import check_corpus
 
         self.assertEqual([], check_corpus(self.engine))
+
+
+class DecisionsEndpoint(IsolatedConfig):
+    CONFIG = '[decisions]\nbase_url = "https://proxy.test/v1/"\nmodel = "Microsoft-Decision-1"\napi_key_env = "PROXY_KEY"\n'
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.enterContext(patch.dict(os.environ, {"PROXY_KEY": KEY}))
+        self.write_config(self.CONFIG)
+
+    def serve(self, answers):
+        requests = []
+
+        def urlopen(request, timeout):
+            body = json.loads(request.data)
+            requests.append((request, body))
+            reply = {"model": body["model"], "answers": answers(body["questions"])}
+            return io.BytesIO(json.dumps(reply).encode())
+
+        self.enterContext(patch("hound.decisions.urllib.request.urlopen", side_effect=urlopen))
+        return requests
+
+    def test_configured_endpoint_replaces_jev_for_vetoes(self) -> None:
+        text = "Check the **database**\nconnection pool with `secret-code`.\n"
+        requests = self.serve(lambda questions: [
+            {"type": "predicate", "name": q["name"], "probability": 0.95} for q in questions])
+        with patch("typesafe_sdk.TypeSafeClient", side_effect=AssertionError("Jev must not be called")):
+            self.assertEqual([], Engine(load_rules()).lint(build_document("draft.md", text)))
+        request, body = requests[0]
+        self.assertEqual("https://proxy.test/v1/decisions", request.full_url)
+        self.assertEqual(f"Bearer {KEY}", request.get_header("Authorization"))
+        self.assertEqual("Microsoft-Decision-1", body["model"])
+        self.assertIn("`secret-code`", body["input"])
+        question = body["questions"][0]
+        self.assertEqual("predicate", question["type"])
+        self.assertIn("Answer true when:", question["instructions"])
+
+    def test_choice_answers_keep_the_jev_shape(self) -> None:
+        self.serve(lambda questions: [{
+            "type": "choice", "name": "reference_0", "choice": "unclear", "confidence": 0.9,
+            "probabilities": [{"value": "clear", "probability": 0.05}, {"value": "unclear", "probability": 0.9},
+                              {"value": "uncertain", "probability": 0.05}]}])
+        with open_decider() as client:
+            result = client.evaluate(state={"paragraph": "This works."}, questions={"reference_0": {
+                "type": "choice", "instructions": "Is the reference clear?",
+                "criteria": {"clear": "c", "unclear": "u", "uncertain": "?"}}})
+        self.assertEqual("Microsoft-Decision-1", result.model)
+        answer = result.choices["reference_0"]
+        self.assertEqual(("unclear", 0.9), (answer.choice, answer.confidence))
+        self.assertEqual({"clear": 0.05, "unclear": 0.9, "uncertain": 0.05}, answer.probabilities)
+
+    def test_invalid_table_is_a_config_error(self) -> None:
+        self.write_config('[decisions]\nmodel = "Microsoft-Decision-1"\n')
+        with self.assertRaises(ConfigError):
+            read_decisions_config()
 
 
 class PipedInput(IsolatedConfig):

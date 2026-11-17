@@ -121,6 +121,13 @@ class Document:
     parse: str
     code_spans: dict[int, int]
 
+    def prose_with_code(self, start: int, end: int) -> str:
+        text = self.prose[start:end]
+        for code_start, code_end in sorted(self.code_spans.items(), reverse=True):
+            if start <= code_start and code_end <= end:
+                text = text[:code_start - start] + self.text[code_start:code_end] + text[code_end - start:]
+        return text
+
     def line_col(self, offset: int) -> tuple[int, int]:
         """1-based line and column for an offset."""
         import bisect

@@ -6,6 +6,7 @@ import os
 import sys
 import tempfile
 import tomllib
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -39,15 +40,49 @@ def _validate_key(value: str) -> str:
     return key
 
 
+def _load_config() -> dict:
+    try:
+        return tomllib.loads(_read_config())
+    except tomllib.TOMLDecodeError:
+        raise ConfigError("Invalid TOML in the slophound config file.") from None
+
+
+@dataclass(frozen=True)
+class DecisionsConfig:
+    base_url: str
+    model: str
+    api_key: str | None
+    timeout: float
+
+
+def read_decisions_config() -> DecisionsConfig | None:
+    section = _load_config().get("decisions")
+    if section is None:
+        return None
+    if not isinstance(section, dict):
+        raise ConfigError("The slophound config must define decisions as a [decisions] table.")
+    base_url, model = section.get("base_url"), section.get("model")
+    if not isinstance(base_url, str) or not base_url.startswith(("http://", "https://")):
+        raise ConfigError("decisions.base_url must be an http or https URL, such as https://host/v1.")
+    if not isinstance(model, str) or not model.strip():
+        raise ConfigError("decisions.model must name the decision model.")
+    api_key_env = section.get("api_key_env", "")
+    api_key = section.get("api_key", "")
+    if not isinstance(api_key_env, str) or not isinstance(api_key, str):
+        raise ConfigError("decisions.api_key and decisions.api_key_env must be strings.")
+    key = (os.environ.get(api_key_env, "") if api_key_env else api_key).strip()
+    timeout = section.get("timeout", 10.0)
+    if type(timeout) not in (int, float) or timeout <= 0:
+        raise ConfigError("decisions.timeout must be a positive number of seconds.")
+    return DecisionsConfig(base_url, model.strip(), _validate_key(key) if key else None, float(timeout))
+
+
 def read_jev_key() -> str | None:
     """Environment first, then the user config; an absent or blank key is unset."""
     environment = os.environ.get("TYPESAFE_API_KEY", "").strip()
     if environment:
         return _validate_key(environment)
-    try:
-        config = tomllib.loads(_read_config())
-    except tomllib.TOMLDecodeError:
-        raise ConfigError("Invalid TOML in the slophound config file.") from None
+    config = _load_config()
     section = config.get("jev", {})
     if not isinstance(section, dict) or not isinstance(section.get("api_key", ""), str):
         raise ConfigError("The slophound config must store jev.api_key as a string in a [jev] table.")

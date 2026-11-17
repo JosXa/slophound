@@ -206,6 +206,7 @@ class ReferenceJudgments(ReferenceCandidates):
                 return SimpleNamespace(model=model, choices=answers)
         client = Client()
         client.enabled = enabled
+        client.model = 'jev-1.13.0'
         evaluate = getattr(references, 'evaluate_reference_paragraphs', None)
         self.assertIsNotNone(evaluate, 'paragraph reference judgment is missing')
         findings, outcomes = evaluate(rows, self.rule(), client)
@@ -317,7 +318,7 @@ class ReferenceIntegration(unittest.TestCase):
     def test_long_paragraph_skips_credential_lookup(self):
         rule = next(r for r in load_rules() if r.id == 'noun.unclear-reference')
         doc = build_document('probe', 'This works. ' + 'x' * 288)
-        with patch('hound.reference_check.JevClient') as factory:
+        with patch('hound.reference_check.open_decider') as factory:
             findings, outcomes = references.run(doc, rule, load_model('en'))
             factory.assert_not_called()
         self.assertEqual(findings, [])
@@ -339,7 +340,7 @@ class ReferenceIntegration(unittest.TestCase):
         from contextlib import redirect_stdout, redirect_stderr
         from hound.cli import main
         stdout, stderr = io.StringIO(), io.StringIO()
-        with patch('hound.reference_check.JevClient') as factory, patch('sys.stdin', io.StringIO('The otter swims.')):
+        with patch('hound.reference_check.open_decider') as factory, patch('sys.stdin', io.StringIO('The otter swims.')):
             factory.return_value.__enter__.return_value.enabled = False
             with redirect_stdout(stdout), redirect_stderr(stderr):
                 main(['--check-references', '--only', 'noun.unclear-reference', '-'])
@@ -356,9 +357,10 @@ class ReferenceIntegration(unittest.TestCase):
         self.assertTrue(build_parser().parse_args(['--check-references', '-']).check_references)
         engine = Engine(load_rules(), check_references=True)
         doc = build_document('probe', '# Request latency metrics\n\nRecord request durations in the histogram. The monitoring system computes p95.')
-        with patch('hound.reference_check.JevClient') as factory:
+        with patch('hound.reference_check.open_decider') as factory:
             client = factory.return_value.__enter__.return_value
             client.enabled = True
+            client.model = 'jev-1.13.0'
             client.evaluate.return_value = SimpleNamespace(model='jev-1.13.0', choices={
                 'reference_0': ReferenceJudgments.answer('clear'),
                 'reference_1': ReferenceJudgments.answer('unclear')})

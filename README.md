@@ -225,7 +225,20 @@ On macOS and Linux, the file is `$XDG_CONFIG_HOME/slophound/config.toml`, defaul
 
 In normal linting without a key, Slophound runs the deterministic core with no Jev requests, results, warnings, or errors. This also applies when the stored key is blank. Credentials come from the environment and user config. A repository `.env` must be loaded by the caller.
 
-For each eligible finding, Slophound sends the matched text, the selected words, and the sentence or sentences containing them to TypeSafe. Requests contain at most six findings from the same paragraph or list item. Masked code and URLs stay masked, and context longer than 2,000 characters keeps its finding without a request. If credentials or a request fail, the document keeps its deterministic findings. Jev only removes findings, at whatever severity the rule carries. A bark it clears no longer fails `--strict`.
+### Other decision models
+
+Any endpoint that serves the OpenAI-compatible `/decisions` API can take Jev's place, such as a LiteLLM proxy with Microsoft-Decision-1. Add a `[decisions]` table to the same config file:
+
+```toml
+[decisions]
+base_url = "https://litellm.example.com/v1"
+model = "microsoft-decision-1"
+api_key_env = "LITELLM_API_KEY"
+```
+
+Slophound posts to `{base_url}/decisions`. Use `api_key` to store the key in the file, or `api_key_env` to name the environment variable that holds it. Omit both for an endpoint without authentication. `timeout` sets the seconds per request (default 10). While the table exists, every Jev check and `--check-references` use this model and the Jev key is ignored. The rule thresholds were calibrated with Jev, so another model can keep or clear a few borderline findings differently.
+
+For each eligible finding, Slophound sends the matched text, the selected words, and the sentence or sentences containing them to TypeSafe. Requests contain at most six findings from the same paragraph or list item. Inline code is sent as written. Code blocks and URLs stay masked, and context longer than 2,000 characters keeps its finding without a request. If credentials or a request fail, the document keeps its deterministic findings. Jev only removes findings, at whatever severity the rule carries. A bark it clears no longer fails `--strict`.
 
 ### Review references in short paragraphs
 

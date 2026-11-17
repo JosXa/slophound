@@ -37,7 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Severities: bite (fixed phrase or template, must reach zero), bark (grammar-inferred), "
             "sniff (document rhythm). Exit codes: 0 no bites, 1 bites found, 2 tool failure."
-            " Use 'auth set-key' to let Jev review ambiguous findings automatically."
+            " Use 'auth set-key' to let Jev review ambiguous findings automatically, or add a [decisions] table to the config to use another /decisions model."
         ),
     )
     p.add_argument("paths", nargs="*", help="Markdown or text files; '-' or piped input with no files reads stdin. 'test' runs the self-tests.")
@@ -57,7 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="print error/warning/suggestion instead of bite/bark/sniff (also SLOPHOUND_FORMAL=1); for CI",
     )
     p.add_argument("--lang", default="en", metavar="XX", help="language code for the grammar layer (default en)")
-    p.add_argument('--check-references', action='store_true', help='ask Jev about references in prose paragraphs shorter than 300 characters (external service; opt-in)')
+    p.add_argument('--check-references', action='store_true', help='ask Jev or the configured decision model about references in prose paragraphs shorter than 300 characters (external service; opt-in)')
     p.add_argument("--skip-quotes", action="store_true", help="do not lint Markdown blockquotes")
     p.add_argument(
         "--no-emoji",

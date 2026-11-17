@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 from .config import ConfigError
-from .jev import JevClient, JevError
+from .decisions import open_decider
+from .jev import JevError
 from .masking import Document
 from .model import Finding
 from .sentences import containing_sentence, split_block
@@ -28,7 +29,7 @@ def run(doc: Document, findings: list[Finding]) -> list[Finding]:
     vetoed: set[int] = set()
     answered: set[int] = set()
     try:
-        with JevClient() as client:
+        with open_decider() as client:
             if not client.enabled:
                 return _settle(findings, vetoed, answered)
             for batch in _batches(doc, findings):
@@ -96,9 +97,9 @@ def _batches(doc: Document, findings: list[Finding]) -> Iterator[list[tuple[int,
             yield batch
             batch = []
         item = {
-            "sentence": doc.prose[first[0]:last[1]],
-            "matched_text": doc.prose[finding.start:finding.end],
-            "tokens": [doc.prose[s:e] for s, e in sorted(set(finding.marked_spans())) if doc.prose[s:e].strip()],
+            "sentence": doc.prose_with_code(first[0], last[1]),
+            "matched_text": doc.prose_with_code(finding.start, finding.end),
+            "tokens": [doc.prose_with_code(s, e) for s, e in sorted(set(finding.marked_spans()))],
         }
         batch.append((index, item))
         previous_block = block.start
