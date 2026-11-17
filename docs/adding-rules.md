@@ -9,8 +9,8 @@ Contract: a rule ships only when `./slophound test` is green, the repo's own doc
 A rule usually catches a construction a model produces where a person would have written something plainer. Use origin, source, or history instead of `provenance`, as appropriate. Existing code and quotation masking still applies.
 
 - Bare words are blacklists. `robust`, `never`, `sits`, `actually`, `framework` appear in human technical prose at the same rate as in generated prose. Gate a word with the company it keeps: `the shape of the problem`, `sits at the intersection of`, `buys us`. If the only pattern you can write is one word, you have a vocabulary preference and not a rule.
-- Register is not slop. Tests of passive voice, formal vocabulary (`commence`, `sufficient`), and long sentences flagged human and generated prose at the same rate. Those rules were deleted. If a candidate would flag good human writing as often as generated writing, drop it, or make it a required Jev check (see below) when a typed question separates the two. `verb.hidden-actor-passive` is the example: every passive is a candidate, and Jev keeps only passives that leave out a known actor.
-- One occurrence has to be wrong on its own for a phrase or template rule. If a construction is fine once but tiresome when repeated, it is a document statistic (`doc.*`), and the rule is a threshold on a metric in `hound/layer_doc.py`.
+- Register is not slop. Tests of passive voice, formal vocabulary (`commence`, `sufficient`), and long sentences flagged human and generated prose at the same rate. Those rules were deleted. If a candidate would flag good human writing as often as generated writing, drop it, or make it a required Jev check (see below) when a typed question separates the two. `verb.hidden-actor-passive` is the example: every passive is a candidate, but Jev keeps only passives that leave out a known actor.
+- One occurrence has to be wrong on its own for a phrase or template rule. If a construction is fine once but tiresome when repeated, it is a document statistic (`doc.*`), so the rule is a threshold on a metric in `hound/layer_doc.py`.
 - The example must come from somewhere. The best source is a sentence a model wrote, ideally one you or the user just caught. Probe candidates from upstream catalogs (unsloppify, unslop, antislop) individually: most belong to fiction registers or contain bare words.
 
 ## Which tier
@@ -110,8 +110,8 @@ The repo's own Markdown must pass with zero bites. When a new rule catches a sen
 - A trailing `\b` after an alternation whose last branch ends in punctuation (`:`, `!`, `?`, `\.`, `,`) never matches. Close such groups with `(?!\w)` instead.
 - Generating TOML through a shell heredoc or a Python string doubles backslashes silently. Read the file back after writing it.
 - The prose view blanks Markdown syntax: `#`, `**`, `*`, `_`, list bullets, `>` are spaces. A phrase or template pattern must not expect them. Only `punct` rules see the original glyphs on the masked view. Headings run phrase rules only, so a template that needs a heading has to be a phrase rule with `headings = true`. Add `heading_only = true` when the shape is ordinary in a sentence and only odd as a heading.
-- Inline code, fenced code, URLs, link targets, tables, HTML comments, and text inside double quotes are masked. Quoting a bad phrase in backticks or quotes is how the repo's own documents talk about slop without tripping the linter, so use that in messages and docs.
-- The engine drops a weaker finding fully contained in a stronger one. When two rules should both fire on overlapping text, verify each with `--only`, because the combined report may show only one.
+- Inline code, fenced code, URLs, link targets, tables, HTML comments, and text inside double quotes are masked. Quoting a bad phrase in backticks or quotes is how the repo's own documents talk about slop without tripping the linter, so use that in messages and docs. The parser reads each inline code span as a proper name, so `AGENTS.md` can be the subject of a clause. A grammar finding that includes the name marks the whole code span.
+- The engine drops a weaker finding when a stronger one marks all of its words. When two rules should both fire on overlapping text, verify each with `--only`, because the combined report may show only one.
 
 ## Ship it
 

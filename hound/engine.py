@@ -72,8 +72,16 @@ def _dedupe(findings: list[Finding]) -> list[Finding]:
             and f.end <= k.end
             and (k.start, k.end) != (f.start, f.end)
             and order[k.severity] <= order[f.severity]
+            and _marks_cover(k, f)
             for k in kept
         )
         if not shadowed:
             kept.append(f)
     return kept
+
+
+def _marks_cover(outer: Finding, inner: Finding) -> bool:
+    return all(
+        any(o_start <= i_start and i_end <= o_end for o_start, o_end in outer.marked_spans())
+        for i_start, i_end in inner.marked_spans()
+    )

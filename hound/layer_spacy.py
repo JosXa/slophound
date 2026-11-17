@@ -83,7 +83,7 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
 
     findings: list[Finding] = []
     blocks = doc.blocks_of("paragraph", "list", "quote", "field")
-    texts = [doc.prose[b.start : b.end] for b in blocks]
+    texts = [doc.parse[b.start : b.end] for b in blocks]
     spans = sentence_spans(doc)
     import re
 
@@ -98,8 +98,9 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
                 for c in tokens[0].children
             ):
                 continue
-            start = block.start + min(t.idx for t in tokens)
-            end = block.start + max(t.idx + len(t.text) for t in tokens)
+            marks = sorted(_token_span(doc, block.start + t.idx, len(t.text)) for t in tokens)
+            start = marks[0][0]
+            end = max(mark_end for _, mark_end in marks)
             if rule.opening_reference and not opening_reference_candidate(doc, start):
                 continue
             if rule.match_unless and re.search(rule.match_unless, doc.prose[start:end], re.I):
@@ -118,6 +119,8 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
             # The parser tags a separator such as "|" as a noun ("high | medium | low").
             if rule.category == "noun" and any(not any(c.isalpha() for c in t.text) for t in tokens):
                 continue
+            if rule.category == "noun" and any(block.start + t.idx in doc.code_spans for t in tokens):
+                continue
             # Include intervening tokens: a smaller matcher pattern can omit
             # the mis-tagged verb while still joining nouns on either side.
             if rule.category == "noun" and any(
@@ -128,16 +131,19 @@ def run(doc: Document, rules: list[Rule], nlp) -> list[Finding]:
                 # Surrounding lists can make the small model read a participle
                 # and its object as compound nouns. If the isolated span has
                 # that verbal reading, the noun-cluster finding is uncertain.
-                isolated = nlp(doc.prose[start:end])
+                isolated = nlp(doc.parse[start:end])
                 if any(
                     t.pos_ == "VERB" and t.tag_ == "VBG"
                     and any(child.dep_ == "dobj" for child in t.children)
                     for t in isolated
                 ):
                     continue
-            marks = sorted((block.start + t.idx, block.start + t.idx + len(t.text)) for t in tokens)
             findings.append(Finding(rule, start, end, marks=marks))
     return _shadow_weaker(_merge_overlaps(findings))
+
+
+def _token_span(doc: Document, start: int, length: int) -> tuple[int, int]:
+    return start, doc.code_spans.get(start, start + length)
 
 
 def _cannot_be_noun(word: str) -> bool:

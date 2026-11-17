@@ -410,10 +410,15 @@ acceptable = [
 # Library subjects also cover software layers without flagging physical layers
 # on substrates. In "layer two", spaCy makes "two" the object and "layer" its
 # compound, so numbered layers need a separate pattern.
+# Writing and change artifacts (config, file, section, commit, branch, PR) never
+# carry anything literally, so with those subjects any object fires: "the
+# config now carries the line", "this branch carries the fix". Phrasal "carry
+# out" and "carry over" are ordinary verbs and stay silent.
 [[rule]]
 id = "verb.carries"
 severity = "bark"
-message = "The verb \"carry\" is used for content or abstract meaning (\"two dropdowns carry the decision\", \"each card carries the dropdowns\", \"this carries weight\"). Say what the thing records or shows, or what people do: \"the dropdowns record the decision\", \"the card shows the dropdowns\", \"reviewers take this seriously\". For libraries that \"carry\" a software layer, say which libraries the layer uses."
+message = "The verb \"carry\" is used for content or abstract meaning (\"two dropdowns carry the decision\", \"the config carries the line\", \"this carries weight\"). Say what the thing contains, records, or shows, or what people do: \"the dropdowns record the decision\", \"the config contains the line\", \"the branch has the fix\", \"reviewers take this seriously\". For libraries that \"carry\" a software layer, say which libraries the layer uses."
+anchor_without = ["prt"]
 most_common_in = ["claude"]
 dependency = [
   [
@@ -423,8 +428,13 @@ dependency = [
   ],
   [
     { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
-    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { REGEX = "(?i)^(card|document|field|file|form|page|profile|record|row|rule|template)$" } } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { REGEX = "(?i)^(card|field|form|profile|record|row|rule)$" } } },
     { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj", LEMMA = { IN = ["comment", "dropdown", "strength", "role"] } } },
+  ],
+  [
+    { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "subj", RIGHT_ATTRS = { DEP = "nsubj", LEMMA = { REGEX = "(?i)^(branch|changelog|changeset|chapter|commit|config|configuration|description|diff|doc|document|draft|file|instruction|mr|note|page|paragraph|patch|plan|pr|prompt|proposal|readme|release|report|section|skill|spec|specification|summary|template|ticket|version)$" } } },
+    { LEFT_ID = "verb", REL_OP = ">", RIGHT_ID = "obj", RIGHT_ATTRS = { DEP = "dobj" } },
   ],
   [
     { RIGHT_ID = "verb", RIGHT_ATTRS = { LEMMA = "carry", POS = "VERB" } },
@@ -454,8 +464,15 @@ example = [
   "Established NLP libraries carry layer two.",
   "The libraries carry the parsing layer.",
   "Each file carries enough comments at the top that an agent can add or repair a rule without reading any other documentation.",
+  "The config now carries the line.",
+  "This branch carries the fix for the login loop.",
+  "The PR carries two unrelated refactors.",
 ]
 acceptable = [
+  "The config now contains the line.",
+  "The team carried out the decision.",
+  "The new release carries over the old settings.",
+  "The power line carries 400 kilovolts.",
   "She carried the box upstairs.",
   "The truck carries forty tons.",
   "The cable carries ten gigabits per second.",
@@ -598,6 +615,61 @@ acceptable = [
   "The humorous story is American, the comic story is English.",
   "The DOM also gets slower, the more nodes are in it.",
 ]
+
+# Syndetic parataxis with ", and": two independent clauses, each with its own
+# subject, joined by the additive conjunction. "And" asserts only that both
+# clauses are true, so a cause, consequence, precondition, or contrast between
+# them stays implicit. Claude writes this shape in most sentences of a plan or
+# PR description ("Reviewer's database gets no sessions table, and the owner
+# lookup is removed or changed"). Human prose uses it as often for parallel
+# facts ("It is cold, and it is raining"), so the parse alone measures register
+# and Jev must confirm each finding. match_unless drops an explicit connective
+# after the "and" ("and then", "and so", "and if") and spans that cross a
+# semicolon, where the "and" belongs to an earlier clause (Twain's "may wander
+# around, and arrive nowhere; but the comic stories must be brief").
+# Calibration (jev-1.13.0): parallel facts and clause triads in the repo docs
+# and Claude plan sentences scored 0.76 to 0.87; hidden consequences, orders
+# and contrasts scored 0.14 to 0.64. The human corpus scored 0.20 to 0.51, and
+# those clauses hide a consequence too ("the bottom bolt is behind the hose,
+# and you cannot get a normal socket on it").
+[[rule]]
+id = "verb.and-splice"
+severity = "bark"
+message = "\", and\" joins two complete clauses but does not say how they relate (\"Reviewer's database gets no sessions table, and the owner lookup is removed\"). Name the relation with a plain word: \"so\" for a consequence, \"because\" for a reason, \"once\" or \"after\" for an order, \"if\" for a condition, \"but\" or \"while\" for a contrast. Keep the register of the text: do not swap in \"consequently\", \"hence\", \"moreover\", or a trailing \"-ing\" phrase. For example, write \"Reviewer's database gets no sessions table, so the owner lookup has to go or read Reviewer's own tables.\" If the clauses are separate steps or decisions, write two sentences or a list."
+most_common_in = ["claude"]
+dependency = [
+  [
+    { RIGHT_ID = "first", RIGHT_ATTRS = { POS = { IN = ["VERB", "AUX"] } } },
+    { LEFT_ID = "first", REL_OP = ">", RIGHT_ID = "subj1", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass", "expl"] } } },
+    { LEFT_ID = "first", REL_OP = ">", RIGHT_ID = "comma", RIGHT_ATTRS = { DEP = "punct", ORTH = "," } },
+    { LEFT_ID = "comma", REL_OP = "$+", RIGHT_ID = "and", RIGHT_ATTRS = { DEP = "cc", LOWER = "and" } },
+    { LEFT_ID = "and", REL_OP = "$++", RIGHT_ID = "second", RIGHT_ATTRS = { DEP = "conj", POS = { IN = ["VERB", "AUX"] } } },
+    { LEFT_ID = "second", REL_OP = ">", RIGHT_ID = "subj2", RIGHT_ATTRS = { DEP = { IN = ["nsubj", "nsubjpass", "expl"] } } },
+  ],
+]
+match_unless = '\band,?\s+(then|so|thus|therefore|hence|yet|if|when|whenever|once|unless|after|before|while|because|since|as soon as)\b|;'
+example = [
+  "For the split, Reviewer's database gets no sessions table, and the owner lookup in the realtime module is removed or changed to read Reviewer's own tables.",
+  "The config now carries the line, and `AGENTS.md` is regenerated.",
+  "The cache is warmed on first read, and the p95 drops by half.",
+  "The migration runs before deploy, and the old column is dropped a week later.",
+]
+acceptable = [
+  "For the split, Reviewer's database gets no sessions table, so the owner lookup in the realtime module has to go or read Reviewer's own tables.",
+  "The cache is warmed on first read, and then the p95 drops by half.",
+  "Drop the cache and restart the server.",
+  "We tested it, found the bug, and fixed it.",
+  "The worker restarts and drains the queue.",
+  "Once the cache is warm, the p95 drops by half.",
+  "The humorous story may be spun out to great length, and may wander around as much as it pleases, and arrive nowhere in particular; but the comic and witty stories must be brief and end with a point.",
+]
+
+[rule.jev_veto]
+instructions = "`matched_text` joins two complete clauses with \", and\". Is \"and\" the right connective here, because the clauses are parallel facts with no further relation between them?"
+threshold = 0.7
+required = true
+criteria.true = "Keep \"and\". The two clauses state parallel facts or events of equal weight, and neither is the cause, consequence, condition, precondition, or contrast of the other (\"It is cold, and it is raining\"; \"October was 14.9 million, and November was 14.8 million\"; \"She opened the door, and the dog ran out\" in a narrative)."
+criteria.false = "\"And\" hides a relation. The second clause follows from the first, explains it, depends on it, happens because of it or only after it, or contrasts with it, so \"so\", \"because\", \"once\", \"if\", \"but\", or \"while\" would state the relation. Or the clauses are separate steps, decisions, or requirements that a reader would follow better as two sentences or list items (\"Reviewer's database gets no sessions table, and the owner lookup is removed or changed to read Reviewer's own tables\")."
 
 # An imperative joined by "and" to a clause with its own subject: "drop own-team
 # claps and their vote moves elsewhere". The "and" stands for "if you do this,

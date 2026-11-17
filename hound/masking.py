@@ -43,6 +43,7 @@ _FENCE_RE = re.compile(r"^[ \t]*(```|~~~)[^\n]*\n.*?^[ \t]*\1[^\n]*$", re.M | re
 # Inline code. Documentation quotes phrases in backticks to talk about them, and
 # those must not count as the author using them.
 _INLINE_CODE_RE = re.compile(r"`[^`\n]+`")
+_CODE_PLACEHOLDER_NAME = "Bob"
 # Front matter at the top of the file, plus the per-slide `---` blocks Slidev
 # and Marp put between slides. The YAML structure is never prose, but the values
 # often are: a slide's `heading:`, `lede:` or `callout:` is rendered text the
@@ -117,6 +118,8 @@ class Document:
     prose: str
     blocks: list[Block]
     line_starts: list[int]
+    parse: str
+    code_spans: dict[int, int]
 
     def line_col(self, offset: int) -> tuple[int, int]:
         """1-based line and column for an offset."""
@@ -194,6 +197,7 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
     masked = _blank_matches(masked, _FRONT_MATTER_RE)
     masked, field_lines = _expose_front_matter_values(text, masked)
     masked = _blank_matches(masked, _FENCE_RE)
+    code_spans = {m.start(): m.end() for m in _INLINE_CODE_RE.finditer(masked)}
     masked = _blank_matches(masked, _INLINE_CODE_RE)
     masked = _blank_matches(masked, _HTML_COMMENT_RE)
     masked = _blank_matches(masked, _HTML_TAG_RE)
@@ -206,6 +210,7 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
     line_starts = [0] + [m.end() for m in re.finditer(r"\n", text)]
     blocks: list[Block] = []
     prose_lines: list[str] = []
+    parse_lines: list[str] = []
     masked_lines: list[str] = []
 
     pos = 0
@@ -258,6 +263,7 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
         prose_line = _blank_matches(prose_line, _EMPHASIS_RE)
         prose_lines.append(prose_line)
         masked_lines.append(line)
+        parse_lines.append(prose_line if kind == "quote" and skip_quotes else _name_code(prose_line, line_start, code_spans))
 
         line_end = line_start + len(raw_line)
         if kind is None:
@@ -272,8 +278,17 @@ def build_document(path: str, text: str, skip_quotes: bool = False) -> Document:
 
     prose = "\n".join(prose_lines)
     masked = "\n".join(masked_lines)
-    assert len(prose) == len(text) == len(masked), "views must keep offsets"
-    return Document(path, text, masked, prose, blocks, line_starts)
+    parse = "\n".join(parse_lines)
+    assert len(prose) == len(text) == len(masked) == len(parse), "views must keep offsets"
+    return Document(path, text, masked, prose, blocks, line_starts, parse, code_spans)
+
+
+def _name_code(line: str, line_start: int, code_spans: dict[int, int]) -> str:
+    for start in code_spans:
+        offset = start - line_start
+        if 0 <= offset < len(line):
+            line = line[:offset] + _CODE_PLACEHOLDER_NAME + line[offset + len(_CODE_PLACEHOLDER_NAME) :]
+    return line
 
 
 def _blank_title_labels(text: str) -> str:

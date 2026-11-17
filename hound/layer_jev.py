@@ -98,7 +98,7 @@ def _batches(doc: Document, findings: list[Finding]) -> Iterator[list[tuple[int,
         item = {
             "sentence": doc.prose[first[0]:last[1]],
             "matched_text": doc.prose[finding.start:finding.end],
-            "tokens": [doc.prose[s:e] for s, e in sorted(set(finding.marked_spans()))],
+            "tokens": [doc.prose[s:e] for s, e in sorted(set(finding.marked_spans())) if doc.prose[s:e].strip()],
         }
         batch.append((index, item))
         previous_block = block.start

@@ -312,6 +312,13 @@ def check_spacy_context(engine: Engine) -> list[str]:
     return [] if actual == expected else [f"expected {expected!r}, got {actual!r}"]
 
 
+def check_clause_finding_keeps_inner_findings(engine: Engine) -> list[str]:
+    text = "The config now carries the line, and `AGENTS.md` is regenerated."
+    found = {finding.rule.id for finding in _lint_snippet(engine, text)}
+    missing = {"verb.carries", "verb.and-splice"} - found
+    return [f"{sorted(missing)} missing from {sorted(found)}"] if missing else []
+
+
 def main(argv: list[str], rules_dir: Path | None = None) -> int:
     verbose = "-v" in argv or "--verbose" in argv
     started = time.monotonic()
@@ -345,6 +352,7 @@ def main(argv: list[str], rules_dir: Path | None = None) -> int:
         report("severity-aliases", check_severity_aliases())
         report("regex-context", check_regex_context(engine))
         report("spacy-context", check_spacy_context(engine))
+        report("clause-finding-keeps-inner-findings", check_clause_finding_keeps_inner_findings(engine))
         report("corpus", check_corpus(engine))
         report("own-docs", check_own_docs(engine))
     except Exception:
