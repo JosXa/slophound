@@ -9,7 +9,7 @@ Run the linter before the editorial review. Keep the reference files closed unti
 
 ## 1. Lint and revise
 
-Write the draft to a file, then run:
+Write the draft to a file and run the command below. For a sentence or two, pipe the text on stdin and leave out the file name.
 
 ```sh
 uvx --python 3.13 --from 'git+ssh://git@github.com/JosXa/slophound.git' slophound draft.md
