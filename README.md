@@ -236,7 +236,7 @@ model = "microsoft-decision-1"
 api_key_env = "LITELLM_API_KEY"
 ```
 
-Slophound posts to `{base_url}/decisions`. Use `api_key` to store the key in the file, or `api_key_env` to name the environment variable that holds it. Omit both for an endpoint without authentication. `timeout` sets the seconds per request (default 10). While the table exists, every Jev check and `--check-references` use this model and the Jev key is ignored. The rule thresholds were calibrated with Jev, so another model can keep or clear a few borderline findings differently.
+Slophound posts to `{base_url}/decisions`. Use `api_key` to store the key in the file, or `api_key_env` to name the environment variable to read the key from. Omit both for an endpoint without authentication. `timeout` sets the seconds per request (default 10). While the table exists, every Jev check and `--check-references` use this model and the Jev key is ignored. The rule thresholds were calibrated with Jev, so another model can keep or clear a few borderline findings differently.
 
 For each eligible finding, Slophound sends the matched text, the selected words, and the sentence or sentences containing them to TypeSafe. Requests contain at most six findings from the same paragraph or list item. Inline code is sent as written. Code blocks and URLs stay masked, and context longer than 2,000 characters keeps its finding without a request. If credentials or a request fail, the document keeps its deterministic findings. Jev only removes findings, at whatever severity the rule carries. A bark it clears no longer fails `--strict`.
 
